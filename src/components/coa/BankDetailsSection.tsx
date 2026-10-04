@@ -6,8 +6,8 @@ import { BANK_ACCOUNT_TYPES } from '../../constants/accountsTypeTree';
 
 interface BankDetailsSectionProps {
   detailsType?: string;
-  bankDetails?: BankDetails;
-  onChange: (details: BankDetails) => void;
+  bankDetails?: Partial<BankDetails>;
+  onChange: (details: Partial<BankDetails>) => void;
   errors?: {
     bankName?: string;
     accountNumber?: string;
