@@ -1,0 +1,488 @@
+import { Account } from '../types/coa';
+
+export const INITIAL_ACCOUNTS: Account[] = [
+  // ── LEVEL 1: Assets (Asstes in sheet) ──
+  {
+    id: 'acc-01',
+    name: 'Assets',
+    nameRaw: 'Asstes', // verbatim typo from sheet preserved
+    code: '010000000000',
+    accountsType: 'Fixed Assets',
+    nature: 'Assets',
+    parentId: null,
+    level: 1,
+    path: ['Assets'],
+    description: 'Economic resources owned by the entity',
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: true,
+    defaultCurrency: 'BDT',
+  },
+  // ── LEVEL 2: Current Assets ──
+  {
+    id: 'acc-01-01',
+    name: 'Current Assets',
+    code: '010100000000',
+    accountsType: 'Cash & Cash Equivalent',
+    nature: 'Assets',
+    parentId: 'acc-01',
+    level: 2,
+    path: ['Assets', 'Current Assets'],
+    description: 'Assets expected to be converted to cash within one operating cycle',
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: true,
+    defaultCurrency: 'BDT',
+  },
+  // ── LEVEL 3: Cash & Cash Equivalent ──
+  {
+    id: 'acc-01-01-01',
+    name: 'Cash & Cash Equivalent',
+    code: '010101000000',
+    accountsType: 'Cash & Cash Equivalent',
+    nature: 'Assets',
+    parentId: 'acc-01-01',
+    level: 3,
+    path: ['Assets', 'Current Assets', 'Cash & Cash Equivalent'],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: true,
+    defaultCurrency: 'BDT',
+  },
+  // ── LEVEL 4: Cash in Hand ──
+  {
+    id: 'acc-01-01-01-01',
+    name: 'Cash in Hand',
+    code: '010101010000',
+    accountsType: 'Cash & Cash Equivalent',
+    nature: 'Assets',
+    parentId: 'acc-01-01-01',
+    level: 4,
+    path: ['Assets', 'Current Assets', 'Cash & Cash Equivalent', 'Cash in Hand'],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: true,
+    defaultCurrency: 'BDT',
+  },
+  // ── LEVEL 5: Petty Cash in Hand ──
+  {
+    id: 'acc-01-01-01-01-01',
+    name: 'Petty Cash in Hand',
+    code: '010101010100',
+    accountsType: 'Cash & Cash Equivalent',
+    nature: 'Assets',
+    parentId: 'acc-01-01-01-01',
+    level: 5,
+    path: [
+      'Assets',
+      'Current Assets',
+      'Cash & Cash Equivalent',
+      'Cash in Hand',
+      'Petty Cash in Hand',
+    ],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: false,
+    defaultCurrency: 'BDT',
+    detailsType: 'Cash',
+  },
+  // ── LEVEL 5: General Cash in Hand ──
+  {
+    id: 'acc-01-01-01-01-02',
+    name: 'General Cash in Hand',
+    code: '010101010200',
+    accountsType: 'Cash & Cash Equivalent',
+    nature: 'Assets',
+    parentId: 'acc-01-01-01-01',
+    level: 5,
+    path: [
+      'Assets',
+      'Current Assets',
+      'Cash & Cash Equivalent',
+      'Cash in Hand',
+      'General Cash in Hand',
+    ],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: false,
+    defaultCurrency: 'BDT',
+    detailsType: 'Cash',
+  },
+  // ── LEVEL 4: Cash at Bank ──
+  {
+    id: 'acc-01-01-01-02',
+    name: 'Cash at Bank',
+    code: '010101020000',
+    accountsType: 'Cash & Cash Equivalent',
+    nature: 'Assets',
+    parentId: 'acc-01-01-01',
+    level: 4,
+    path: ['Assets', 'Current Assets', 'Cash & Cash Equivalent', 'Cash at Bank'],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: true,
+    defaultCurrency: 'BDT',
+  },
+  // ── LEVEL 5: Cash at Bank BDT ──
+  {
+    id: 'acc-01-01-01-02-01',
+    name: 'Cash at Bank BDT',
+    code: '010101020100',
+    accountsType: 'Cash & Cash Equivalent',
+    nature: 'Assets',
+    parentId: 'acc-01-01-01-02',
+    level: 5,
+    path: [
+      'Assets',
+      'Current Assets',
+      'Cash & Cash Equivalent',
+      'Cash at Bank',
+      'Cash at Bank BDT',
+    ],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: true,
+    defaultCurrency: 'BDT',
+  },
+  // ── LEVEL 6: Cash at Bank DBBL ──
+  {
+    id: 'acc-01-01-01-02-01-01',
+    name: 'Cash at Bank DBBL',
+    code: '010101020101',
+    manualCode: '111000',
+    accountsType: 'Cash & Cash Equivalent',
+    nature: 'Assets',
+    parentId: 'acc-01-01-01-02-01',
+    level: 6,
+    path: [
+      'Assets',
+      'Current Assets',
+      'Cash & Cash Equivalent',
+      'Cash at Bank',
+      'Cash at Bank BDT',
+      'Cash at Bank DBBL',
+    ],
+    description: 'Dutch Bangla Bank corporate current account',
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: false,
+    defaultCurrency: 'BDT',
+    detailsType: 'Bank',
+    bankDetails: {
+      bankName: 'Dutch Bangla Bank Lt.',
+      accountNumber: '100001122',
+      accountType: 'CD',
+    },
+    aux: {
+      supplier: 'Bismillah Motors',
+    },
+  },
+  // ── LEVEL 6: Cash at Bank MTB ──
+  {
+    id: 'acc-01-01-01-02-01-02',
+    name: 'Cash at Bank MTB',
+    code: '010101020102',
+    accountsType: 'Cash & Cash Equivalent',
+    nature: 'Assets',
+    parentId: 'acc-01-01-01-02-01',
+    level: 6,
+    path: [
+      'Assets',
+      'Current Assets',
+      'Cash & Cash Equivalent',
+      'Cash at Bank',
+      'Cash at Bank BDT',
+      'Cash at Bank MTB',
+    ],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: false,
+    defaultCurrency: 'BDT',
+    detailsType: 'Bank',
+    bankDetails: {
+      bankName: 'Mutual Trust Bank Ltd.',
+      accountNumber: '200004455',
+      accountType: 'CD',
+    },
+  },
+  // ── LEVEL 5: Cash at Bank FC ──
+  {
+    id: 'acc-01-01-01-02-02',
+    name: 'Cash at Bank FC',
+    code: '010101020200',
+    accountsType: 'Cash & Cash Equivalent',
+    nature: 'Assets',
+    parentId: 'acc-01-01-01-02',
+    level: 5,
+    path: [
+      'Assets',
+      'Current Assets',
+      'Cash & Cash Equivalent',
+      'Cash at Bank',
+      'Cash at Bank FC',
+    ],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: true,
+    defaultCurrency: 'BDT',
+  },
+  // ── LEVEL 6: Cash at Bank DBBL(FC) ──
+  {
+    id: 'acc-01-01-01-02-02-01',
+    name: 'Cash at Bank DBBL(FC)',
+    code: '010101020201',
+    accountsType: 'Cash & Cash Equivalent',
+    nature: 'Assets',
+    parentId: 'acc-01-01-01-02-02',
+    level: 6,
+    path: [
+      'Assets',
+      'Current Assets',
+      'Cash & Cash Equivalent',
+      'Cash at Bank',
+      'Cash at Bank FC',
+      'Cash at Bank DBBL(FC)',
+    ],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: false,
+    defaultCurrency: 'BDT',
+    detailsType: 'Bank',
+    bankDetails: {
+      bankName: 'Dutch Bangla Bank Lt. (FC)',
+      accountNumber: '900003311',
+      accountType: 'CD',
+    },
+  },
+  // ── LEVEL 6: Cash at Bank MTB(FC) ──
+  {
+    id: 'acc-01-01-01-02-02-02',
+    name: 'Cash at Bank MTB(FC)',
+    code: '010101020202',
+    accountsType: 'Cash & Cash Equivalent',
+    nature: 'Assets',
+    parentId: 'acc-01-01-01-02-02',
+    level: 6,
+    path: [
+      'Assets',
+      'Current Assets',
+      'Cash & Cash Equivalent',
+      'Cash at Bank',
+      'Cash at Bank FC',
+      'Cash at Bank MTB(FC)',
+    ],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: false,
+    defaultCurrency: 'BDT',
+    detailsType: 'Bank',
+    bankDetails: {
+      bankName: 'Mutual Trust Bank Ltd. (FC)',
+      accountNumber: '900003322',
+      accountType: 'CD',
+    },
+  },
+
+  // ── LEVEL 1: Liabilities ──
+  {
+    id: 'acc-02',
+    name: 'Liabilities',
+    code: '020000000000',
+    accountsType: 'Trade and Other Payables',
+    nature: 'Liabilities',
+    parentId: null,
+    level: 1,
+    path: ['Liabilities'],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: true,
+    defaultCurrency: 'BDT',
+  },
+  {
+    id: 'acc-02-01',
+    name: 'Current Liabilities',
+    code: '020100000000',
+    accountsType: 'Trade and Other Payables',
+    nature: 'Liabilities',
+    parentId: 'acc-02',
+    level: 2,
+    path: ['Liabilities', 'Current Liabilities'],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: true,
+    defaultCurrency: 'BDT',
+  },
+  {
+    id: 'acc-02-01-01',
+    name: 'Accounts Payable',
+    code: '020101000000',
+    accountsType: 'Trade and Other Payables',
+    nature: 'Liabilities',
+    parentId: 'acc-02-01',
+    level: 3,
+    path: ['Liabilities', 'Current Liabilities', 'Accounts Payable'],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: true,
+    defaultCurrency: 'BDT',
+  },
+  {
+    id: 'acc-02-01-01-01',
+    name: 'Trade Creditors - Local Vendors',
+    code: '020101010000',
+    accountsType: 'Trade and Other Payables',
+    nature: 'Liabilities',
+    parentId: 'acc-02-01-01',
+    level: 4,
+    path: ['Liabilities', 'Current Liabilities', 'Accounts Payable', 'Trade Creditors - Local Vendors'],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: false,
+    defaultCurrency: 'BDT',
+    detailsType: 'Accounts Payable',
+  },
+
+  // ── LEVEL 1: Equity ──
+  {
+    id: 'acc-03',
+    name: 'Equity',
+    code: '030000000000',
+    accountsType: 'Share Equity',
+    nature: 'Equity',
+    parentId: null,
+    level: 1,
+    path: ['Equity'],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: true,
+    defaultCurrency: 'BDT',
+  },
+  {
+    id: 'acc-03-01',
+    name: 'Share Equity',
+    code: '030100000000',
+    accountsType: 'Share Equity',
+    nature: 'Equity',
+    parentId: 'acc-03',
+    level: 2,
+    path: ['Equity', 'Share Equity'],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: false,
+    defaultCurrency: 'BDT',
+  },
+
+  // ── LEVEL 1: Income ──
+  {
+    id: 'acc-04',
+    name: 'Income',
+    code: '040000000000',
+    accountsType: 'Sales Revenue',
+    nature: 'Income',
+    parentId: null,
+    level: 1,
+    path: ['Income'],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: true,
+    defaultCurrency: 'BDT',
+  },
+  {
+    id: 'acc-04-01',
+    name: 'Operating Income',
+    code: '040100000000',
+    accountsType: 'Sales Revenue',
+    nature: 'Income',
+    parentId: 'acc-04',
+    level: 2,
+    path: ['Income', 'Operating Income'],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: true,
+    defaultCurrency: 'BDT',
+  },
+  {
+    id: 'acc-04-01-01',
+    name: 'Sales Revenue - Local Sales',
+    code: '040101000000',
+    accountsType: 'Sales Revenue',
+    nature: 'Income',
+    parentId: 'acc-04-01',
+    level: 3,
+    path: ['Income', 'Operating Income', 'Sales Revenue - Local Sales'],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: false,
+    defaultCurrency: 'BDT',
+  },
+
+  // ── LEVEL 1: Expenses ──
+  {
+    id: 'acc-05',
+    name: 'Expenses',
+    code: '050000000000',
+    accountsType: 'Cost of Revenue',
+    nature: 'Expenses',
+    parentId: null,
+    level: 1,
+    path: ['Expenses'],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: true,
+    defaultCurrency: 'BDT',
+  },
+  {
+    id: 'acc-05-01',
+    name: 'Cost of Revenue',
+    code: '050100000000',
+    accountsType: 'Cost of Revenue',
+    nature: 'Expenses',
+    parentId: 'acc-05',
+    level: 2,
+    path: ['Expenses', 'Cost of Revenue'],
+    activeStatus: 'Active',
+    companyName: 'Pakiza Software Ltd.',
+    isParent: false,
+    defaultCurrency: 'BDT',
+    detailsType: 'Cost of Raw Materials',
+  },
+];
+
+const LOCAL_STORAGE_KEY = 'pakiza_accounts_coa_v1';
+const TAXONOMY_EXTRA_DETAILS_KEY = 'pakiza_accounts_extra_details_types_v1';
+
+export function getStoredAccounts(): Account[] {
+  try {
+    const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (data) {
+      return JSON.parse(data);
+    }
+  } catch (e) {
+    console.error('Failed to load accounts from localStorage', e);
+  }
+  return INITIAL_ACCOUNTS;
+}
+
+export function saveStoredAccounts(accounts: Account[]): void {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(accounts));
+  } catch (e) {
+    console.error('Failed to save accounts to localStorage', e);
+  }
+}
+
+export function getStoredExtraDetailsTypes(): string[] {
+  try {
+    const data = localStorage.getItem(TAXONOMY_EXTRA_DETAILS_KEY);
+    if (data) {
+      return JSON.parse(data);
+    }
+  } catch (e) {}
+  return [];
+}
+
+export function saveStoredExtraDetailsTypes(types: string[]): void {
+  try {
+    localStorage.setItem(TAXONOMY_EXTRA_DETAILS_KEY, JSON.stringify(types));
+  } catch (e) {}
+}
