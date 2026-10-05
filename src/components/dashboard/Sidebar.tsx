@@ -120,9 +120,9 @@ export const nav: NavItem[] = [
     icon: Landmark,
     subitems: [
       { label: "Bank Master Setup", to: "/bank-management/bank-master-setup" },
-      { label: "Cheque Setup", to: "/cheques/books" },
-      { label: "Cheque Preparation & Payment", to: "/cheques/prepare/direct" },
-      { label: "Cheque Book Register", to: "/cheques/register" },
+      { label: "Cheque Setup", to: "/cheque-setup" },
+      { label: "Cheque Preparation & Payment", to: "/cheque-prepare/direct" },
+      { label: "Cheque Book Register", to: "/cheque-prepare/register" },
       { label: "Bank Reconciliation", to: "/bank-management/bank-reconciliation" },
     ],
   },

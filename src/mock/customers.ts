@@ -1,3 +1,4 @@
+export type { Customer } from '../types/customer';
 import { Customer } from '../types/customer';
 
 export const MOCK_CUSTOMERS: Customer[] = [

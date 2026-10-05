@@ -177,7 +177,7 @@ export const BookSetupFormPage: React.FC = () => {
         await addBook(payload);
         toast.success(`Cheque book "${bookName}" created with ${cheques.length} leaves`);
       }
-      navigate('/cheques/books');
+      navigate('/cheque-setup');
     } catch (err: any) {
       toast.error(err?.message || 'Failed to save cheque book');
     } finally {
@@ -271,7 +271,7 @@ export const BookSetupFormPage: React.FC = () => {
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5 max-w-sm mx-auto">
                 Fill in the First Cheque No and Number of Cheques above, then click{' '}
-                <strong className="text-indigo-600">"ADD &gt;&gt;"</strong> to auto-populate leaves.
+                <strong className="text-primary">"ADD &gt;&gt;"</strong> to auto-populate leaves.
               </p>
               {errors.cheques && (
                 <p className="text-xs text-rose-500 font-bold mt-2">{errors.cheques}</p>
@@ -283,7 +283,7 @@ export const BookSetupFormPage: React.FC = () => {
           <div className="flex items-center justify-between pt-4 border-t border-border mt-6">
             <button
               type="button"
-              onClick={() => navigate('/cheques/books')}
+              onClick={() => navigate('/cheque-setup')}
               className="px-4 py-2 rounded-lg border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
             >
               Cancel
@@ -292,7 +292,7 @@ export const BookSetupFormPage: React.FC = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center gap-1.5 px-6 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs hover:shadow transition-all disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-6 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-sm shadow-primary/20 transition-all disabled:opacity-50 cursor-pointer active:scale-95"
             >
               {submitting ? (
                 <>

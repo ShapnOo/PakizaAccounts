@@ -1,6 +1,7 @@
 import { delay } from '../lib/delay';
 import { MOCK_COA_BANK_ACCOUNTS, CoaBankAccount } from '../mock/coaBankAccounts';
-import { INITIAL_ACCOUNTS, CoaAccount } from '../mock/accounts';
+import { INITIAL_ACCOUNTS } from '../mock/accounts';
+import { Account } from '../types/coa';
 import { MOCK_SUPPLIERS, Supplier } from '../mock/suppliers';
 import { MOCK_EMPLOYEES, Employee } from '../mock/employees';
 import { MOCK_CUSTOMERS, Customer } from '../mock/customers';
@@ -13,7 +14,7 @@ export async function listCoaBankAccounts(): Promise<CoaBankAccount[]> {
   return MOCK_COA_BANK_ACCOUNTS;
 }
 
-export async function listCoaAccounts(): Promise<CoaAccount[]> {
+export async function listCoaAccounts(): Promise<Account[]> {
   await delay(150);
   return INITIAL_ACCOUNTS;
 }

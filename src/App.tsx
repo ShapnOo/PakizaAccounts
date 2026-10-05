@@ -239,9 +239,23 @@ export default function App() {
                   <Route path="/cheques/:preparedId/print" element={<ChequePrintPage />} />
                   <Route path="/cheques/register" element={<RegisterPage />} />
 
+                  {/* Menu 1: Cheque Setup routes */}
+                  <Route path="/cheque-setup" element={<BookListPage />} />
+                  <Route path="/cheque-setup/new" element={<BookSetupFormPage />} />
+                  <Route path="/cheque-setup/:id/edit" element={<BookSetupFormPage />} />
+
+                  {/* Menu 2: Cheque Prepare routes */}
+                  <Route path="/cheque-prepare" element={<Navigate to="/cheque-prepare/direct" replace />} />
+                  <Route path="/cheque-prepare/direct" element={<PrepareDirectPage />} />
+                  <Route path="/cheque-prepare/bill" element={<PrepareBillPage />} />
+                  <Route path="/cheque-prepare/iou" element={<PrepareIouPage />} />
+                  <Route path="/cheque-prepare/:preparedId/print" element={<ChequePrintPage />} />
+                  <Route path="/cheque-prepare/register" element={<RegisterPage />} />
+
                   {/* Bank Management Sub-routes aliases */}
-                  <Route path="/bank-management/cheque-setup" element={<Navigate to="/cheques/books" replace />} />
-                  <Route path="/bank-management/cheque-preparation-payment" element={<Navigate to="/cheques/prepare/direct" replace />} />
+                  <Route path="/bank-management/cheque-setup" element={<Navigate to="/cheque-setup" replace />} />
+                  <Route path="/bank-management/cheque-preparation-payment" element={<Navigate to="/cheque-prepare/direct" replace />} />
+                  <Route path="/bank-management/cheque-book-register" element={<Navigate to="/cheque-prepare/register" replace />} />
 
                   <Route path="*" element={<ContentArea />} />
                 </Routes>

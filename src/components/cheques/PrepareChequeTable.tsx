@@ -388,8 +388,8 @@ export const PrepareChequeTable: React.FC<PrepareChequeTableProps> = ({
                         >
                           <option value="">-- Select Customer --</option>
                           {customers.map((c) => (
-                            <option key={c.id} value={c.name}>
-                              {c.name}
+                            <option key={c.id} value={c.customerName}>
+                              {c.customerName}
                             </option>
                           ))}
                         </select>

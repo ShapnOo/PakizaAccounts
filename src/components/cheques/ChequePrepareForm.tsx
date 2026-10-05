@@ -300,26 +300,35 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
         const posted = postVoucherEntry({
           id: `vch-${Date.now()}`,
           voucherNumber: `VCH-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
-          voucherType: voucherType,
+          voucherType:
+            voucherType === 'Contra'
+              ? 'Contra Voucher'
+              : voucherType === 'Journal'
+              ? 'Journal Voucher'
+              : 'Payment Voucher',
           date: voucherDate,
-          company: 'Pakiza Software Ltd.',
-          fiscalYear: '2025-2026',
-          status: 'Posted',
-          narration: narration || `Cheque disbursement for ${sourceType} payment`,
-          totalDebit: totalAmount,
-          totalCredit: totalAmount,
-          items: lines.map((line, idx) => ({
-            id: `item-${idx + 1}`,
-            accountId: line.glAccountId,
-            accountCode: '2011',
-            accountName: line.name || line.payTo || 'Accounts Payable',
+          headerAccountId: accountsBankId,
+          headerAccountName: bankName,
+          lines: lines.map((line, idx) => ({
+            id: `line-${idx + 1}`,
+            accountHeadId: line.glAccountId,
+            accountHeadName: line.name || line.payTo || 'Accounts Payable',
+            currency: 'BDT',
+            exchangeRate: 1,
             debit: line.amount,
             credit: 0,
-            narration: `CQ No: ${line.chequeNo} | Pay to: ${line.payTo}`,
+            debitBDT: line.amount,
+            creditBDT: 0,
+            description: `CQ No: ${line.chequeNo} | Pay to: ${line.payTo}`,
           })),
+          narration: narration || `Cheque disbursement for ${sourceType} payment`,
+          totals: {
+            debit: totalAmount,
+            credit: totalAmount,
+            debitBDT: totalAmount,
+            creditBDT: totalAmount,
+          },
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          createdBy: 'Riazul Islam',
         });
         createdVoucherId = posted.id;
         setLastVoucherId(posted.id);
