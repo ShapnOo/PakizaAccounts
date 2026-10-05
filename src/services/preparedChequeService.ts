@@ -1,38 +1,66 @@
-import { PreparedCheque } from '../types/cheque';
+import { ChequePrepare, PrepareLine } from '../types/chequePrepare';
 import { MOCK_PREPARED_CHEQUES } from '../mock/preparedCheques';
 import { delay } from '../lib/delay';
-import { markChequeUsed, markChequeUnused } from './chequeBookService';
+import { listChequeBooks, updateChequeBook } from './chequeBookService';
 
 const LS_PREP = 'prepared-cheques';
 
-export async function listPreparedCheques(): Promise<PreparedCheque[]> {
+// Normalize seed data to multi-line model if needed
+function normalizePreparedList(items: any[]): ChequePrepare[] {
+  return items.map((item) => {
+    if (item.lines && Array.isArray(item.lines) && item.lines.length > 0) {
+      return item as ChequePrepare;
+    }
+    // Convert legacy single-line item to multi-line
+    const line: PrepareLine = {
+      id: `line-${item.id || '1'}`,
+      chequeType: item.chequeType || 'AC Payee',
+      chequeNo: item.chequeNo || '',
+      chequeDate: item.chequeDate || '',
+      payTo: item.payTo || '',
+      chequeFor: item.chequeFor,
+      name: item.partyName || item.name,
+      glAccountId: item.glAccountId || 'acc-02-01-01-01',
+      amount: item.amount || 0,
+    };
+    return {
+      ...item,
+      lines: [line],
+    } as ChequePrepare;
+  });
+}
+
+export async function listPreparedCheques(): Promise<ChequePrepare[]> {
   await delay(250);
   const raw = localStorage.getItem(LS_PREP);
   if (!raw) {
-    localStorage.setItem(LS_PREP, JSON.stringify(MOCK_PREPARED_CHEQUES));
-    return MOCK_PREPARED_CHEQUES;
+    const normalized = normalizePreparedList(MOCK_PREPARED_CHEQUES);
+    localStorage.setItem(LS_PREP, JSON.stringify(normalized));
+    return normalized;
   }
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return normalizePreparedList(parsed);
   } catch (e) {
-    return MOCK_PREPARED_CHEQUES;
+    const normalized = normalizePreparedList(MOCK_PREPARED_CHEQUES);
+    return normalized;
   }
 }
 
-export async function getPreparedCheque(id: string): Promise<PreparedCheque | null> {
+export async function getPreparedCheque(id: string): Promise<ChequePrepare | null> {
   await delay(200);
   const list = await listPreparedCheques();
   return list.find((p) => p.id === id) ?? null;
 }
 
 export async function createPreparedCheque(
-  payload: Omit<PreparedCheque, 'id' | 'createdAt'>
-): Promise<PreparedCheque> {
+  payload: Omit<ChequePrepare, 'id' | 'createdAt'>
+): Promise<ChequePrepare> {
   await delay(450);
   const all = await listPreparedCheques();
   const now = new Date().toISOString();
 
-  const next: PreparedCheque = {
+  const next: ChequePrepare = {
     ...payload,
     id: `prep-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
     createdAt: now,
@@ -41,8 +69,22 @@ export async function createPreparedCheque(
   const updated = [next, ...all];
   localStorage.setItem(LS_PREP, JSON.stringify(updated));
 
-  // Mark the cheque as used in the underlying book
-  await markChequeUsed(payload.chequeBookId, payload.chequeNo, next.id);
+  // Mark all cheque numbers in payload as used in their corresponding books
+  const books = await listChequeBooks();
+  for (const line of payload.lines) {
+    if (!line.chequeNo) continue;
+    const targetBook = books.find((b) =>
+      b.cheques.some((c) => c.chequeNo === line.chequeNo)
+    );
+    if (targetBook) {
+      const patchedCheques = targetBook.cheques.map((c) =>
+        c.chequeNo === line.chequeNo
+          ? { ...c, used: true, usedOnVoucherId: next.voucherId || next.id }
+          : c
+      );
+      await updateChequeBook(targetBook.id, { cheques: patchedCheques });
+    }
+  }
 
   return next;
 }
@@ -56,8 +98,22 @@ export async function voidPreparedCheque(id: string): Promise<void> {
     throw new Error('Prepared cheque record not found');
   }
 
-  // Free up the cheque number in its book (used -> false)
-  await markChequeUnused(target.chequeBookId, target.chequeNo);
+  // Free up all cheque numbers across all lines in this record
+  const books = await listChequeBooks();
+  for (const line of target.lines || []) {
+    if (!line.chequeNo) continue;
+    const targetBook = books.find((b) =>
+      b.cheques.some((c) => c.chequeNo === line.chequeNo)
+    );
+    if (targetBook) {
+      const patchedCheques = targetBook.cheques.map((c) =>
+        c.chequeNo === line.chequeNo
+          ? { ...c, used: false, usedOnVoucherId: undefined }
+          : c
+      );
+      await updateChequeBook(targetBook.id, { cheques: patchedCheques });
+    }
+  }
 
   // Remove from register
   const remaining = all.filter((p) => p.id !== id);

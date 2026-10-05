@@ -1,15 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { SourceType, ChequeFor, ChequeType, ChequeBook, ChequeEntry } from '../../types/cheque';
+import {
+  SourceType,
+  ChequeFor,
+  ChequeType,
+  PrepareLine,
+  ChequePrepare,
+} from '../../types/chequePrepare';
+import { ChequeBook } from '../../types/cheque';
 import { useChequeBookStore } from '../../stores/chequeBookStore';
-import { usePreparedChequeStore } from '../../stores/preparedChequeStore';
-import { preparedChequeSchema, PreparedChequeFormValues } from '../../lib/validation/cheque';
+import { useChequePrepareStore } from '../../stores/preparedChequeStore';
+import { useVouchers } from '../../context/VoucherContext';
+import {
+  chequePrepareSchema,
+  ChequePrepareFormValues,
+} from '../../lib/validation/chequePrepare';
+import { buildAutoNarration } from '../../lib/autoNarration';
+import { useColumnVisibility } from './ColumnTogglePopover';
 
+import { PrepareSubNav } from './PrepareSubNav';
 import { BankInfoBlock } from './BankInfoBlock';
 import { BillInfoBlock } from './BillInfoBlock';
 import { IouInfoBlock } from './IouInfoBlock';
-import { PrepareChequeBlock } from './PrepareChequeBlock';
+import { PrepareChequeTable } from './PrepareChequeTable';
 import { BuildJournalBlock } from './BuildJournalBlock';
 import { PrepareActionBar } from './PrepareActionBar';
 import { CoaBankAccount } from '../../mock/coaBankAccounts';
@@ -23,13 +37,18 @@ interface ChequePrepareFormProps {
 export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType }) => {
   const navigate = useNavigate();
   const { books, loadBooks } = useChequeBookStore();
-  const { addPrepared } = usePreparedChequeStore();
+  const { add: addPreparedCheque } = useChequePrepareStore();
+  const { postVoucherEntry } = useVouchers();
 
   const [isSaving, setIsSaving] = useState(false);
   const [lastSavedChequeId, setLastSavedChequeId] = useState<string | null>(null);
+  const [lastVoucherId, setLastVoucherId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
-  // 1. Bank Info State
+  // Column visibility hook (persisted in localStorage per sourceType)
+  const { columns, updateColumns } = useColumnVisibility(sourceType);
+
+  // 1. Bank & Source Header State
   const [accountsBankId, setAccountsBankId] = useState('');
   const [bankName, setBankName] = useState('');
   const [bookId, setBookId] = useState('');
@@ -48,22 +67,28 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
   const [balance, setBalance] = useState(0);
   const [payAmount, setPayAmount] = useState(0);
 
-  // 3. Prepare Cheque State
-  const [chequeType, setChequeType] = useState<ChequeType>('AC Payee');
-  const [chequeNo, setChequeNo] = useState('');
-  const [chequeDate, setChequeDate] = useState(new Date().toISOString().split('T')[0]);
-  const [payTo, setPayTo] = useState('');
-  const [glAccountId, setGlAccountId] = useState(
-    sourceType === 'direct' ? '' : 'acc-02-01-01-01' // Default Accounts Payable
-  );
-  const [amount, setAmount] = useState(0);
+  // 3. Prepare Lines State (Direct: 1..N; Bill/IOU: 1)
+  const [lines, setLines] = useState<PrepareLine[]>([
+    {
+      id: `line-${Date.now()}-init`,
+      chequeType: 'AC Payee',
+      chequeNo: '',
+      chequeDate: new Date().toISOString().split('T')[0],
+      payTo: '',
+      chequeFor: sourceType === 'iou' ? 'Employee' : 'Supplier',
+      name: '',
+      glAccountId: 'acc-02-01-01-01',
+      amount: 0,
+    },
+  ]);
 
   // 4. Build Journal State
   const [voucherDate, setVoucherDate] = useState(new Date().toISOString().split('T')[0]);
-  const [voucherType, setVoucherType] = useState('Payment Voucher');
+  const [voucherType, setVoucherType] = useState('Bank Payment');
   const [narration, setNarration] = useState('');
+  const [isAutoNarrationOverridden, setIsAutoNarrationOverridden] = useState(false);
 
-  // Initial load
+  // Initial books load
   useEffect(() => {
     loadBooks();
   }, [loadBooks]);
@@ -71,12 +96,31 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
   // Selected book reference
   const currentBook = books.find((b) => b.id === bookId) || null;
 
+  // Auto-narration for Direct payment (RULE CP7, CP8, N.B. #2)
+  useEffect(() => {
+    if (sourceType === 'direct' && !isAutoNarrationOverridden && lines[0]) {
+      const autoText = buildAutoNarration({
+        name: lines[0].name,
+        chequeFor: lines[0].chequeFor,
+        chequeNo: lines[0].chequeNo,
+        chequeDate: lines[0].chequeDate,
+      });
+      setNarration(autoText);
+    }
+  }, [
+    sourceType,
+    isAutoNarrationOverridden,
+    lines[0]?.name,
+    lines[0]?.chequeFor,
+    lines[0]?.chequeNo,
+    lines[0]?.chequeDate,
+  ]);
+
   // Handle Account change -> auto-populates bankName and selects default book
   const handleAccountChange = (acc: CoaBankAccount | null) => {
     if (acc) {
       setAccountsBankId(acc.id);
       setBankName(acc.bankName);
-      // Auto-select first matching book if available
       const matchingBook = books.find((b) => b.accountsBankId === acc.id);
       if (matchingBook) {
         setBookId(matchingBook.id);
@@ -88,38 +132,27 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
       setBankName('');
       setBookId('');
     }
-    setChequeNo('');
+    // Clear chequeNo in lines
+    setLines((prev) => prev.map((l) => ({ ...l, chequeNo: '' })));
   };
 
-  // Handle Cheque for change
-  const handleChequeForChange = (newFor: ChequeFor) => {
-    setChequeFor(newFor);
-    setPartyName('');
-    setPayTo('');
-    setSelectedSupplierId(undefined);
-    setSelectedEmployeeId(undefined);
-    setBillNo('');
-    setBillDate('');
-    setBillValue(0);
-    setPrevPaid(0);
-    setBalance(0);
-    setPayAmount(0);
-    if (sourceType !== 'direct') {
-      setAmount(0);
-    }
-  };
-
-  // Handle Party Selection
+  // Handle Party Selection (Bill/IOU)
   const handlePartyNameChange = (
     name: string,
     extra?: { supplierId?: string; employeeId?: string }
   ) => {
     setPartyName(name);
-    if (!payTo) {
-      setPayTo(name);
-    }
     if (extra?.supplierId) setSelectedSupplierId(extra.supplierId);
     if (extra?.employeeId) setSelectedEmployeeId(extra.employeeId);
+
+    // Sync line payTo and name
+    setLines((prev) => [
+      {
+        ...prev[0],
+        payTo: name,
+        name: name,
+      },
+    ]);
   };
 
   // Handle Bill Selection
@@ -132,7 +165,7 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
       const rem = bill.billValue - bill.prevPaid;
       setBalance(rem);
       setPayAmount(rem);
-      setAmount(rem); // Rule CH10: locked to Pay amount
+      setLines((prev) => [{ ...prev[0], amount: rem }]);
     } else {
       setBillNo('');
       setBillDate('');
@@ -140,7 +173,7 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
       setPrevPaid(0);
       setBalance(0);
       setPayAmount(0);
-      setAmount(0);
+      setLines((prev) => [{ ...prev[0], amount: 0 }]);
     }
   };
 
@@ -154,7 +187,7 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
       const rem = iou.reqValue - iou.prevPaid;
       setBalance(rem);
       setPayAmount(rem);
-      setAmount(rem); // Rule CH10: locked to Pay amount
+      setLines((prev) => [{ ...prev[0], amount: rem }]);
     } else {
       setBillNo('');
       setBillDate('');
@@ -162,52 +195,95 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
       setPrevPaid(0);
       setBalance(0);
       setPayAmount(0);
-      setAmount(0);
+      setLines((prev) => [{ ...prev[0], amount: 0 }]);
     }
   };
 
   // When pay amount changes in bill/iou
   const handlePayAmountChange = (newVal: number) => {
     setPayAmount(newVal);
-    setAmount(newVal); // Mirrors Pay amount (locked)
+    setLines((prev) => [{ ...prev[0], amount: newVal }]);
+  };
+
+  // Reset form
+  const handleResetForm = () => {
+    setLines([
+      {
+        id: `line-${Date.now()}-reset`,
+        chequeType: 'AC Payee',
+        chequeNo: '',
+        chequeDate: new Date().toISOString().split('T')[0],
+        payTo: '',
+        chequeFor: sourceType === 'iou' ? 'Employee' : 'Supplier',
+        name: '',
+        glAccountId: 'acc-02-01-01-01',
+        amount: 0,
+      },
+    ]);
+    setPartyName('');
+    setBillNo('');
+    setBillDate('');
+    setBillValue(0);
+    setPrevPaid(0);
+    setBalance(0);
+    setPayAmount(0);
+    setNarration('');
+    setIsAutoNarrationOverridden(false);
+    setLastSavedChequeId(null);
+    setLastVoucherId(null);
+    setErrors({});
   };
 
   // Save handler
   const executeSave = async (withJournal: boolean) => {
-    const rawPayload: PreparedChequeFormValues = {
+    const rawPayload: ChequePrepareFormValues = {
       sourceType,
-      chequeBookId: bookId,
       accountsBankId,
       bankName: bankName || currentBook?.bankName || '',
       bookName: currentBook?.bookName || '',
-      chequeFor,
-      partyName,
-      billNo: billNo || undefined,
-      billDate: billDate || undefined,
-      billValue: billValue || undefined,
-      prevPaid: prevPaid || undefined,
-      balance: balance || undefined,
-      payAmount: sourceType !== 'direct' ? payAmount : undefined,
-      chequeType,
-      chequeNo,
-      chequeDate,
-      payTo: payTo || partyName,
-      glAccountId,
-      amount,
+      chequeFor: sourceType !== 'direct' ? chequeFor : undefined,
+      name: sourceType !== 'direct' ? partyName : undefined,
+
+      bill:
+        sourceType === 'bill' && billNo
+          ? {
+              billNo,
+              billDate,
+              billValue,
+              prevPaid,
+              balance,
+              payAmount,
+            }
+          : undefined,
+
+      iou:
+        sourceType === 'iou' && billNo
+          ? {
+              requisitionNo: billNo,
+              reqDate: billDate,
+              reqValue: billValue,
+              prevPaid,
+              balance,
+              payAmount,
+            }
+          : undefined,
+
+      lines,
+
       voucherDate: withJournal ? voucherDate : undefined,
       voucherType: withJournal ? voucherType : undefined,
       narration: narration || undefined,
     };
 
-    const parsed = preparedChequeSchema.safeParse(rawPayload);
+    const parsed = chequePrepareSchema.safeParse(rawPayload);
     if (!parsed.success) {
       const errMap: Record<string, string> = {};
       parsed.error.issues.forEach((issue) => {
-        const path = issue.path[0]?.toString() || 'general';
+        const path = issue.path.join('.');
         errMap[path] = issue.message;
       });
       setErrors(errMap);
-      const firstMsg = parsed.error.issues[0]?.message || 'Please check form validation';
+      const firstMsg = parsed.error.issues[0]?.message || 'Please verify form fields';
       toast.error(firstMsg);
       return;
     }
@@ -216,16 +292,52 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
     setIsSaving(true);
 
     try {
-      const created = await addPrepared(rawPayload);
+      let createdVoucherId: string | undefined;
+
+      // If Save & Journal is clicked, create linked voucher entry
+      if (withJournal) {
+        const totalAmount = lines.reduce((sum, l) => sum + (l.amount || 0), 0);
+        const posted = postVoucherEntry({
+          id: `vch-${Date.now()}`,
+          voucherNumber: `VCH-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+          voucherType: voucherType,
+          date: voucherDate,
+          company: 'Pakiza Software Ltd.',
+          fiscalYear: '2025-2026',
+          status: 'Posted',
+          narration: narration || `Cheque disbursement for ${sourceType} payment`,
+          totalDebit: totalAmount,
+          totalCredit: totalAmount,
+          items: lines.map((line, idx) => ({
+            id: `item-${idx + 1}`,
+            accountId: line.glAccountId,
+            accountCode: '2011',
+            accountName: line.name || line.payTo || 'Accounts Payable',
+            debit: line.amount,
+            credit: 0,
+            narration: `CQ No: ${line.chequeNo} | Pay to: ${line.payTo}`,
+          })),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          createdBy: 'Riazul Islam',
+        });
+        createdVoucherId = posted.id;
+        setLastVoucherId(posted.id);
+      }
+
+      const created = await addPreparedCheque({
+        ...rawPayload,
+        voucherId: createdVoucherId,
+        voucherNo: createdVoucherId ? `VCH-${new Date().getFullYear()}-001` : undefined,
+      });
+
       setLastSavedChequeId(created.id);
-      await loadBooks(); // refresh cheque consumption in store
+      await loadBooks(); // refresh consumed cheque leafs
 
       if (withJournal) {
-        toast.success(
-          `Cheque ${created.chequeNo} saved & ${voucherType} generated successfully!`
-        );
+        toast.success(`Cheque prepared · Linked ${voucherType} voucher posted!`);
       } else {
-        toast.success(`Cheque ${created.chequeNo} prepared successfully!`);
+        toast.success('Cheque prepared and saved to register successfully!');
       }
     } catch (err: any) {
       toast.error(err?.message || 'Failed to prepare cheque');
@@ -235,15 +347,18 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
   };
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-5">
+      {/* Sub-Nav sticky pills */}
+      <PrepareSubNav activeType={sourceType} />
+
       <form
         onSubmit={(e) => {
           e.preventDefault();
           executeSave(false);
         }}
-        className="space-y-6"
+        className="space-y-5"
       >
-        {/* 1. Bank & Party Info Block */}
+        {/* 1. Bank & Source Information Card */}
         <BankInfoBlock
           sourceType={sourceType}
           accountsBankId={accountsBankId}
@@ -255,9 +370,9 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
           onAccountChange={handleAccountChange}
           onBookChange={(id) => {
             setBookId(id);
-            setChequeNo('');
+            setLines((prev) => prev.map((l) => ({ ...l, chequeNo: '' })));
           }}
-          onChequeForChange={handleChequeForChange}
+          onChequeForChange={setChequeFor}
           onPartyNameChange={handlePartyNameChange}
           errors={errors}
         />
@@ -293,42 +408,57 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
           />
         )}
 
-        {/* 3. Prepare Cheque Block */}
-        <PrepareChequeBlock
+        {/* 3. Prepare Cheque Block (Multi-line for Direct, single for Bill/IOU) */}
+        <PrepareChequeTable
           sourceType={sourceType}
           book={currentBook}
-          chequeType={chequeType}
-          chequeNo={chequeNo}
-          chequeDate={chequeDate}
-          payTo={payTo}
-          glAccountId={glAccountId}
-          amount={amount}
-          onChequeTypeChange={setChequeType}
-          onChequeNoChange={(no) => setChequeNo(no)}
-          onChequeDateChange={setChequeDate}
-          onPayToChange={setPayTo}
-          onGlAccountChange={setGlAccountId}
-          onAmountChange={setAmount}
+          lines={lines}
+          onLinesChange={setLines}
+          columns={columns}
+          onColumnsChange={updateColumns}
+          isAmountLocked={sourceType !== 'direct'}
           errors={errors}
         />
 
         {/* 4. Build Journal Block */}
         <BuildJournalBlock
+          sourceType={sourceType}
           voucherDate={voucherDate}
           voucherType={voucherType}
           narration={narration}
+          isAutoNarrationOverridden={isAutoNarrationOverridden}
           onVoucherDateChange={setVoucherDate}
           onVoucherTypeChange={setVoucherType}
-          onNarrationChange={setNarration}
+          onNarrationChange={(val) => {
+            setNarration(val);
+            if (sourceType === 'direct') {
+              setIsAutoNarrationOverridden(true);
+            }
+          }}
+          onResetAutoNarration={() => {
+            setIsAutoNarrationOverridden(false);
+            if (lines[0]) {
+              setNarration(
+                buildAutoNarration({
+                  name: lines[0].name,
+                  chequeFor: lines[0].chequeFor,
+                  chequeNo: lines[0].chequeNo,
+                  chequeDate: lines[0].chequeDate,
+                })
+              );
+            }
+          }}
         />
 
-        {/* 5. Footer Action Bar */}
+        {/* 5. Sticky Footer Action Bar */}
         <PrepareActionBar
           lastSavedChequeId={lastSavedChequeId}
+          lastVoucherId={lastVoucherId}
           isSaving={isSaving}
           onSave={() => executeSave(false)}
           onSaveAndJournal={() => executeSave(true)}
           hasJournal={Boolean(voucherType)}
+          onReset={handleResetForm}
         />
       </form>
     </div>

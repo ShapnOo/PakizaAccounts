@@ -1,6 +1,5 @@
-export type SourceType = 'direct' | 'bill' | 'iou';
-export type ChequeType = 'AC Payee' | 'Crossed' | 'Open' | 'Bearer';
-export type ChequeFor = 'Supplier' | 'Employee' | 'Customer' | 'Other';
+import { SourceType, ChequeType, ChequeFor } from './chequePrepare';
+export * from './chequePrepare';
 
 export interface ChequeEntry {
   id: string;
@@ -55,25 +54,7 @@ export interface PreparedCheque {
   voucherType?: string;
   narration?: string;
 
+  voucherId?: string;
+  voucherNo?: string;
   createdAt: string;
 }
-
-export const SOURCE_TYPES: { value: SourceType; label: string; route: string }[] = [
-  { value: 'direct', label: 'Direct Payment', route: '/cheques/prepare/direct' },
-  { value: 'bill', label: 'Bill Payment', route: '/cheques/prepare/bill' },
-  { value: 'iou', label: 'IOU Payment', route: '/cheques/prepare/iou' },
-];
-
-export const CHEQUE_TYPES: ChequeType[] = [
-  'AC Payee',
-  'Crossed',
-  'Open',
-  'Bearer',
-];
-
-export const CHEQUE_FOR: ChequeFor[] = [
-  'Supplier',
-  'Employee',
-  'Customer',
-  'Other',
-];

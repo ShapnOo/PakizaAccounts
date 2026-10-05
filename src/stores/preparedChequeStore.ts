@@ -1,24 +1,30 @@
 import { create } from 'zustand';
-import { PreparedCheque } from '../types/cheque';
+import { ChequePrepare } from '../types/chequePrepare';
 import {
   listPreparedCheques,
   createPreparedCheque,
   voidPreparedCheque,
+  getPreparedCheque,
 } from '../services/preparedChequeService';
 
 interface PreparedChequeState {
-  prepared: PreparedCheque[];
+  prepared: ChequePrepare[];
   loading: boolean;
+  saving: boolean;
+  load: () => Promise<void>;
   loadPrepared: () => Promise<void>;
-  addPrepared: (payload: Omit<PreparedCheque, 'id' | 'createdAt'>) => Promise<PreparedCheque>;
+  add: (payload: Omit<ChequePrepare, 'id' | 'createdAt'>) => Promise<ChequePrepare>;
+  addPrepared: (payload: Omit<ChequePrepare, 'id' | 'createdAt'>) => Promise<ChequePrepare>;
+  getById: (id: string) => Promise<ChequePrepare | null>;
   voidCheque: (id: string) => Promise<void>;
 }
 
-export const usePreparedChequeStore = create<PreparedChequeState>((set) => ({
+export const usePreparedChequeStore = create<PreparedChequeState>((set, get) => ({
   prepared: [],
   loading: false,
+  saving: false,
 
-  loadPrepared: async () => {
+  load: async () => {
     set({ loading: true });
     try {
       const data = await listPreparedCheques();
@@ -28,10 +34,29 @@ export const usePreparedChequeStore = create<PreparedChequeState>((set) => ({
     }
   },
 
+  loadPrepared: async () => {
+    return get().load();
+  },
+
+  add: async (payload) => {
+    set({ saving: true });
+    try {
+      const created = await createPreparedCheque(payload);
+      set((state) => ({ prepared: [created, ...state.prepared] }));
+      return created;
+    } finally {
+      set({ saving: false });
+    }
+  },
+
   addPrepared: async (payload) => {
-    const created = await createPreparedCheque(payload);
-    set((state) => ({ prepared: [created, ...state.prepared] }));
-    return created;
+    return get().add(payload);
+  },
+
+  getById: async (id: string) => {
+    const existing = get().prepared.find((p) => p.id === id);
+    if (existing) return existing;
+    return getPreparedCheque(id);
   },
 
   voidCheque: async (id) => {
@@ -41,3 +66,5 @@ export const usePreparedChequeStore = create<PreparedChequeState>((set) => ({
     }));
   },
 }));
+
+export const useChequePrepareStore = usePreparedChequeStore;

@@ -15,21 +15,16 @@ import {
   Check,
   SlidersHorizontal,
 } from 'lucide-react';
-import { useConfigState } from '../hooks/useConfigState';
+import { useConfigState, COMPANY_LIST } from '../hooks/useConfigState';
+import { useVouchers } from '../context/VoucherContext';
 import { SectionCard } from '../components/config/SectionCard';
 import { ConfigRow } from '../components/config/ConfigRow';
 import { ToggleYesNo } from '../components/config/ToggleYesNo';
 import { Dropdown } from '../components/config/Dropdown';
+import { MultiSelect } from '../components/config/MultiSelect';
 import { DateFmtInput } from '../components/config/DateFmtInput';
 import { MonthGrid } from '../components/config/MonthGrid';
 import { AccountPicker } from '../components/config/AccountPicker';
-
-const COMPANY_OPTIONS = [
-  'Pakiza Software Ltd.',
-  'Pakiza Knit Composite Ltd.',
-  'Pakiza Apparels Ltd.',
-  'All',
-];
 
 const EFFECTIVE_PART_OPTIONS = ['Balance sheet', 'Income Statement'];
 
@@ -60,6 +55,11 @@ export const MasterConfigPage: React.FC = () => {
     resetAll,
   } = useConfigState();
 
+  const { vouchers } = useVouchers();
+  const voucherTypeOptions = vouchers.length > 0 
+    ? vouchers.map((v) => v.name) 
+    : ['Bank Payment Voucher', 'Bank Receipt Voucher', 'Contra Voucher', 'Journal Voucher'];
+
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-5 md:py-6 space-y-4 pb-20">
       {/* ── Breadcrumb & Page Header ── */}
@@ -87,11 +87,11 @@ export const MasterConfigPage: React.FC = () => {
           <div className="flex items-center gap-2 bg-card px-3 py-1.5 rounded-lg border border-border/70 shadow-2xs shrink-0">
             <Building2 className="size-3.5 text-primary" />
             <span className="text-[11px] font-bold text-muted-foreground">Scope:</span>
-            <Dropdown
+            <MultiSelect
               value={config.globalEffectiveCompany}
               onChange={updateGlobalEffectiveCompany}
-              options={COMPANY_OPTIONS}
-              className="w-44"
+              options={COMPANY_LIST}
+              className="w-56"
             />
           </div>
         </div>
@@ -124,18 +124,18 @@ export const MasterConfigPage: React.FC = () => {
         >
           <div className="pl-4 md:pl-6 my-1 border-l-2 border-primary/50 bg-muted/20 rounded-r-lg space-y-0.5 py-1">
             <ConfigRow label="Effective Part">
-              <Dropdown
+              <MultiSelect
                 value={config.costCenter.effectivePart}
-                onChange={(val: any) => updateSection('costCenter', { effectivePart: val })}
+                onChange={(val) => updateSection('costCenter', { effectivePart: val })}
                 options={EFFECTIVE_PART_OPTIONS}
               />
             </ConfigRow>
 
             <ConfigRow label="Effective Company">
-              <Dropdown
+              <MultiSelect
                 value={config.costCenter.partEffectiveCompany}
                 onChange={(val) => updateSection('costCenter', { partEffectiveCompany: val })}
-                options={COMPANY_OPTIONS}
+                options={COMPANY_LIST}
               />
             </ConfigRow>
           </div>
@@ -215,10 +215,10 @@ export const MasterConfigPage: React.FC = () => {
             </ConfigRow>
 
             <ConfigRow label="Effective Company">
-              <Dropdown
+              <MultiSelect
                 value={config.voucherControlling.effectiveCompany}
                 onChange={(val) => updateSection('voucherControlling', { effectiveCompany: val })}
-                options={COMPANY_OPTIONS}
+                options={COMPANY_LIST}
               />
             </ConfigRow>
           </div>
@@ -242,10 +242,10 @@ export const MasterConfigPage: React.FC = () => {
         </div>
 
         <ConfigRow label="Effective Company">
-          <Dropdown
+          <MultiSelect
             value={config.monthLock.effectiveCompany}
             onChange={(val) => updateSection('monthLock', { effectiveCompany: val })}
-            options={COMPANY_OPTIONS}
+            options={COMPANY_LIST}
           />
         </ConfigRow>
       </SectionCard>
@@ -292,15 +292,15 @@ export const MasterConfigPage: React.FC = () => {
         </ConfigRow>
 
         <ConfigRow label="Effective Company">
-          <Dropdown
+          <MultiSelect
             value={config.accountsCode.effectiveCompany}
             onChange={(val) => updateSection('accountsCode', { effectiveCompany: val })}
-            options={COMPANY_OPTIONS}
+            options={COMPANY_LIST}
           />
         </ConfigRow>
       </SectionCard>
 
-      {/* ── 3.6 ACCOUNTS IDENTIFICATIONS ── */}
+      {/* ── 3.5 ACCOUNTS IDENTIFICATIONS ── */}
       <SectionCard
         sectionNo="3.5"
         title="Accounts Identifications"
@@ -363,7 +363,7 @@ export const MasterConfigPage: React.FC = () => {
         </div>
       </SectionCard>
 
-      {/* ── 3.7 BANK & CHEQUE ── */}
+      {/* ── 3.6 BANK & CHEQUE ── */}
       <SectionCard
         sectionNo="3.6"
         title="Bank & Cheque"
@@ -375,12 +375,7 @@ export const MasterConfigPage: React.FC = () => {
           <Dropdown
             value={config.bankCheque.defaultVoucherType}
             onChange={(val) => updateSection('bankCheque', { defaultVoucherType: val })}
-            options={[
-              'Bank Payment Voucher',
-              'Bank Receipt Voucher',
-              'Contra Voucher',
-              'Journal Voucher',
-            ]}
+            options={voucherTypeOptions}
           />
         </ConfigRow>
 
@@ -404,11 +399,11 @@ export const MasterConfigPage: React.FC = () => {
             <span className="text-xs font-bold text-foreground whitespace-nowrap">
               Effective Company:
             </span>
-            <Dropdown
+            <MultiSelect
               value={config.globalEffectiveCompany}
               onChange={updateGlobalEffectiveCompany}
-              options={COMPANY_OPTIONS}
-              className="w-48"
+              options={COMPANY_LIST}
+              className="w-56"
             />
           </div>
 

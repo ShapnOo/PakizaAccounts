@@ -46,6 +46,9 @@ export const MonthGrid: React.FC<MonthGridProps> = ({
           <span className="text-[11px] font-black font-mono text-foreground px-2 py-0.5 rounded bg-card border border-border/60 shadow-2xs">
             {fiscalYear}
           </span>
+          <span className="text-[10px] font-bold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded border border-destructive/20">
+            Selection
+          </span>
         </div>
 
         <div className="flex items-center gap-3">

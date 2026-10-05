@@ -1,24 +1,38 @@
 import React from 'react';
-import { SourceType } from '../../types/cheque';
+import { SourceType } from '../../types/chequePrepare';
 
-export const SourceTypeChip: React.FC<{ type: SourceType }> = ({ type }) => {
+interface SourceTypeChipProps {
+  type: SourceType;
+  className?: string;
+}
+
+export const SourceTypeChip: React.FC<SourceTypeChipProps> = ({ type, className = '' }) => {
   switch (type) {
     case 'direct':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950 dark:text-sky-300">
-          Direct
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 ${className}`}
+        >
+          <span className="size-1.5 rounded-full bg-sky-500" />
+          Direct Payment
         </span>
       );
     case 'bill':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950 dark:text-amber-300">
-          Bill
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 ${className}`}
+        >
+          <span className="size-1.5 rounded-full bg-amber-500" />
+          Bill Payment
         </span>
       );
     case 'iou':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-950 dark:text-violet-300">
-          IOU
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 ${className}`}
+        >
+          <span className="size-1.5 rounded-full bg-violet-500" />
+          IOU Payment
         </span>
       );
     default:
