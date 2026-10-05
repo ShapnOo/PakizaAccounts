@@ -1,10 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useOpeningBalanceStore, selectTotals } from '../../stores/openingBalanceStore';
+import { useOpeningBalanceStore } from '../../stores/openingBalanceStore';
+import { calculateOpeningBalanceTotals } from '../../lib/math/openingBalance';
 import { OpeningHeader } from '../../components/opening-balance/OpeningHeader';
 import { LineItemTable } from '../../components/opening-balance/LineItemTable';
 import { UploadModal } from '../../components/opening-balance/UploadModal';
+import { OpeningBalanceLineModal } from '../../components/opening-balance/OpeningBalanceLineModal';
+import { DeleteLineDialog } from '../../components/opening-balance/DeleteLineDialog';
 import { Save, RotateCcw, ArrowLeft, FileText, Loader2, AlertCircle } from 'lucide-react';
+import { OpeningBalanceLine } from '../../types/openingBalance';
+import { useOpeningMasterLookups } from '../../hooks/useOpeningMasterLookups';
 import { toast } from 'sonner';
 
 export const OpeningBalanceEntryPage: React.FC = () => {
@@ -16,32 +21,71 @@ export const OpeningBalanceEntryPage: React.FC = () => {
     note,
     loading,
     saving,
-    dirty,
     activeFiscalYear,
-    fieldErrors,
     load,
     setOpeningDate,
-    addLine,
-    duplicateLine,
     updateLine,
+    duplicateLine,
     removeLine,
+    appendLines,
+    replaceLines,
     setNote,
     save,
     reset,
-    replaceLines,
-    appendLines,
   } = useOpeningBalanceStore();
+
+  const { getAccount } = useOpeningMasterLookups();
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [shakeBadge, setShakeBadge] = useState(false);
+
+  // Line modal states
+  const [isLineModalOpen, setIsLineModalOpen] = useState(false);
+  const [editingLine, setEditingLine] = useState<OpeningBalanceLine | null>(null);
+
+  // Delete confirmation dialog state
+  const [deletingLine, setDeletingLine] = useState<OpeningBalanceLine | null>(null);
 
   // Load opening balance on mount
   useEffect(() => {
     load();
   }, [load]);
 
-  // Derived totals and reconciliation status
-  const totals = useOpeningBalanceStore(selectTotals);
+  // Derived totals and reconciliation status (memoized on lines to ensure stable reference)
+  const totals = useMemo(() => calculateOpeningBalanceTotals(lines), [lines]);
+
+  const handleOpenAddModal = () => {
+    setEditingLine(null);
+    setIsLineModalOpen(true);
+  };
+
+  const handleEditLine = (line: OpeningBalanceLine) => {
+    setEditingLine(line);
+    setIsLineModalOpen(true);
+  };
+
+  const handleSaveLine = (savedLine: OpeningBalanceLine) => {
+    const exists = lines.some((l) => l.id === savedLine.id);
+    if (exists) {
+      updateLine(savedLine.id, savedLine);
+      toast.success('Opening balance entry updated');
+    } else {
+      appendLines([savedLine]);
+      toast.success('Opening balance entry added');
+    }
+  };
+
+  const handleDeleteClick = (line: OpeningBalanceLine) => {
+    setDeletingLine(line);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deletingLine) {
+      removeLine(deletingLine.id);
+      toast.success('Line item removed');
+      setDeletingLine(null);
+    }
+  };
 
   const handleSave = async () => {
     if (!totals.balanced) {
@@ -64,17 +108,20 @@ export const OpeningBalanceEntryPage: React.FC = () => {
     }
   };
 
+  const deletingAccount = deletingLine ? getAccount(deletingLine.accountHeadId) : undefined;
+
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-5 space-y-4 pb-24">
-      {/* ── 5. Header Strip ── */}
+      {/* ── 1. Upper Header Strip with [+ Add Opening Balance] Button ── */}
       <OpeningHeader
         openingDate={openingDate}
         activeFiscalYear={activeFiscalYear}
         onDateChange={setOpeningDate}
         onOpenUpload={() => setIsUploadOpen(true)}
+        onOpenAddModal={handleOpenAddModal}
       />
 
-      {/* ── Top Balance Validation Banner (if unbalanced or has global error) ── */}
+      {/* ── 2. Top Balance Validation Banner (if unbalanced) ── */}
       {!loading && lines.length > 0 && !totals.balanced && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/25 text-xs font-semibold shadow-2xs animate-in fade-in-50">
           <AlertCircle className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
@@ -88,15 +135,14 @@ export const OpeningBalanceEntryPage: React.FC = () => {
         </div>
       )}
 
-      {/* ── 6 & 7. Line Item Table (+ Add Line above table + Totals Footer) ── */}
+      {/* ── 3. Line Item Table View with Edit / Delete / Duplicate Actions ── */}
       <LineItemTable
         lines={lines}
         loading={loading}
-        onAddLine={addLine}
-        onUpdateLine={updateLine}
+        onAddLine={handleOpenAddModal}
+        onEditLine={handleEditLine}
         onDuplicateLine={duplicateLine}
-        onRemoveLine={removeLine}
-        fieldErrors={fieldErrors}
+        onDeleteLine={handleDeleteClick}
         totalDebitBDT={totals.totalDebitBDT}
         totalCreditBDT={totals.totalCreditBDT}
         difference={totals.difference}
@@ -104,7 +150,7 @@ export const OpeningBalanceEntryPage: React.FC = () => {
         shake={shakeBadge}
       />
 
-      {/* ── 10. Note Block (Called "Note", NOT "Narration") ── */}
+      {/* ── 4. Note Block ── */}
       <div className="bg-card border border-border/80 rounded-xl p-4 shadow-2xs space-y-2">
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
@@ -125,7 +171,7 @@ export const OpeningBalanceEntryPage: React.FC = () => {
         />
       </div>
 
-      {/* ── Sticky Bottom Action Bar ── */}
+      {/* ── 5. Sticky Bottom Action Bar ── */}
       <div className="sticky bottom-0 z-20 bg-card/95 backdrop-blur-md border border-border/80 rounded-xl p-3 shadow-lg flex items-center justify-between gap-3">
         {/* Left: Reset */}
         <button
@@ -175,12 +221,30 @@ export const OpeningBalanceEntryPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── 11. Client-Side Upload Modal ── */}
+      {/* ── 6. Client-Side Upload Excel Modal ── */}
       <UploadModal
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
         onReplaceLines={replaceLines}
         onAppendLines={appendLines}
+      />
+
+      {/* ── 7. Opening Balance Line Create / Edit Modal Dialog ── */}
+      <OpeningBalanceLineModal
+        isOpen={isLineModalOpen}
+        onClose={() => setIsLineModalOpen(false)}
+        line={editingLine}
+        onSave={handleSaveLine}
+      />
+
+      {/* ── 8. Delete Line Confirmation Modal ── */}
+      <DeleteLineDialog
+        isOpen={!!deletingLine}
+        onClose={() => setDeletingLine(null)}
+        onConfirm={handleConfirmDelete}
+        line={deletingLine}
+        accountName={deletingAccount?.name}
+        accountCode={deletingAccount?.code}
       />
     </div>
   );

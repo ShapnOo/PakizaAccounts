@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Search,
   Plus,
@@ -16,6 +15,7 @@ import { SubledgerRow } from './SubledgerRow';
 import { TableSkeleton } from './TableSkeleton';
 import { EmptyState } from './EmptyState';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import { SubledgerModal } from './SubledgerModal';
 import { MOCK_COMPANIES } from '../../mock/companies';
 
 interface SubledgerTableProps {
@@ -23,7 +23,6 @@ interface SubledgerTableProps {
 }
 
 export const SubledgerTable: React.FC<SubledgerTableProps> = ({ type }) => {
-  const navigate = useNavigate();
   const config = SUBLEDGER_CONFIG[type];
 
   // Store bindings
@@ -44,6 +43,10 @@ export const SubledgerTable: React.FC<SubledgerTableProps> = ({ type }) => {
   // Delete modal state
   const [deletingEntry, setDeletingEntry] = useState<SubledgerEntry | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Create / Edit modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<SubledgerEntry | null>(null);
 
   // Filter entries for current subledger type
   const typeEntries = useMemo(() => {
@@ -98,8 +101,14 @@ export const SubledgerTable: React.FC<SubledgerTableProps> = ({ type }) => {
     return filteredEntries.slice(start, start + pageSize);
   }, [filteredEntries, safeCurrentPage, pageSize]);
 
+  const handleOpenCreate = () => {
+    setEditingEntry(null);
+    setIsModalOpen(true);
+  };
+
   const handleEdit = (entry: SubledgerEntry) => {
-    navigate(`/subledger/${entry.id}/edit`);
+    setEditingEntry(entry);
+    setIsModalOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
@@ -150,7 +159,7 @@ export const SubledgerTable: React.FC<SubledgerTableProps> = ({ type }) => {
 
         <button
           type="button"
-          onClick={() => navigate(`/subledger/new?type=${type}`)}
+          onClick={handleOpenCreate}
           className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-98 rounded-lg shadow-sm transition-all cursor-pointer shrink-0"
         >
           <Plus className="size-4" />
@@ -282,7 +291,7 @@ export const SubledgerTable: React.FC<SubledgerTableProps> = ({ type }) => {
             type={type}
             isFiltered={isFiltered}
             onClearFilters={clearAllFilters}
-            onAddNew={() => navigate(`/subledger/new?type=${type}`)}
+            onAddNew={handleOpenCreate}
           />
         ) : (
           <div className="overflow-x-auto">
@@ -395,6 +404,14 @@ export const SubledgerTable: React.FC<SubledgerTableProps> = ({ type }) => {
         onClose={() => setDeletingEntry(null)}
         onConfirm={handleDeleteConfirm}
         isDeleting={isDeleting}
+      />
+
+      {/* Create / Edit Modal Dialog */}
+      <SubledgerModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        type={type}
+        entryToEdit={editingEntry}
       />
     </div>
   );

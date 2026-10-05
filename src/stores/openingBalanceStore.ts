@@ -312,7 +312,15 @@ export const useOpeningBalanceStore = create<OBStore>()(
   )
 );
 
-// Selector for totals
+// Cached selector for totals to prevent getSnapshot infinite loops
+let lastLinesRef: OpeningBalanceLine[] | null = null;
+let lastTotalsResult: ReturnType<typeof calculateOpeningBalanceTotals> | null = null;
+
 export function selectTotals(state: OBStore) {
-  return calculateOpeningBalanceTotals(state.lines);
+  if (state.lines === lastLinesRef && lastTotalsResult) {
+    return lastTotalsResult;
+  }
+  lastLinesRef = state.lines;
+  lastTotalsResult = calculateOpeningBalanceTotals(state.lines);
+  return lastTotalsResult;
 }

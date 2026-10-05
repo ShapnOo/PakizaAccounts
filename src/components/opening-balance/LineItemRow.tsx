@@ -1,161 +1,217 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { OpeningBalanceLine } from '../../types/openingBalance';
-import { AccountHeadPicker } from './AccountHeadPicker';
-import { SubsidiaryPicker } from './SubsidiaryPicker';
-import { CostCenterPicker } from './CostCenterPicker';
-import { EmployeePicker } from './EmployeePicker';
-import { VehiclePicker } from './VehiclePicker';
-import { CurrencyRateInput } from './CurrencyRateInput';
-import { AmountPairInput } from './AmountPairInput';
-import { Copy, Trash2, MoreVertical, ChevronDown, ChevronUp } from 'lucide-react';
+import { Pencil, Trash2, Copy, Building2, Users, Truck } from 'lucide-react';
+import { formatCurrency, formatNumber } from '../../lib/format';
+import { useOpeningMasterLookups } from '../../hooks/useOpeningMasterLookups';
 
 interface LineItemRowProps {
   line: OpeningBalanceLine;
   index: number;
-  onUpdate: (id: string, patch: Partial<OpeningBalanceLine>) => void;
+  onEdit: (line: OpeningBalanceLine) => void;
   onDuplicate: (id: string) => void;
-  onRemove: (id: string) => void;
-  error?: string;
-  autoFocus?: boolean;
+  onDelete: (line: OpeningBalanceLine) => void;
 }
 
 export const LineItemRow: React.FC<LineItemRowProps> = ({
   line,
   index,
-  onUpdate,
+  onEdit,
   onDuplicate,
-  onRemove,
-  error,
-  autoFocus,
+  onDelete,
 }) => {
-  const [showMoreMobile, setShowMoreMobile] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { getAccount, getCostCenter, getSubsidiary, getEmployee, getVehicle } =
+    useOpeningMasterLookups();
+
+  const account = getAccount(line.accountHeadId);
+  const costCenter = getCostCenter(line.costCenterId);
+  const subsidiary = getSubsidiary(line.subsidiaryId);
+  const employee = getEmployee(line.employeeId);
+  const vehicle = getVehicle(line.vehicleId);
+
+  const debit = line.debitBDT || 0;
+  const credit = line.creditBDT || 0;
+  const isForeign = line.currency && line.currency !== 'BDT';
 
   const isZebra = index % 2 === 1;
 
   return (
-    <>
-      <tr
-        className={`group transition-colors text-xs border-b border-border/40 ${
-          isZebra ? 'bg-slate-50/60 dark:bg-muted/10' : 'bg-background'
-        } hover:bg-indigo-500/[0.03]`}
-      >
-        {/* ── 1. Accounts Head ── */}
-        <td className="py-1 px-2 min-w-[220px]">
-          <AccountHeadPicker
-            autoFocus={autoFocus}
-            value={line.accountHeadId}
-            onChange={(id) => onUpdate(line.id, { accountHeadId: id })}
-            error={Boolean(error && !line.accountHeadId)}
-          />
-          {error && !line.accountHeadId && (
-            <p className="text-[10px] text-rose-500 font-medium mt-0.5">Account required</p>
-          )}
-        </td>
+    <tr
+      className={[
+        'group transition-colors text-xs border-b border-border/50 hover:bg-indigo-500/[0.04]',
+        isZebra ? 'bg-slate-50/50 dark:bg-muted/10' : 'bg-background',
+      ].join(' ')}
+    >
+      {/* ── 1. Index ── */}
+      <td className="py-2.5 px-3 text-center text-muted-foreground font-mono text-[11px] w-10">
+        {index + 1}
+      </td>
 
-        {/* ── 2. Cost Center ── */}
-        <td className="py-1 px-1.5 min-w-[150px]">
-          <CostCenterPicker
-            value={line.costCenterId}
-            onChange={(id) => onUpdate(line.id, { costCenterId: id })}
-          />
-        </td>
-
-        {/* ── 3. Subsidiary ── */}
-        <td className="py-1 px-1.5 min-w-[170px]">
-          <SubsidiaryPicker
-            value={line.subsidiaryId || ''}
-            onChange={(id) => onUpdate(line.id, { subsidiaryId: id })}
-          />
-        </td>
-
-        {/* ── 4. Employee ── */}
-        <td className="py-1 px-1.5 min-w-[150px]">
-          <EmployeePicker
-            value={line.employeeId}
-            onChange={(id) => onUpdate(line.id, { employeeId: id })}
-          />
-        </td>
-
-        {/* ── 5. Vehicles (hidden on tablet, expandable) ── */}
-        <td className="py-1 px-1.5 min-w-[150px]">
-          <VehiclePicker
-            value={line.vehicleId}
-            onChange={(id) => onUpdate(line.id, { vehicleId: id })}
-          />
-        </td>
-
-        {/* ── 6. Reference ── */}
-        <td className="py-1 px-1.5 min-w-[110px]">
-          <input
-            type="text"
-            placeholder="Ref #"
-            value={line.reference || ''}
-            maxLength={80}
-            onChange={(e) => onUpdate(line.id, { reference: e.target.value })}
-            className="w-full h-8 px-2 rounded-md border border-border/80 bg-background text-xs text-foreground outline-none focus:ring-1 focus:ring-indigo-500"
-          />
-        </td>
-
-        {/* ── 7. Description ── */}
-        <td className="py-1 px-1.5 min-w-[160px]">
-          <input
-            type="text"
-            placeholder="Line notes / description..."
-            value={line.description || ''}
-            maxLength={160}
-            onChange={(e) => onUpdate(line.id, { description: e.target.value })}
-            className="w-full h-8 px-2 rounded-md border border-border/80 bg-background text-xs text-foreground outline-none focus:ring-1 focus:ring-indigo-500"
-          />
-        </td>
-
-        {/* ── 8 & 9. Currency & Exc. Rate ── */}
-        <td className="py-1 px-1.5 min-w-[150px]">
-          <CurrencyRateInput
-            currency={line.currency}
-            exchangeRate={line.exchangeRate}
-            onCurrencyChange={(c) => onUpdate(line.id, { currency: c })}
-            onRateChange={(r) => onUpdate(line.id, { exchangeRate: r })}
-          />
-        </td>
-
-        {/* ── 10, 11, 12, 13. Amount Pairs (Debit, Credit, Debit BDT, Credit BDT) ── */}
-        <AmountPairInput
-          currency={line.currency}
-          exchangeRate={line.exchangeRate}
-          debit={line.debit}
-          credit={line.credit}
-          debitBDT={line.debitBDT}
-          creditBDT={line.creditBDT}
-          onUpdateDebit={(val) => onUpdate(line.id, { debit: val })}
-          onUpdateCredit={(val) => onUpdate(line.id, { credit: val })}
-          onUpdateDebitBDT={(val) => onUpdate(line.id, { debitBDT: val })}
-          onUpdateCreditBDT={(val) => onUpdate(line.id, { creditBDT: val })}
-          error={Boolean(error && !line.debitBDT && !line.creditBDT)}
-        />
-
-        {/* ── Actions Menu ── */}
-        <td className="py-1 px-2 w-14 text-center">
-          <div className="flex items-center justify-center gap-1">
+      {/* ── 2. Account Head ── */}
+      <td className="py-2.5 px-3 min-w-[200px]">
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {account?.code && (
+              <span className="font-mono text-[10.5px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-muted text-slate-800 dark:text-foreground border border-slate-200/80 dark:border-border">
+                {account.code}
+              </span>
+            )}
             <button
               type="button"
-              title="Duplicate row"
-              onClick={() => onDuplicate(line.id)}
-              className="p-1 rounded text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors cursor-pointer"
+              onClick={() => onEdit(line)}
+              className="text-left font-bold text-slate-900 dark:text-foreground hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
             >
-              <Copy className="size-3.5" />
-            </button>
-            <button
-              type="button"
-              title="Remove row"
-              onClick={() => onRemove(line.id)}
-              className="p-1 rounded text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
-            >
-              <Trash2 className="size-3.5" />
+              {account?.name || line.accountHeadId || 'Untitled Account'}
             </button>
           </div>
-        </td>
-      </tr>
-    </>
+          {account?.path && account.path.length > 0 && (
+            <span className="text-[10px] text-muted-foreground truncate max-w-[240px]">
+              {account.path.join(' › ')}
+            </span>
+          )}
+        </div>
+      </td>
+
+      {/* ── 3. Cost Center ── */}
+      <td className="py-2.5 px-2.5 min-w-[130px] text-muted-foreground">
+        {costCenter ? (
+          <div className="flex items-center gap-1.5 text-foreground font-medium">
+            <Building2 className="size-3 text-indigo-500 shrink-0" />
+            <span className="truncate max-w-[130px]">{costCenter.name}</span>
+          </div>
+        ) : (
+          <span className="text-slate-300 dark:text-muted-foreground/40">—</span>
+        )}
+      </td>
+
+      {/* ── 4. Subsidiary (Vendor / Customer) ── */}
+      <td className="py-2.5 px-2.5 min-w-[150px]">
+        {subsidiary ? (
+          <div className="flex items-center gap-1.5">
+            <span className="font-medium text-foreground truncate max-w-[120px]">
+              {subsidiary.name}
+            </span>
+            <span
+              className={[
+                'px-1.5 py-0.5 rounded text-[9.5px] font-bold shrink-0',
+                subsidiary.partyType === 'Vendor'
+                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                  : subsidiary.partyType === 'Customer'
+                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                  : 'bg-slate-100 text-slate-700 dark:bg-muted dark:text-muted-foreground',
+              ].join(' ')}
+            >
+              {subsidiary.partyType}
+            </span>
+          </div>
+        ) : (
+          <span className="text-slate-300 dark:text-muted-foreground/40">—</span>
+        )}
+      </td>
+
+      {/* ── 5. Employee ── */}
+      <td className="py-2.5 px-2.5 min-w-[120px] text-muted-foreground">
+        {employee ? (
+          <div className="flex items-center gap-1 text-foreground font-medium">
+            <Users className="size-3 text-slate-400 shrink-0" />
+            <span className="truncate max-w-[120px]">{employee.name}</span>
+          </div>
+        ) : (
+          <span className="text-slate-300 dark:text-muted-foreground/40">—</span>
+        )}
+      </td>
+
+      {/* ── 6. Vehicles ── */}
+      <td className="py-2.5 px-2.5 min-w-[130px] text-muted-foreground">
+        {vehicle ? (
+          <div className="flex items-center gap-1 text-foreground font-medium">
+            <Truck className="size-3 text-slate-400 shrink-0" />
+            <span className="truncate max-w-[120px]">{vehicle.name}</span>
+          </div>
+        ) : (
+          <span className="text-slate-300 dark:text-muted-foreground/40">—</span>
+        )}
+      </td>
+
+      {/* ── 7. Reference ── */}
+      <td className="py-2.5 px-2.5 min-w-[110px]">
+        {line.reference ? (
+          <span className="font-mono text-[10.5px] font-semibold px-2 py-0.5 rounded bg-muted/60 text-foreground border border-border/60">
+            {line.reference}
+          </span>
+        ) : (
+          <span className="text-slate-300 dark:text-muted-foreground/40">—</span>
+        )}
+      </td>
+
+      {/* ── 8. Currency & Conversion ── */}
+      <td className="py-2.5 px-2.5 min-w-[120px] text-[11px] whitespace-nowrap">
+        {isForeign ? (
+          <div className="flex flex-col">
+            <span className="font-bold text-foreground">
+              {formatNumber(line.debit || line.credit)} {line.currency}
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              Rate: {line.exchangeRate || 1}
+            </span>
+          </div>
+        ) : (
+          <span className="font-medium text-muted-foreground">BDT (1.00)</span>
+        )}
+      </td>
+
+      {/* ── 9. Debit (BDT) ── */}
+      <td className="py-2.5 px-3 text-right font-mono font-bold whitespace-nowrap min-w-[110px]">
+        {debit > 0 ? (
+          <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">
+            ৳ {formatCurrency(debit)}
+          </span>
+        ) : (
+          <span className="text-slate-300 dark:text-muted-foreground/30 font-normal">—</span>
+        )}
+      </td>
+
+      {/* ── 10. Credit (BDT) ── */}
+      <td className="py-2.5 px-3 text-right font-mono font-bold whitespace-nowrap min-w-[110px]">
+        {credit > 0 ? (
+          <span className="text-rose-700 dark:text-rose-400 font-extrabold">
+            ৳ {formatCurrency(credit)}
+          </span>
+        ) : (
+          <span className="text-slate-300 dark:text-muted-foreground/30 font-normal">—</span>
+        )}
+      </td>
+
+      {/* ── 11. Actions ── */}
+      <td className="py-2.5 px-3 text-right whitespace-nowrap">
+        <div className="inline-flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onEdit(line)}
+            className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors cursor-pointer"
+            title="Edit line entry"
+          >
+            <Pencil className="size-3.5" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onDuplicate(line.id)}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-muted dark:hover:text-slate-200 transition-colors cursor-pointer"
+            title="Duplicate line"
+          >
+            <Copy className="size-3.5" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onDelete(line)}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+            title="Delete line"
+          >
+            <Trash2 className="size-3.5" />
+          </button>
+        </div>
+      </td>
+    </tr>
   );
 };
