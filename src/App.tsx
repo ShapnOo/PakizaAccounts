@@ -20,7 +20,9 @@ import { CustomFieldFormPage } from "./pages/custom-fields/Form";
 import { VoucherTemplateDesignerPage } from "./pages/voucher-template/Designer";
 import { CustomerListPage } from "./pages/customers/List";
 import { CustomerFormPage } from "./pages/customers/Form";
-import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck } from "lucide-react";
+import { BankSetupList } from "./pages/banks/List";
+import { BranchForm } from "./pages/banks/BranchForm";
+import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark } from "lucide-react";
 import { Toaster } from "sonner";
 
 function ContentArea() {
@@ -111,6 +113,14 @@ function ContentArea() {
               <UserCheck className="size-3.5 text-indigo-600" />
               <span>Customer Master Setup</span>
             </Link>
+
+            <Link
+              to="/banks"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-indigo-200 bg-white text-slate-800 text-xs font-bold shadow-sm hover:bg-slate-50 transition-all cursor-pointer"
+            >
+              <Landmark className="size-3.5 text-indigo-600" />
+              <span>Bank & Branch Setup</span>
+            </Link>
           </div>
 
           <div className="text-[12px] text-muted-foreground/80 flex items-center justify-center gap-2">
@@ -194,6 +204,13 @@ export default function App() {
                   <Route path="/customers/new" element={<CustomerFormPage />} />
                   <Route path="/accounts-receivable/customer-master-setup" element={<Navigate to="/customers/new" replace />} />
                   <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
+
+                  {/* Bank & Branch Setup Routes */}
+                  <Route path="/banks" element={<BankSetupList />} />
+                  <Route path="/bank-management/bank-master-setup" element={<Navigate to="/banks" replace />} />
+                  <Route path="/banks/new" element={<BranchForm />} />
+                  <Route path="/branches/new" element={<BranchForm />} />
+                  <Route path="/branches/:id/edit" element={<BranchForm />} />
 
                   <Route path="*" element={<ContentArea />} />
                 </Routes>

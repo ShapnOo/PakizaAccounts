@@ -1,51 +1,93 @@
-import React, { useState } from 'react';
-import { Landmark, X, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Landmark, X, Check, Loader2 } from 'lucide-react';
 import { Bank } from '../../types/bank';
+import { useBankStore } from '../../stores/bankStore';
+import { updateBank } from '../../services/bankService';
+import { toast } from 'sonner';
 
 interface BankModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (bank: Bank) => void;
-  onAddBank: (p: { name: string; alias: string }) => Promise<Bank>;
+  onSuccess?: (bank: Bank) => void;
+  onBankCreated?: (bank: Bank) => void;
+  onAddBank?: (p: { name: string; alias: string }) => Promise<Bank>;
+  initialBank?: Bank | null;
 }
 
 export const BankModal: React.FC<BankModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  onBankCreated,
   onAddBank,
+  initialBank,
 }) => {
+  const store = useBankStore();
   const [name, setName] = useState('');
   const [alias, setAlias] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (initialBank) {
+      setName(initialBank.name);
+      setAlias(initialBank.alias);
+    } else {
+      setName('');
+      setAlias('');
+    }
+    setError(null);
+  }, [initialBank, isOpen]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      setError('Bank name is required (min 3 characters).');
+    if (!name.trim() || name.trim().length < 3) {
+      setError('Bank name is required (minimum 3 characters).');
       return;
     }
-    if (!alias.trim()) {
-      setError('Bank alias is required (min 2 characters).');
+    if (!alias.trim() || alias.trim().length < 2) {
+      setError('Bank alias is required (minimum 2 characters).');
       return;
     }
 
     try {
       setIsSubmitting(true);
       setError(null);
-      const created = await onAddBank({
-        name: name.trim(),
-        alias: alias.trim().toUpperCase(),
-      });
+
+      let savedBank: Bank;
+      if (initialBank) {
+        // Edit existing bank
+        savedBank = await updateBank(initialBank.id, {
+          name: name.trim(),
+          alias: alias.trim().toUpperCase(),
+        });
+        await store.loadBanks();
+        toast.success(`Updated bank "${savedBank.name}"`);
+      } else {
+        // Create new bank
+        if (onAddBank) {
+          savedBank = await onAddBank({
+            name: name.trim(),
+            alias: alias.trim().toUpperCase(),
+          });
+        } else {
+          savedBank = await store.addBank({
+            name: name.trim(),
+            alias: alias.trim().toUpperCase(),
+          });
+        }
+        toast.success(`Bank "${savedBank.name}" registered successfully`);
+      }
+
       setName('');
       setAlias('');
-      onSuccess(created);
+      if (onSuccess) onSuccess(savedBank);
+      if (onBankCreated) onBankCreated(savedBank);
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Failed to create bank.');
+      setError(err?.message || 'Failed to save bank entity.');
     } finally {
       setIsSubmitting(false);
     }
@@ -61,9 +103,13 @@ export const BankModal: React.FC<BankModalProps> = ({
               <Landmark className="size-4" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-foreground">New Bank</h4>
+              <h4 className="text-sm font-bold text-foreground">
+                {initialBank ? 'Edit Bank' : 'New Bank'}
+              </h4>
               <p className="text-[11px] text-muted-foreground">
-                Register bank entity to the Bank master
+                {initialBank
+                  ? 'Update bank entity in the Bank master'
+                  : 'Register bank entity to the Bank master'}
               </p>
             </div>
           </div>
@@ -135,8 +181,17 @@ export const BankModal: React.FC<BankModalProps> = ({
               disabled={isSubmitting}
               className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              <Check className="size-3.5" />
-              <span>{isSubmitting ? 'Saving...' : 'Save Bank'}</span>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Check className="size-3.5" />
+                  <span>Save Bank</span>
+                </>
+              )}
             </button>
           </div>
         </form>

@@ -19,7 +19,7 @@ export interface Branch {
   bankName: string;
   bankAlias: string;
   branchName: string;
-  address: string;
+  address?: string;
   routingNo?: string;
   swiftCode?: string;
   accounts: BankAccountRef[];
