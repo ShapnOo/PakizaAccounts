@@ -1,10 +1,13 @@
-import { SimpleMasterOption } from '../types/openingBalance';
+export interface Employee {
+  id: string;
+  name: string;
+  designation?: string;
+  department?: string;
+}
 
-export const MOCK_EMPLOYEES: SimpleMasterOption[] = [
-  { id: 'emp-101', name: 'Md. Rafiqul Islam', code: 'EMP-0101' },
-  { id: 'emp-102', name: 'Kazi Nazmul Huda', code: 'EMP-0102' },
-  { id: 'emp-103', name: 'Tanvir Hossain Khan', code: 'EMP-0103' },
-  { id: 'emp-104', name: 'Farzana Akter', code: 'EMP-0104' },
-  { id: 'emp-105', name: 'Tahmid Afsar Shapno', code: 'EMP-0105' },
-  { id: 'emp-106', name: 'Zahirul Quader', code: 'EMP-0106' },
+export const MOCK_EMPLOYEES: Employee[] = [
+  { id: 'emp-1', name: 'Riazul Islam', designation: 'Senior Accountant', department: 'Finance & Accounts' },
+  { id: 'emp-2', name: 'Ayesha Khatun', designation: 'Admin Officer', department: 'Human Resources' },
+  { id: 'emp-3', name: 'Tahmid Afsar', designation: 'Head of Accounts', department: 'Finance & Accounts' },
+  { id: 'emp-4', name: 'Kamrul Hasan', designation: 'Procurement Specialist', department: 'Supply Chain' },
 ];

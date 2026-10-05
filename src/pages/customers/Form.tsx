@@ -271,7 +271,7 @@ export const CustomerFormPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="w-full max-w-4xl mx-auto px-4 py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <TableSkeleton rows={8} />
       </div>
     );
@@ -279,8 +279,8 @@ export const CustomerFormPage: React.FC = () => {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-5 pb-24">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-card rounded-2xl border border-border/80 shadow-md p-6 relative">
+      <div className="w-full">
+        <div className="bg-card rounded-2xl border border-border/80 shadow-md p-6 relative w-full">
           <FormHeader
             title={isEditMode ? `Edit — ${customerName}` : 'New Customer'}
             subtitle={

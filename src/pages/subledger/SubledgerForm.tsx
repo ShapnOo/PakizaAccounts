@@ -220,11 +220,11 @@ export const SubledgerFormPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Main Form Card (Centered, Clean Single-Column) ── */}
-      <div className="max-w-2xl mx-auto">
+      {/* ── Main Form Card ── */}
+      <div className="w-full">
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+          className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full"
         >
           {/* Card Header */}
           <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">

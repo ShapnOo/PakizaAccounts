@@ -177,7 +177,7 @@ export const BranchForm: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-4xl mx-auto space-y-4">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded w-1/3 animate-pulse" />
         <TableSkeleton rows={6} />
       </div>
@@ -186,7 +186,7 @@ export const BranchForm: React.FC = () => {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 pb-20">
-      <div className="max-w-5xl mx-auto flex items-start gap-8">
+      <div className="w-full flex items-start gap-8">
         {/* Main Form Card */}
         <div className="flex-1 min-w-0 bg-card border border-border rounded-2xl shadow-xs p-6 space-y-6">
           <BranchFormHeader

@@ -154,7 +154,7 @@ export const CustomFieldFormPage: React.FC = () => {
       </div>
 
       {/* Main Card Form */}
-      <div className="max-w-xl mx-auto bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+      <div className="w-full bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
         <div className="p-5 border-b border-border/80 bg-muted/20">
           <h2 className="text-base font-bold text-foreground">
             {isEdit
