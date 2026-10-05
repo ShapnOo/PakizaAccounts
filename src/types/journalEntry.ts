@@ -2,7 +2,7 @@ import { LucideIcon, List, LayoutGrid, BarChart3 } from 'lucide-react';
 
 export type VoucherType = 'Journal' | 'Receive' | 'Payment' | 'Contra';
 export type ViewType = 'list' | 'kanban' | 'bar';
-export type FilterRange = 'today' | 'this-week' | 'this-month' | 'this-quarter' | 'this-year' | 'custom';
+export type FilterRange = 'all' | 'today' | 'this-week' | 'this-month' | 'this-quarter' | 'this-year' | 'custom';
 
 export interface Attachment {
   id: string;
@@ -75,12 +75,13 @@ export const VIEW_TYPES: { value: ViewType; label: string; icon: LucideIcon }[] 
 ];
 
 export const FILTER_RANGES: { value: FilterRange; label: string }[] = [
-  { value: 'today', label: 'Today' },
-  { value: 'this-week', label: 'This Week' },
-  { value: 'this-month', label: 'This Month' },
+  { value: 'all',          label: 'All Vouchers' },
+  { value: 'this-month',   label: 'This Month' },
   { value: 'this-quarter', label: 'This Quarter' },
-  { value: 'this-year', label: 'This Year' },
-  { value: 'custom', label: 'Custom Range' },
+  { value: 'this-year',    label: 'This Year' },
+  { value: 'this-week',    label: 'This Week' },
+  { value: 'today',        label: 'Today' },
+  { value: 'custom',       label: 'Custom Range' },
 ];
 
 export interface VoucherTypeConfig {

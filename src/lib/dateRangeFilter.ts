@@ -15,6 +15,9 @@ export function isDateInRange(
   const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
   switch (range) {
+    case 'all':
+      return true;
+
     case 'today':
       return d >= startOfDay && d <= endOfDay;
 

@@ -30,6 +30,9 @@ import { PrepareBillPage } from "./pages/cheques/PrepareBill";
 import { PrepareIouPage } from "./pages/cheques/PrepareIou";
 import { ChequePrintPage } from "./pages/cheques/ChequePrint";
 import { RegisterPage } from "./pages/cheques/Register";
+import { JournalEntriesListPage } from "./pages/journal-entries/List";
+import { JournalEntryPage } from "./pages/journal-entries/Entry";
+import { JournalEntryPrintPage } from "./pages/journal-entries/Print";
 import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen } from "lucide-react";
 import { Toaster } from "sonner";
 
@@ -137,6 +140,14 @@ function ContentArea() {
               <BookOpen className="size-3.5 text-indigo-600" />
               <span>Cheque Setup & Management</span>
             </Link>
+
+            <Link
+              to="/journal-entries"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white text-xs font-bold shadow-md hover:bg-indigo-700 transition-all cursor-pointer"
+            >
+              <FileText className="size-3.5" />
+              <span>Journal Entries (All Vouchers)</span>
+            </Link>
           </div>
 
           <div className="text-[12px] text-muted-foreground/80 flex items-center justify-center gap-2">
@@ -186,6 +197,13 @@ export default function App() {
                   <Route path="/vouchers/entry/receive" element={<VoucherEntryPage forcedType="Receive Voucher" />} />
                   <Route path="/vouchers/entry/contra" element={<VoucherEntryPage forcedType="Contra Voucher" />} />
                   <Route path="/vouchers/entry/:type" element={<VoucherEntryPage />} />
+
+                  {/* Journal Entries Module Routes */}
+                  <Route path="/journal-entries" element={<JournalEntriesListPage />} />
+                  <Route path="/journal-entries/new" element={<JournalEntryPage />} />
+                  <Route path="/journal-entries/:id/edit" element={<JournalEntryPage />} />
+                  <Route path="/journal-entries/:id/print" element={<JournalEntryPrintPage />} />
+                  <Route path="/journal-books/journal-entries" element={<Navigate to="/journal-entries" replace />} />
 
                   {/* Opening Balance Routes */}
                   <Route path="/opening-balance" element={<OpeningBalanceEntryPage />} />

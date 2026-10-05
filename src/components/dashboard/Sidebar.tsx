@@ -142,7 +142,7 @@ export const nav: NavItem[] = [
     label: "Journal Books",
     icon: BookOpen,
     subitems: [
-      { label: "Journal Entries", to: "/journal-books/journal-entries" },
+      { label: "Journal Entries", to: "/journal-entries" },
       { label: "Recurring Journal", to: "/journal-books/recurring-journal" },
       { label: "Preset Journal", to: "/journal-books/preset-journal" },
       { label: "Bulk Data Upload", to: "/journal-books/bulk-data-upload" },
@@ -245,13 +245,78 @@ export const nav: NavItem[] = [
   },
 ];
 
+// Helper to check if a route is already implemented & ready in the application
+const READY_ROUTE_PATTERNS = [
+  '/',
+  '/accounts-config/master-config',
+  '/accounts-config/chart-of-accounts',
+  '/chart-of-accounts',
+  '/accounts-config/opening-balance',
+  '/opening-balance',
+  '/accounts-config/voucher-setup',
+  '/vouchers',
+  '/vouchers/new',
+  '/vouchers/entry/journal',
+  '/vouchers/entry/payment',
+  '/vouchers/entry/receive',
+  '/vouchers/entry/contra',
+  '/accounts-config/currency-setup',
+  '/currency-setup',
+  '/accounts-config/subledger',
+  '/subledger',
+  '/accounts-config/custom-field',
+  '/custom-fields',
+  '/accounts-report/journal',
+  '/voucher-template',
+  '/customers',
+  '/accounts-receivable/customer-master-setup',
+  '/accounts-receivable/customer-master-list',
+  '/banks',
+  '/bank-management/bank-master-setup',
+  '/cheques',
+  '/cheque-setup',
+  '/cheque-prepare/direct',
+  '/cheque-prepare/register',
+  '/journal-entries',
+  '/journal-books/journal-entries',
+];
+
+function isRouteReady(path?: string): boolean {
+  if (!path) return false;
+  return READY_ROUTE_PATTERNS.some((pattern) => path === pattern || path.startsWith(pattern + '/'));
+}
+
+// Helper to determine if a route or alias is currently active
+function isPathActive(itemTo: string | undefined, currentPath: string): boolean {
+  if (!itemTo) return false;
+  if (itemTo === '/' && currentPath === '/') return true;
+  if (itemTo !== '/' && (currentPath === itemTo || currentPath.startsWith(itemTo + '/'))) return true;
+
+  // Aliases mapping for accounts sub-routes
+  if (itemTo === '/accounts-config/chart-of-accounts' && currentPath.startsWith('/chart-of-accounts')) return true;
+  if (itemTo === '/accounts-config/voucher-setup' && (currentPath === '/vouchers' || currentPath.startsWith('/vouchers/'))) return true;
+  if (itemTo === '/accounts-config/currency-setup' && currentPath.startsWith('/currency-setup')) return true;
+  if (itemTo === '/accounts-config/subledger' && currentPath.startsWith('/subledger')) return true;
+  if (itemTo === '/accounts-config/custom-field' && currentPath.startsWith('/custom-fields')) return true;
+  if (itemTo === '/customers' && (currentPath.startsWith('/customers') || currentPath.startsWith('/accounts-receivable/customer-master'))) return true;
+  if (itemTo === '/banks' && (currentPath.startsWith('/banks') || currentPath.startsWith('/branches') || currentPath.startsWith('/bank-management/bank-master-setup'))) return true;
+  if (itemTo === '/cheque-setup' && currentPath.startsWith('/cheque-setup')) return true;
+  if (itemTo === '/cheque-prepare/direct' && (currentPath.startsWith('/cheque-prepare') || currentPath.startsWith('/cheques'))) return true;
+  if (itemTo === '/cheque-prepare/register' && currentPath === '/cheque-prepare/register') return true;
+  if (itemTo === '/journal-entries' && (currentPath.startsWith('/journal-entries') || currentPath.startsWith('/journal-books/journal-entries'))) return true;
+  if (itemTo === '/journal-books/journal-entries' && (currentPath.startsWith('/journal-entries') || currentPath.startsWith('/journal-books/journal-entries'))) return true;
+  if (itemTo === '/accounts-report/journal' && (currentPath === '/accounts-report/journal' || currentPath.startsWith('/voucher-template'))) return true;
+
+  return false;
+}
+
 export function Sidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
   const scrollRef = useRef<HTMLElement>(null);
   const isTransitioning = useRef(false);
 
-  // Default open state for parent and child menus (BY DEFAULT EVERYTHING IS OFF)
+  // Default open state for parent and child menus
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
 
@@ -261,12 +326,12 @@ export function Sidebar() {
       nav.forEach((item) => {
         if (item.subitems) {
           item.subitems.forEach((sub) => {
-            if (sub.to === activePath) {
+            if (isPathActive(sub.to, activePath)) {
               initial[item.label] = true;
             }
             if (sub.subitems) {
               sub.subitems.forEach((nested) => {
-                if (nested.to === activePath) {
+                if (isPathActive(nested.to, activePath)) {
                   initial[item.label] = true;
                   initial[sub.label] = true;
                 }
@@ -343,9 +408,8 @@ export function Sidebar() {
     }));
   };
 
-
   return (
-    <aside className="hidden lg:flex w-64 h-screen sticky top-0 shrink-0 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 select-none">
+    <aside className="hidden lg:flex w-[280px] h-screen sticky top-0 shrink-0 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 select-none">
       {/* Brand Header */}
       <Link
         to="/"
@@ -390,8 +454,11 @@ export function Sidebar() {
         onClick={handleNavClick}
         className="flex-1 min-h-0 px-3 py-3 space-y-1 overflow-y-auto overscroll-contain sidebar-scroll"
       >
-        <div className="px-2.5 pb-2 text-[9px] font-extrabold uppercase tracking-widest text-sidebar-foreground/45">
-          Workspace
+        <div className="px-2.5 pb-2 text-[9px] font-extrabold uppercase tracking-widest text-sidebar-foreground/45 flex items-center justify-between">
+          <span>Workspace</span>
+          <span className="text-[8px] font-semibold text-sidebar-foreground/35 uppercase tracking-normal">
+            Ready &amp; Planned
+          </span>
         </div>
 
         {nav.map((item) => {
@@ -399,13 +466,13 @@ export function Sidebar() {
 
           // Determine parent active state dynamically
           const isParentActive =
-            item.to === currentPath ||
+            isPathActive(item.to, currentPath) ||
             (item.subitems &&
               item.subitems.some((sub) => {
-                if (sub.to && sub.to !== "/" && sub.to === currentPath) return true;
+                if (isPathActive(sub.to, currentPath)) return true;
                 if (
                   sub.subitems &&
-                  sub.subitems.some((nested) => nested.to && nested.to !== "/" && nested.to === currentPath)
+                  sub.subitems.some((nested) => isPathActive(nested.to, currentPath))
                 ) {
                   return true;
                 }
@@ -413,6 +480,9 @@ export function Sidebar() {
               }));
 
           if (!item.subitems) {
+            const active = isPathActive(item.to, currentPath);
+            const ready = isRouteReady(item.to);
+
             return (
               <div
                 key={item.label}
@@ -421,16 +491,27 @@ export function Sidebar() {
                 <Link
                   to={item.to || "/"}
                   className={[
-                    "group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-semibold transition-all duration-200",
-                    isParentActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-2xs"
-                      : "text-sidebar-foreground/85 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                    "group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] transition-all duration-200",
+                    active
+                      ? "bg-primary/15 text-primary font-bold shadow-2xs border-l-[3px] border-primary"
+                      : ready
+                      ? "text-sidebar-foreground/90 font-medium hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground/40 font-normal hover:bg-sidebar-accent/30 hover:text-sidebar-foreground/70",
                   ].join(" ")}
                 >
-                  <Icon className="size-3.5 transition-transform duration-300 group-hover:scale-110 group-hover:text-sidebar-primary" />
-                  <span>{item.label}</span>
-                  {isParentActive && (
-                    <span className="ml-auto size-1.5 rounded-full bg-sidebar-primary shadow-[0_0_8px_var(--sidebar-primary)] animate-pulse" />
+                  <Icon
+                    className={[
+                      "size-3.5 transition-transform duration-300 group-hover:scale-110",
+                      active
+                        ? "text-primary"
+                        : ready
+                        ? "text-sidebar-primary"
+                        : "text-sidebar-foreground/35",
+                    ].join(" ")}
+                  />
+                  <span className="flex-1 truncate">{item.label}</span>
+                  {active && (
+                    <span className="ml-auto size-2 rounded-full bg-primary shadow-[0_0_8px_var(--primary)] animate-pulse shrink-0" />
                   )}
                 </Link>
               </div>
@@ -448,16 +529,18 @@ export function Sidebar() {
               <button
                 onClick={(e) => toggleMenu(item.label, e)}
                 className={[
-                  "w-full group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-left transition-all duration-200 font-semibold cursor-pointer",
+                  "w-full group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-left transition-all duration-200 cursor-pointer",
                   isParentActive
-                    ? "bg-sidebar-accent/30 text-sidebar-accent-foreground font-bold"
-                    : "text-sidebar-foreground/85 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                    ? "bg-sidebar-accent/40 text-sidebar-accent-foreground font-bold border-l-2 border-primary/60"
+                    : "text-sidebar-foreground/85 font-semibold hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
                 ].join(" ")}
               >
                 <Icon
                   className={[
-                    "size-3.5 shrink-0 transition-colors duration-300 group-hover:scale-110 group-hover:text-sidebar-primary",
-                    isParentActive ? "text-success font-black" : "text-sidebar-foreground/60",
+                    "size-3.5 shrink-0 transition-colors duration-300 group-hover:scale-110",
+                    isParentActive
+                      ? "text-primary font-black"
+                      : "text-sidebar-foreground/60 group-hover:text-sidebar-primary",
                   ].join(" ")}
                 />
                 <span className="flex-1 truncate">{item.label}</span>
@@ -483,9 +566,7 @@ export function Sidebar() {
                 {item.subitems.map((sub) => {
                   if (sub.subitems) {
                     const isSubOpen = !!openMenus[sub.label];
-                    const isSubActive = sub.subitems.some(
-                      (nested) => nested.to && nested.to !== "/" && nested.to === currentPath
-                    );
+                    const isSubActive = sub.subitems.some((nested) => isPathActive(nested.to, currentPath));
 
                     return (
                       <div key={sub.label} className="space-y-0.5">
@@ -493,10 +574,10 @@ export function Sidebar() {
                         <button
                           onClick={(e) => toggleMenu(sub.label, e)}
                           className={[
-                            "w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 cursor-pointer",
+                            "w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all duration-150 cursor-pointer",
                             isSubActive
-                              ? "text-sidebar-foreground font-bold"
-                              : "text-sidebar-foreground/75 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                              ? "text-primary font-bold bg-primary/5"
+                              : "text-sidebar-foreground/75 font-medium hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
                           ].join(" ")}
                         >
                           <div className="flex items-center gap-2 truncate">
@@ -526,31 +607,45 @@ export function Sidebar() {
                               : "max-h-0 opacity-0 py-0 m-0",
                           ].join(" ")}
                         >
-
                           {sub.subitems.map((nested) => {
-                            const isNestedActive =
-                              nested.to !== "/" && nested.to === currentPath;
+                            const isNestedActive = isPathActive(nested.to, currentPath);
+                            const isNestedReady = isRouteReady(nested.to);
 
                             return (
                               <Link
                                 key={nested.label}
                                 to={nested.to || "#"}
                                 className={[
-                                  "flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] font-medium transition-all duration-150",
+                                  "group flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[10.5px] transition-all duration-150",
                                   isNestedActive
-                                    ? "bg-primary/10 text-primary font-bold shadow-2xs"
-                                    : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-accent-foreground",
+                                    ? "bg-primary/15 text-primary font-bold shadow-2xs border-l-2 border-primary pl-2"
+                                    : isNestedReady
+                                    ? "text-sidebar-foreground/85 font-medium hover:bg-sidebar-accent/40 hover:text-sidebar-accent-foreground"
+                                    : "text-sidebar-foreground/40 font-normal hover:bg-sidebar-accent/20 hover:text-sidebar-foreground/60",
                                 ].join(" ")}
                               >
                                 <span
                                   className={[
-                                    "w-1.5 h-1.5 rounded-full shrink-0",
+                                    "w-1.5 h-1.5 rounded-full shrink-0 transition-colors",
                                     isNestedActive
-                                      ? "bg-primary"
+                                      ? "bg-primary shadow-[0_0_6px_var(--primary)]"
+                                      : isNestedReady
+                                      ? "bg-sidebar-foreground/40 group-hover:bg-primary"
                                       : "bg-sidebar-foreground/20",
                                   ].join(" ")}
                                 />
-                                <span className="truncate">{nested.label}</span>
+                                <span className="truncate flex-1">{nested.label}</span>
+
+                                {/* Visual indicator if not ready */}
+                                {!isNestedReady && (
+                                  <span className="text-[8px] font-semibold tracking-tight text-sidebar-foreground/35 px-1 py-0.2 rounded bg-sidebar-foreground/5 shrink-0 select-none">
+                                    Soon
+                                  </span>
+                                )}
+
+                                {isNestedActive && (
+                                  <span className="size-1.5 rounded-full bg-primary animate-pulse shrink-0 ml-auto" />
+                                )}
                               </Link>
                             );
                           })}
@@ -560,27 +655,44 @@ export function Sidebar() {
                   }
 
                   // Non-nested level 2 item (Direct Link)
-                  const isSubActive =
-                    sub.to && sub.to !== "/" && sub.to === currentPath;
+                  const isSubActive = isPathActive(sub.to, currentPath);
+                  const isSubReady = isRouteReady(sub.to);
 
                   return (
                     <Link
                       key={sub.label}
                       to={sub.to || "/"}
                       className={[
-                        "flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150",
+                        "group flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] transition-all duration-150",
                         isSubActive
-                          ? "bg-primary/10 text-primary font-bold shadow-2xs"
-                          : "text-sidebar-foreground/75 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                          ? "bg-primary/15 text-primary font-bold shadow-2xs border-l-2 border-primary pl-2.5"
+                          : isSubReady
+                          ? "text-sidebar-foreground/85 font-medium hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                          : "text-sidebar-foreground/40 font-normal hover:bg-sidebar-accent/20 hover:text-sidebar-foreground/60",
                       ].join(" ")}
                     >
                       <File
                         className={[
-                          "size-3 shrink-0",
-                          isSubActive ? "text-primary font-black" : "text-sidebar-foreground/45",
+                          "size-3 shrink-0 transition-colors",
+                          isSubActive
+                            ? "text-primary font-black"
+                            : isSubReady
+                            ? "text-sidebar-foreground/50 group-hover:text-sidebar-primary"
+                            : "text-sidebar-foreground/30",
                         ].join(" ")}
                       />
-                      <span className="truncate">{sub.label}</span>
+                      <span className="truncate flex-1">{sub.label}</span>
+
+                      {/* Visual indicator if not ready */}
+                      {!isSubReady && (
+                        <span className="text-[8px] font-semibold tracking-tight text-sidebar-foreground/35 px-1 py-0.2 rounded bg-sidebar-foreground/5 shrink-0 select-none">
+                          Soon
+                        </span>
+                      )}
+
+                      {isSubActive && (
+                        <span className="size-1.5 rounded-full bg-primary animate-pulse shrink-0 ml-auto" />
+                      )}
                     </Link>
                   );
                 })}
