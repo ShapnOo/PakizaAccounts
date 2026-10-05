@@ -22,7 +22,15 @@ import { CustomerListPage } from "./pages/customers/List";
 import { CustomerFormPage } from "./pages/customers/Form";
 import { BankSetupList } from "./pages/banks/List";
 import { BranchForm } from "./pages/banks/BranchForm";
-import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark } from "lucide-react";
+import { ChequesLandingPage } from "./pages/cheques/Landing";
+import { BookListPage } from "./pages/cheques/BookList";
+import { BookSetupFormPage } from "./pages/cheques/BookSetupForm";
+import { PrepareDirectPage } from "./pages/cheques/PrepareDirect";
+import { PrepareBillPage } from "./pages/cheques/PrepareBill";
+import { PrepareIouPage } from "./pages/cheques/PrepareIou";
+import { ChequePrintPage } from "./pages/cheques/ChequePrint";
+import { RegisterPage } from "./pages/cheques/Register";
+import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen } from "lucide-react";
 import { Toaster } from "sonner";
 
 function ContentArea() {
@@ -121,6 +129,14 @@ function ContentArea() {
               <Landmark className="size-3.5 text-indigo-600" />
               <span>Bank & Branch Setup</span>
             </Link>
+
+            <Link
+              to="/cheques/books"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-indigo-200 bg-indigo-50/50 text-indigo-700 text-xs font-bold shadow-sm hover:bg-indigo-100/60 transition-all cursor-pointer"
+            >
+              <BookOpen className="size-3.5 text-indigo-600" />
+              <span>Cheque Setup & Management</span>
+            </Link>
           </div>
 
           <div className="text-[12px] text-muted-foreground/80 flex items-center justify-center gap-2">
@@ -211,6 +227,21 @@ export default function App() {
                   <Route path="/banks/new" element={<BranchForm />} />
                   <Route path="/branches/new" element={<BranchForm />} />
                   <Route path="/branches/:id/edit" element={<BranchForm />} />
+
+                  {/* Cheque Management Routes */}
+                  <Route path="/cheques" element={<ChequesLandingPage />} />
+                  <Route path="/cheques/books" element={<BookListPage />} />
+                  <Route path="/cheques/books/new" element={<BookSetupFormPage />} />
+                  <Route path="/cheques/books/:id/edit" element={<BookSetupFormPage />} />
+                  <Route path="/cheques/prepare/direct" element={<PrepareDirectPage />} />
+                  <Route path="/cheques/prepare/bill" element={<PrepareBillPage />} />
+                  <Route path="/cheques/prepare/iou" element={<PrepareIouPage />} />
+                  <Route path="/cheques/:preparedId/print" element={<ChequePrintPage />} />
+                  <Route path="/cheques/register" element={<RegisterPage />} />
+
+                  {/* Bank Management Sub-routes aliases */}
+                  <Route path="/bank-management/cheque-setup" element={<Navigate to="/cheques/books" replace />} />
+                  <Route path="/bank-management/cheque-preparation-payment" element={<Navigate to="/cheques/prepare/direct" replace />} />
 
                   <Route path="*" element={<ContentArea />} />
                 </Routes>
