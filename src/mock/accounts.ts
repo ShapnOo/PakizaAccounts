@@ -563,3 +563,11 @@ export function saveStoredExtraDetailsTypes(types: string[]): void {
     localStorage.setItem(TAXONOMY_EXTRA_DETAILS_KEY, JSON.stringify(types));
   } catch (e) {}
 }
+
+export const MOCK_ACCOUNTS = INITIAL_ACCOUNTS.map((a) => ({
+  id: a.id,
+  name: a.name,
+  code: a.manualCode || a.code,
+  path: a.path,
+}));
+
