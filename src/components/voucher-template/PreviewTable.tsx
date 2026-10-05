@@ -94,12 +94,20 @@ export const PreviewTable: React.FC<PreviewTableProps> = ({
             {visibleColKeys.map((key) => {
               const cfg = columns[key];
               const isNum = isNumericCol(key);
+              const alignClass = cfg?.align
+                ? cfg.align === 'Center'
+                  ? 'text-center'
+                  : cfg.align === 'Right'
+                  ? 'text-right'
+                  : 'text-left'
+                : isNum
+                ? 'text-right'
+                : 'text-left';
+
               return (
                 <th
                   key={key}
-                  className={`py-1.5 px-2 font-bold uppercase tracking-tight whitespace-nowrap ${cellBorderClass} ${
-                    isNum ? 'text-right' : 'text-left'
-                  }`}
+                  className={`py-1.5 px-2 font-bold uppercase tracking-tight whitespace-nowrap ${cellBorderClass} ${alignClass}`}
                   style={{ fontSize: `${fontSize - 0.5}px` }}
                 >
                   {cfg.label}
@@ -124,12 +132,23 @@ export const PreviewTable: React.FC<PreviewTableProps> = ({
                 </td>
                 {visibleColKeys.map((key) => {
                   const val = getCellValue(line, key);
+                  const cfg = columns[key];
                   const isNum = isNumericCol(key);
+                  const alignClass = cfg?.align
+                    ? cfg.align === 'Center'
+                      ? 'text-center'
+                      : cfg.align === 'Right'
+                      ? 'text-right'
+                      : 'text-left'
+                    : isNum
+                    ? 'text-right'
+                    : 'text-left';
+
                   return (
                     <td
                       key={key}
-                      className={`py-1.5 px-2 ${cellBorderClass} ${
-                        isNum ? 'text-right font-mono tabular-nums' : 'text-left'
+                      className={`py-1.5 px-2 ${cellBorderClass} ${alignClass} ${
+                        isNum ? 'font-mono tabular-nums' : ''
                       }`}
                     >
                       {val}

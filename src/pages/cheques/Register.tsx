@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChequePrepareStore } from '../../stores/preparedChequeStore';
-import { ChequeTabs } from '../../components/cheques/ChequeTabs';
 import { RegisterTable } from '../../components/cheques/RegisterTable';
 import { ListChecks, Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -25,9 +24,6 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-5 pb-20 space-y-5">
-      {/* Module Navigation Tabs */}
-      <ChequeTabs />
-
       {/* Header and Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="flex items-center gap-3">

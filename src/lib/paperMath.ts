@@ -21,6 +21,14 @@ export function mmToPx(mm: number, scale: number = 1): number {
   return Math.round(mm * PX_PER_MM * scale);
 }
 
+export function pxToMm(px: number, scale: number = 1): number {
+  return px / (PX_PER_MM * scale);
+}
+
+export function pxToInch(px: number, scale: number = 1): number {
+  return px / (DPI * scale);
+}
+
 export function getPaperDimensions(
   size: PaperSize,
   orientation: Orientation,

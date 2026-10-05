@@ -6,8 +6,6 @@ import { generateChequeNumbers } from '../../lib/chequeNumber';
 import { chequeBookSchema, ChequeBookFormValues } from '../../lib/validation/cheque';
 import { useChequeBookStore } from '../../stores/chequeBookStore';
 import { getChequeBook } from '../../services/chequeBookService';
-
-import { ChequeTabs } from '../../components/cheques/ChequeTabs';
 import { BookSetupHeaderBlock } from '../../components/cheques/BookSetupHeaderBlock';
 import { BookSetupBookBlock } from '../../components/cheques/BookSetupBookBlock';
 import { GeneratedChequesTable } from '../../components/cheques/GeneratedChequesTable';
@@ -196,9 +194,6 @@ export const BookSetupFormPage: React.FC = () => {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-5 pb-20 space-y-5">
-      {/* Module Navigation Tabs */}
-      <ChequeTabs />
-
       {/* Page Header */}
       <div className="flex items-center justify-between pb-3 border-b border-border">
         <div className="flex items-center gap-3">

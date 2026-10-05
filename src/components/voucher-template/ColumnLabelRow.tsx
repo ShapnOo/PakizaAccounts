@@ -1,6 +1,6 @@
 import React from 'react';
-import { GripVertical, ChevronUp, ChevronDown, Check } from 'lucide-react';
-import { TableColumnConfig } from '../../types/voucherTemplate';
+import { GripVertical, ChevronUp, ChevronDown, Check, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { Align, TableColumnConfig } from '../../types/voucherTemplate';
 
 interface ColumnLabelRowProps {
   colKey: string;
@@ -9,6 +9,7 @@ interface ColumnLabelRowProps {
   totalCount: number;
   onToggleVisible: () => void;
   onLabelChange: (label: string) => void;
+  onAlignChange?: (align: Align) => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
 }
@@ -20,9 +21,19 @@ export const ColumnLabelRow: React.FC<ColumnLabelRowProps> = ({
   totalCount,
   onToggleVisible,
   onLabelChange,
+  onAlignChange,
   onMoveUp,
   onMoveDown,
 }) => {
+  const currentAlign = config.align || (colKey.includes('debit') || colKey.includes('credit') || colKey === 'exchangeRate' ? 'Right' : 'Left');
+
+  const cycleAlign = () => {
+    if (!onAlignChange) return;
+    if (currentAlign === 'Left') onAlignChange('Center');
+    else if (currentAlign === 'Center') onAlignChange('Right');
+    else onAlignChange('Left');
+  };
+
   return (
     <div
       className={`flex items-center gap-2 p-1.5 rounded-lg border transition-colors group ${
@@ -80,6 +91,21 @@ export const ColumnLabelRow: React.FC<ColumnLabelRowProps> = ({
           className="w-full h-7 px-2 rounded border border-transparent hover:border-border/80 focus:border-indigo-500 bg-transparent text-xs font-semibold text-foreground outline-none transition-colors"
         />
       </div>
+
+      {/* Alignment Button */}
+      {onAlignChange && config.visible && (
+        <button
+          type="button"
+          onClick={cycleAlign}
+          title={`Column Alignment: ${currentAlign} (Click to cycle)`}
+          className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted/80 text-[10px] font-bold flex items-center gap-0.5 border border-transparent hover:border-border cursor-pointer transition-colors"
+        >
+          {currentAlign === 'Left' && <AlignLeft className="size-3 text-indigo-600" />}
+          {currentAlign === 'Center' && <AlignCenter className="size-3 text-indigo-600" />}
+          {currentAlign === 'Right' && <AlignRight className="size-3 text-indigo-600" />}
+          <span className="text-[10px] hidden group-hover:inline">{currentAlign.slice(0, 1)}</span>
+        </button>
+      )}
 
       {/* Custom Field Badge if applicable */}
       {config.isCustom && (

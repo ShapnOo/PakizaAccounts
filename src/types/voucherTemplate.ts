@@ -23,6 +23,7 @@ export interface TableColumnConfig {
   visible: boolean;
   label: string;
   isCustom?: boolean;
+  align?: Align;
 }
 
 export const BASE_TABLE_COLUMNS: { key: string; label: string }[] = [

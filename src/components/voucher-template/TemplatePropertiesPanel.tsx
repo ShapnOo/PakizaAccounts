@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { VoucherTemplate } from '../../types/voucherTemplate';
+import { Align, VoucherTemplate } from '../../types/voucherTemplate';
 import { PaperSection } from './PaperSection';
 import { MarginSection } from './MarginSection';
 import { FontSection } from './FontSection';
@@ -13,6 +13,7 @@ interface TemplatePropertiesPanelProps {
   onUpdate: (patch: any) => void;
   onToggleColumn: (colKey: string) => void;
   onUpdateColumnLabel: (colKey: string, label: string) => void;
+  onUpdateColumnAlign?: (colKey: string, align: Align) => void;
   onReorderColumns: (newOrder: string[]) => void;
 }
 
@@ -21,6 +22,7 @@ export const TemplatePropertiesPanel: React.FC<TemplatePropertiesPanelProps> = (
   onUpdate,
   onToggleColumn,
   onUpdateColumnLabel,
+  onUpdateColumnAlign,
   onReorderColumns,
 }) => {
   // Read active custom fields for this voucher type context
@@ -129,6 +131,7 @@ export const TemplatePropertiesPanel: React.FC<TemplatePropertiesPanelProps> = (
         showApprovalSignature={template.table.showApprovalSignature}
         onToggleColumn={onToggleColumn}
         onUpdateColumnLabel={onUpdateColumnLabel}
+        onUpdateColumnAlign={onUpdateColumnAlign}
         onReorderColumns={onReorderColumns}
         onChangeLayout={(patch) => onUpdate({ table: patch })}
       />

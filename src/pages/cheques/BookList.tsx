@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChequeBookStore } from '../../stores/chequeBookStore';
 import { ChequeBook } from '../../types/cheque';
-import { ChequeTabs } from '../../components/cheques/ChequeTabs';
 import { EmptyState } from '../../components/cheques/EmptyState';
 import { DeleteConfirmDialog } from '../../components/cheques/DeleteConfirmDialog';
 import {
@@ -52,9 +51,6 @@ export const BookListPage: React.FC = () => {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-5 pb-20 space-y-5">
-      {/* Module Navigation Tabs */}
-      <ChequeTabs />
-
       {/* Header and Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="flex items-center gap-3">

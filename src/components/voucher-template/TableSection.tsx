@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TableColumnConfig } from '../../types/voucherTemplate';
+import { Align, TableColumnConfig } from '../../types/voucherTemplate';
 import { ColumnLabelRow } from './ColumnLabelRow';
 import { Table2, Check, ChevronDown } from 'lucide-react';
 
@@ -12,6 +12,7 @@ interface TableSectionProps {
   defaultCollapsed?: boolean;
   onToggleColumn: (colKey: string) => void;
   onUpdateColumnLabel: (colKey: string, label: string) => void;
+  onUpdateColumnAlign?: (colKey: string, align: Align) => void;
   onReorderColumns: (newOrder: string[]) => void;
   onChangeLayout: (patch: {
     showBorder?: boolean;
@@ -29,6 +30,7 @@ export const TableSection: React.FC<TableSectionProps> = ({
   defaultCollapsed = false,
   onToggleColumn,
   onUpdateColumnLabel,
+  onUpdateColumnAlign,
   onReorderColumns,
   onChangeLayout,
 }) => {
@@ -104,6 +106,7 @@ export const TableSection: React.FC<TableSectionProps> = ({
                 totalCount={columnOrder.length}
                 onToggleVisible={() => onToggleColumn(key)}
                 onLabelChange={(newLabel) => onUpdateColumnLabel(key, newLabel)}
+                onAlignChange={(newAlign) => onUpdateColumnAlign?.(key, newAlign)}
                 onMoveUp={() => handleMove(idx, 'up')}
                 onMoveDown={() => handleMove(idx, 'down')}
               />
