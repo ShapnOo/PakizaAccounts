@@ -6,7 +6,11 @@ import { CoaListPage } from "./pages/coa/List";
 import { CoaTreePage } from "./pages/coa/Tree";
 import { CoaCreatePage } from "./pages/coa/Create";
 import { CoaProvider } from "./context/CoaContext";
-import { SlidersHorizontal, ArrowRight, Settings, FolderTree } from "lucide-react";
+import { VoucherProvider } from "./context/VoucherContext";
+import { VoucherListPage } from "./pages/vouchers/List";
+import { VoucherSetupPage } from "./pages/vouchers/Setup";
+import { VoucherEntryPage } from "./pages/vouchers/Entry";
+import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt } from "lucide-react";
 import { Toaster } from "sonner";
 
 function ContentArea() {
@@ -57,12 +61,20 @@ function ContentArea() {
               <FolderTree className="size-3.5 text-primary" />
               <span>Chart of Accounts (COA)</span>
             </Link>
+
+            <Link
+              to="/vouchers"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-indigo-200 bg-indigo-50/50 text-indigo-700 text-xs font-bold shadow-sm hover:bg-indigo-100/60 transition-all cursor-pointer"
+            >
+              <Receipt className="size-3.5 text-indigo-600" />
+              <span>Voucher Setup & Entry</span>
+            </Link>
           </div>
 
           <div className="text-[12px] text-muted-foreground/80 flex items-center justify-center gap-2">
-            <span>Enterprise COA Hierarchy Engine</span>
+            <span>Enterprise Multi-Type Voucher Engine</span>
             <ArrowRight className="size-3.5" />
-            <span className="font-semibold text-foreground">6-Level Base Digit 2 System</span>
+            <span className="font-semibold text-foreground">JV • PV • RV • CV</span>
           </div>
         </div>
       </div>
@@ -74,31 +86,47 @@ export default function App() {
   return (
     <BrowserRouter>
       <CoaProvider>
-        <Toaster position="top-right" richColors />
-        <div className="h-screen w-screen flex bg-background text-foreground transition-colors duration-300 overflow-hidden">
-          {/* Left: Fixed Sidebar */}
-          <Sidebar />
+        <VoucherProvider>
+          <Toaster position="top-right" richColors />
+          <div className="h-screen w-screen flex bg-background text-foreground transition-colors duration-300 overflow-hidden">
+            {/* Left: Fixed Sidebar */}
+            <Sidebar />
 
-          {/* Right: Header + Scrollable Content */}
-          <div className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
-            <Topbar />
-            <main className="flex-1 overflow-x-hidden overflow-y-auto sidebar-scroll">
-              <Routes>
-                <Route path="/accounts-config/master-config" element={<MasterConfigPage />} />
-                
-                {/* Chart of Accounts Routes */}
-                <Route path="/chart-of-accounts" element={<CoaListPage />} />
-                <Route path="/accounts-config/chart-of-accounts" element={<Navigate to="/chart-of-accounts" replace />} />
-                <Route path="/chart-of-accounts/tree" element={<CoaTreePage />} />
-                <Route path="/chart-of-accounts/new" element={<CoaCreatePage />} />
-                <Route path="/chart-of-accounts/:id/edit" element={<CoaCreatePage />} />
+            {/* Right: Header + Scrollable Content */}
+            <div className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
+              <Topbar />
+              <main className="flex-1 overflow-x-hidden overflow-y-auto sidebar-scroll">
+                <Routes>
+                  <Route path="/accounts-config/master-config" element={<MasterConfigPage />} />
+                  
+                  {/* Chart of Accounts Routes */}
+                  <Route path="/chart-of-accounts" element={<CoaListPage />} />
+                  <Route path="/accounts-config/chart-of-accounts" element={<Navigate to="/chart-of-accounts" replace />} />
+                  <Route path="/chart-of-accounts/tree" element={<CoaTreePage />} />
+                  <Route path="/chart-of-accounts/new" element={<CoaCreatePage />} />
+                  <Route path="/chart-of-accounts/:id/edit" element={<CoaCreatePage />} />
 
-                <Route path="*" element={<ContentArea />} />
-              </Routes>
-            </main>
+                  {/* Voucher Routes */}
+                  <Route path="/vouchers" element={<VoucherListPage />} />
+                  <Route path="/accounts-config/voucher-setup" element={<Navigate to="/vouchers" replace />} />
+                  <Route path="/vouchers/new" element={<VoucherSetupPage />} />
+                  <Route path="/vouchers/:id/setup" element={<VoucherSetupPage />} />
+                  
+                  {/* 4 Voucher Entry forms driven by unified component */}
+                  <Route path="/vouchers/entry/journal" element={<VoucherEntryPage forcedType="Journal Voucher" />} />
+                  <Route path="/vouchers/entry/payment" element={<VoucherEntryPage forcedType="Payment Voucher" />} />
+                  <Route path="/vouchers/entry/receive" element={<VoucherEntryPage forcedType="Receive Voucher" />} />
+                  <Route path="/vouchers/entry/contra" element={<VoucherEntryPage forcedType="Contra Voucher" />} />
+                  <Route path="/vouchers/entry/:type" element={<VoucherEntryPage />} />
+
+                  <Route path="*" element={<ContentArea />} />
+                </Routes>
+              </main>
+            </div>
           </div>
-        </div>
+        </VoucherProvider>
       </CoaProvider>
     </BrowserRouter>
   );
 }
+

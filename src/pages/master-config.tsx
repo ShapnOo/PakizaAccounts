@@ -48,7 +48,7 @@ export const MasterConfigPage: React.FC = () => {
   } = useConfigState();
 
   return (
-    <div className="w-full max-w-[1100px] mx-auto px-4 md:px-6 py-5 md:py-6 space-y-4 pb-20">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-5 md:py-6 space-y-4 pb-20">
       {/* ── Breadcrumb & Page Header ── */}
       <div className="space-y-2">
         <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-muted-foreground/70 uppercase tracking-wider">
@@ -411,8 +411,8 @@ export const MasterConfigPage: React.FC = () => {
       </SectionCard>
 
       {/* ── 4. STICKY GLOBAL BOTTOM BAR ── */}
-      <div className="sticky bottom-0 z-30 bg-card/95 backdrop-blur-md border-t border-border/80 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] py-2.5 px-4 md:px-8 mt-6">
-        <div className="max-w-[1100px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="sticky bottom-0 z-30 bg-card/95 backdrop-blur-md border-t border-border/80 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] py-2.5 px-4 sm:px-6 lg:px-8 mt-6">
+        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Left: Global Scope */}
           <div className="flex items-center gap-2">
             <Building2 className="size-4 text-primary shrink-0" />

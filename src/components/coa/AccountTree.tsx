@@ -6,17 +6,16 @@ import { BaseDigitLegend } from './BaseDigitLegend';
 import {
   ChevronRight,
   ChevronDown,
-  ChevronsUpDown,
-  Folder,
-  FolderOpen,
-  FileCode,
-  MoreVertical,
+  Plus,
   Edit2,
-  PlusCircle,
-  Power,
   Trash2,
+  Power,
   FolderTree,
   Search,
+  SlidersHorizontal,
+  Table,
+  Layers,
+  Building2,
 } from 'lucide-react';
 
 interface AccountTreeProps {
@@ -25,6 +24,82 @@ interface AccountTreeProps {
   onDelete: (id: string) => void;
 }
 
+interface LevelConfig {
+  headerName: string;
+  addBtnText: string;
+  headerBg: string;
+  textColor: string;
+  borderColor: string;
+  btnBorderColor: string;
+  btnTextColor: string;
+  btnHoverBg: string;
+}
+
+const LEVEL_CONFIGS: Record<number, LevelConfig> = {
+  1: {
+    headerName: 'CLASS NAME',
+    addBtnText: '+ Add Class',
+    headerBg: 'bg-rose-50/70 dark:bg-rose-950/25',
+    textColor: 'text-rose-700 dark:text-rose-300',
+    borderColor: 'border-rose-200/80 dark:border-rose-900/40',
+    btnBorderColor: 'border-rose-300 dark:border-rose-800',
+    btnTextColor: 'text-rose-600 dark:text-rose-400',
+    btnHoverBg: 'hover:bg-rose-100/60 dark:hover:bg-rose-900/30',
+  },
+  2: {
+    headerName: 'GROUP NAME',
+    addBtnText: '+ Add Group',
+    headerBg: 'bg-purple-50/70 dark:bg-purple-950/25',
+    textColor: 'text-purple-700 dark:text-purple-300',
+    borderColor: 'border-purple-200/80 dark:border-purple-900/40',
+    btnBorderColor: 'border-purple-300 dark:border-purple-800',
+    btnTextColor: 'text-purple-600 dark:text-purple-400',
+    btnHoverBg: 'hover:bg-purple-100/60 dark:hover:bg-purple-900/30',
+  },
+  3: {
+    headerName: 'SUBGROUP NAME',
+    addBtnText: '+ Add Sub Group',
+    headerBg: 'bg-sky-50/70 dark:bg-sky-950/25',
+    textColor: 'text-sky-700 dark:text-sky-300',
+    borderColor: 'border-sky-200/80 dark:border-sky-900/40',
+    btnBorderColor: 'border-sky-300 dark:border-sky-800',
+    btnTextColor: 'text-sky-600 dark:text-sky-400',
+    btnHoverBg: 'hover:bg-sky-100/60 dark:hover:bg-sky-900/30',
+  },
+  4: {
+    headerName: 'CONTROL NAME',
+    addBtnText: '+ Add Control',
+    headerBg: 'bg-amber-50/70 dark:bg-amber-950/25',
+    textColor: 'text-amber-800 dark:text-amber-300',
+    borderColor: 'border-amber-200/80 dark:border-amber-900/40',
+    btnBorderColor: 'border-amber-300 dark:border-amber-800',
+    btnTextColor: 'text-amber-700 dark:text-amber-400',
+    btnHoverBg: 'hover:bg-amber-100/60 dark:hover:bg-amber-900/30',
+  },
+  5: {
+    headerName: 'GL ACCOUNT',
+    addBtnText: '+ Add GL',
+    headerBg: 'bg-teal-50/70 dark:bg-teal-950/25',
+    textColor: 'text-teal-700 dark:text-teal-300',
+    borderColor: 'border-teal-200/80 dark:border-teal-900/40',
+    btnBorderColor: 'border-teal-300 dark:border-teal-800',
+    btnTextColor: 'text-teal-600 dark:text-teal-400',
+    btnHoverBg: 'hover:bg-teal-100/60 dark:hover:bg-teal-900/30',
+  },
+  6: {
+    headerName: 'GL ACCOUNT',
+    addBtnText: '+ Add GL',
+    headerBg: 'bg-teal-50/70 dark:bg-teal-950/25',
+    textColor: 'text-teal-700 dark:text-teal-300',
+    borderColor: 'border-teal-200/80 dark:border-teal-900/40',
+    btnBorderColor: 'border-teal-300 dark:border-teal-800',
+    btnTextColor: 'text-teal-600 dark:text-teal-400',
+    btnHoverBg: 'hover:bg-teal-100/60 dark:hover:bg-teal-900/30',
+  },
+};
+
+type TreeNode = Omit<Account, 'children'> & { children: TreeNode[] };
+
 export const AccountTree: React.FC<AccountTreeProps> = ({
   accounts,
   onToggleActive,
@@ -32,11 +107,11 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
 }) => {
   const navigate = useNavigate();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
-    // Default: expand all parent accounts so the tree is fully visible
+    // Default: expand all parent accounts so the tree is immediately rich and visible
     return new Set(accounts.filter((a) => a.isParent).map((a) => a.id));
   });
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [useCardLayout, setUseCardLayout] = useState(true);
 
   // Toggle single node expand/collapse
   const toggleExpand = (id: string) => {
@@ -63,11 +138,11 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
   };
 
   // Build recursive tree
-  const treeNodes = useMemo(() => {
-    const map = new Map<string, Account & { children: Account[] }>();
-    const roots: (Account & { children: Account[] })[] = [];
+  const treeRoots = useMemo(() => {
+    const map = new Map<string, TreeNode>();
+    const roots: TreeNode[] = [];
 
-    // Sort accounts by code
+    // Sort accounts by code or manualCode
     const sorted = [...accounts].sort((a, b) => a.code.localeCompare(b.code));
 
     sorted.forEach((acc) => {
@@ -86,61 +161,224 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
     return roots;
   }, [accounts]);
 
-  // Flatten visible nodes according to expanded state and search
-  const visibleRows = useMemo(() => {
-    const rows: (Account & { hasChildren: boolean; isExpanded: boolean })[] = [];
+  // Filter tree by search query
+  const filterNode = (node: TreeNode, query: string): boolean => {
+    if (!query) return true;
+    const q = query.toLowerCase();
+    const matchSelf =
+      node.name.toLowerCase().includes(q) ||
+      node.code.includes(q) ||
+      (node.manualCode && node.manualCode.includes(q));
+    const matchChild = node.children.some((child) => filterNode(child, query));
+    return matchSelf || matchChild;
+  };
 
-    const traverse = (node: Account & { children: Account[] }) => {
-      const hasChildren = node.children.length > 0 || node.isParent;
-      const isExpanded = expandedIds.has(node.id);
+  const filteredRoots = useMemo(() => {
+    if (!searchQuery.trim()) return treeRoots;
+    return treeRoots.filter((root) => filterNode(root, searchQuery));
+  }, [treeRoots, searchQuery]);
 
-      // Search match
-      const query = searchQuery.toLowerCase();
-      const matchesSearch =
-        !query ||
-        node.name.toLowerCase().includes(query) ||
-        node.code.includes(query) ||
-        node.path.some((p) => p.toLowerCase().includes(query));
+  // Render a node or its children according to the nested card design
+  const renderCardLevel = (
+    titleLevel: number,
+    nodes: TreeNode[],
+    parentAccount?: TreeNode
+  ) => {
+    if (!nodes || nodes.length === 0) return null;
 
-      if (matchesSearch) {
-        rows.push({
-          ...node,
-          hasChildren,
-          isExpanded,
-        });
-      }
+    const config = LEVEL_CONFIGS[titleLevel] || LEVEL_CONFIGS[5];
+    const isLeafLevel = nodes.every((n) => n.children.length === 0 && !n.isParent);
 
-      if (isExpanded || query) {
-        node.children.forEach(traverse);
-      }
-    };
+    return (
+      <div
+        className={`w-full rounded-2xl border ${config.borderColor} overflow-hidden shadow-2xs transition-all duration-200 mt-2.5 first:mt-0`}
+      >
+        {/* Tier Header Band (CLASS NAME, GROUP NAME, etc.) */}
+        <div
+          className={`px-4 py-2.5 ${config.headerBg} flex items-center justify-between border-b ${config.borderColor}`}
+        >
+          <span className={`text-[11px] font-black uppercase tracking-wider ${config.textColor}`}>
+            {config.headerName}
+          </span>
 
-    treeNodes.forEach(traverse);
-    return rows;
-  }, [treeNodes, expandedIds, searchQuery]);
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                parentAccount
+                  ? `/chart-of-accounts/new?parentId=${parentAccount.id}`
+                  : `/chart-of-accounts/new`
+              )
+            }
+            className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg border ${config.btnBorderColor} bg-card/80 text-[11px] font-bold ${config.btnTextColor} ${config.btnHoverBg} shadow-2xs transition-all cursor-pointer whitespace-nowrap active:scale-95`}
+          >
+            <Plus className="size-3 stroke-[2.5]" />
+            <span>{config.addBtnText}</span>
+          </button>
+        </div>
 
-  const getLevelColor = (level: HierarchyLevel) => {
-    switch (level) {
-      case 1:
-        return 'bg-indigo-700/10 text-indigo-700 dark:text-indigo-400 border-indigo-700/25';
-      case 2:
-        return 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/25';
-      case 3:
-        return 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/25';
-      case 4:
-        return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25';
-      case 5:
-        return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25';
-      case 6:
-        return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25';
-      default:
-        return 'bg-muted text-muted-foreground border-border';
-    }
+        {/* Level Body */}
+        <div className="p-3 bg-card/60 space-y-2.5">
+          {/* If this is the deepest leaf level (GL ACCOUNT), render the exact clean table from the screenshot */}
+          {isLeafLevel ? (
+            <div className="border border-border/70 rounded-xl overflow-hidden shadow-2xs bg-card">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead className="bg-muted/30 border-b border-border/60 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <tr>
+                    <th className="py-2.5 px-4 font-black">GL TITLE</th>
+                    <th className="py-2.5 px-4 font-black">MANUAL CODE</th>
+                    <th className="py-2.5 px-4 font-black">TYPE</th>
+                    <th className="py-2.5 px-4 font-black">STATUS</th>
+                    <th className="py-2.5 px-4 font-black text-right">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/40">
+                  {nodes.map((leaf) => (
+                    <tr
+                      key={leaf.id}
+                      className="hover:bg-muted/30 transition-colors group"
+                    >
+                      <td className="py-2.5 px-4 font-semibold text-foreground">
+                        {leaf.name}
+                      </td>
+                      <td className="py-2.5 px-4 font-mono font-bold text-foreground/80">
+                        {leaf.manualCode || formatAccountCode(leaf.code)}
+                      </td>
+                      <td className="py-2.5 px-4 text-muted-foreground font-mono text-[11px]">
+                        {leaf.detailsType || leaf.accountsType.toLowerCase().replace(/\s+/g, '_')}
+                      </td>
+                      <td className="py-2.5 px-4">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border ${
+                            leaf.activeStatus === 'Active'
+                              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                              : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                          }`}
+                        >
+                          <span
+                            className={`size-1.5 rounded-full ${
+                              leaf.activeStatus === 'Active' ? 'bg-emerald-500' : 'bg-rose-500'
+                            }`}
+                          />
+                          <span>{leaf.activeStatus}</span>
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-4 text-right">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/chart-of-accounts/${leaf.id}/edit`)}
+                          className="size-7 rounded-lg border border-border/80 hover:bg-muted text-muted-foreground hover:text-foreground inline-grid place-items-center transition-colors cursor-pointer"
+                          title="Edit Account"
+                        >
+                          <Edit2 className="size-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            /* Otherwise, render each row in this level */
+            nodes.map((node) => {
+              const isExpanded = expandedIds.has(node.id);
+              const hasChildren = node.children.length > 0;
+              const displayCode = node.manualCode || formatAccountCode(node.code);
+
+              return (
+                <div key={node.id} className="space-y-2">
+                  {/* Item Row Header Card */}
+                  <div
+                    onClick={() => hasChildren && toggleExpand(node.id)}
+                    className="p-2.5 rounded-xl border border-border/70 bg-card hover:bg-muted/20 transition-all flex items-center justify-between shadow-2xs gap-3 cursor-pointer group"
+                  >
+                    {/* Left: Chevron + Code :: Title */}
+                    <div className="flex items-center gap-2.5 truncate">
+                      {hasChildren ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleExpand(node.id);
+                          }}
+                          className="size-6 rounded-md border border-border/80 hover:bg-muted text-muted-foreground hover:text-foreground grid place-items-center transition-colors cursor-pointer shrink-0"
+                        >
+                          {isExpanded ? (
+                            <ChevronDown className="size-3.5 text-foreground stroke-[2.5]" />
+                          ) : (
+                            <ChevronRight className="size-3.5 text-foreground stroke-[2.5]" />
+                          )}
+                        </button>
+                      ) : (
+                        <div className="size-6 grid place-items-center shrink-0">
+                          <span className="size-1.5 rounded-full bg-muted-foreground/40" />
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground truncate">
+                        <span className="font-mono font-bold text-foreground/85">{displayCode}</span>
+                        <span className="text-muted-foreground/60 font-bold">::</span>
+                        <span className="truncate">{node.name}</span>
+                        {node.nameRaw && node.nameRaw !== node.name && (
+                          <span className="text-[10px] text-amber-600 font-mono italic">
+                            [sic: {node.nameRaw}]
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right: Status Pill + Edit Button */}
+                    <div
+                      className="flex items-center gap-2 shrink-0"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onToggleActive(node.id)}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border transition-colors cursor-pointer ${
+                          node.activeStatus === 'Active'
+                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/25 hover:bg-emerald-500/15'
+                            : 'bg-rose-500/10 text-rose-600 border-rose-500/25 hover:bg-rose-500/15'
+                        }`}
+                        title="Click to toggle Active / Inactive"
+                      >
+                        <span
+                          className={`size-1.5 rounded-full ${
+                            node.activeStatus === 'Active' ? 'bg-emerald-500' : 'bg-rose-500'
+                          }`}
+                        />
+                        <span>{node.activeStatus}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/chart-of-accounts/${node.id}/edit`)}
+                        className="size-7 rounded-lg border border-border/80 hover:bg-muted text-muted-foreground hover:text-foreground grid place-items-center transition-colors cursor-pointer shadow-2xs"
+                        title="Edit Account"
+                      >
+                        <Edit2 className="size-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Nested Child Card Level */}
+                  {isExpanded && hasChildren && (
+                    <div className="pl-3 sm:pl-4">
+                      {renderCardLevel(titleLevel + 1, node.children, node)}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="space-y-3">
-      {/* ── Toolbar: Search + Expand/Collapse Buttons ── */}
+    <div className="space-y-4">
+      {/* ── Toolbar: Search + Layout Toggle + Expand/Collapse Buttons ── */}
       <div className="bg-card border border-border/70 rounded-xl p-3 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
         {/* Search */}
         <div className="relative w-full sm:max-w-xs">
@@ -154,8 +392,36 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
           />
         </div>
 
-        {/* Tree controls (from sheet: "Expand | Collaps") */}
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+        {/* Right Controls */}
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+          {/* Layout Toggle (Nested Cards vs Indented Table) */}
+          <div className="flex items-center bg-muted/60 p-0.5 rounded-lg border border-border/60">
+            <button
+              type="button"
+              onClick={() => setUseCardLayout(true)}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                useCardLayout
+                  ? 'bg-card text-foreground shadow-2xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Layers className="size-3 text-primary" />
+              <span>Card Hierarchy</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setUseCardLayout(false)}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                !useCardLayout
+                  ? 'bg-card text-foreground shadow-2xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Table className="size-3 text-muted-foreground" />
+              <span>Tree Table</span>
+            </button>
+          </div>
+
           <button
             type="button"
             onClick={handleExpandAll}
@@ -176,277 +442,86 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
         </div>
       </div>
 
-      {/* ── Tree View Indented Table ── */}
-      <div className="bg-card border border-border/70 rounded-xl overflow-hidden shadow-2xs">
-        <div className="overflow-x-auto sidebar-scroll">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-muted/30 border-b border-border/70 sticky top-0 z-10">
-              <tr className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 select-none whitespace-nowrap">
-                <th className="px-4 py-2.5 w-56 sm:w-64">Level No</th>
-                <th className="px-3 py-2.5">Level-1</th>
-                <th className="px-3 py-2.5">Level-2</th>
-                <th className="px-3 py-2.5">Level-3</th>
-                <th className="px-3 py-2.5">Level-4</th>
-                <th className="px-3 py-2.5">Level-5</th>
-                <th className="px-3 py-2.5">Level-6</th>
-                <th className="px-3 py-2.5 w-12 text-right">⋮</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/30 text-xs">
-              {visibleRows.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="py-12 text-center text-muted-foreground">
-                    <FolderTree className="size-8 mx-auto text-muted-foreground/40 mb-2" />
-                    <p className="text-sm font-semibold">No hierarchy nodes match your criteria</p>
-                  </td>
-                </tr>
-              ) : (
-                visibleRows.map((node) => {
-                  const isMenuOpen = activeMenuId === node.id;
-                  const isParent = node.isParent || node.hasChildren;
+      {/* ── Main Tree Content ── */}
+      {useCardLayout ? (
+        /* ── Screen B: Exact Nested Card Layout from Screenshot ── */
+        <div className="space-y-4">
+          {filteredRoots.length === 0 ? (
+            <div className="p-12 text-center text-muted-foreground bg-card rounded-2xl border border-border/70">
+              <FolderTree className="size-8 mx-auto text-muted-foreground/40 mb-2" />
+              <p className="text-sm font-semibold">No accounts found matching your query</p>
+            </div>
+          ) : (
+            renderCardLevel(1, filteredRoots)
+          )}
 
-                  return (
-                    <tr
-                      key={node.id}
-                      onClick={() => navigate(`/chart-of-accounts/${node.id}/edit`)}
-                      className={`hover:bg-muted/35 transition-colors cursor-pointer group ${
-                        node.activeStatus === 'Inactive' ? 'opacity-60 bg-muted/10' : ''
-                      }`}
-                    >
-                      {/* 1. Level No with indent and Expand/Collapse chevron */}
-                      <td className="px-3 py-2 whitespace-nowrap font-mono text-[11px]">
-                        <div
-                          className="flex items-center gap-1.5"
-                          style={{ paddingLeft: `${(node.level - 1) * 16}px` }}
-                        >
-                          {isParent ? (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleExpand(node.id);
-                              }}
-                              className="size-5 rounded hover:bg-muted/80 text-muted-foreground hover:text-foreground grid place-items-center transition-colors cursor-pointer shrink-0"
-                            >
-                              {node.isExpanded ? (
-                                <ChevronDown className="size-3.5 text-primary stroke-[2.5]" />
-                              ) : (
-                                <ChevronRight className="size-3.5 stroke-[2.5]" />
-                              )}
-                            </button>
-                          ) : (
-                            <div className="size-5 grid place-items-center shrink-0">
-                              <span className="size-1.5 rounded-full bg-muted-foreground/40" />
-                            </div>
-                          )}
-
-                          {isParent ? (
-                            node.isExpanded ? (
-                              <FolderOpen className="size-3.5 text-amber-500 shrink-0" />
-                            ) : (
-                              <Folder className="size-3.5 text-amber-500 shrink-0" />
-                            )
-                          ) : (
-                            <FileCode className="size-3.5 text-primary/70 shrink-0" />
-                          )}
-
-                          <span className="font-bold text-foreground tracking-tight select-all">
-                            {formatAccountCode(node.code)}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* 2. Level-1 Column */}
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        {node.level === 1 ? (
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded font-black text-[11px] border ${getLevelColor(
-                              1
-                            )}`}
-                          >
-                            <span>{node.name}</span>
-                            {node.nameRaw && node.nameRaw !== node.name && (
-                              <span className="text-[9px] font-mono italic text-amber-600">
-                                [sic: {node.nameRaw}]
-                              </span>
-                            )}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground/20 font-mono">—</span>
-                        )}
-                      </td>
-
-                      {/* 3. Level-2 Column */}
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        {node.level === 2 ? (
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded font-bold text-[11px] border ${getLevelColor(
-                              2
-                            )}`}
-                          >
-                            {node.name}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground/20 font-mono">—</span>
-                        )}
-                      </td>
-
-                      {/* 4. Level-3 Column */}
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        {node.level === 3 ? (
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded font-bold text-[11px] border ${getLevelColor(
-                              3
-                            )}`}
-                          >
-                            {node.name}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground/20 font-mono">—</span>
-                        )}
-                      </td>
-
-                      {/* 5. Level-4 Column */}
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        {node.level === 4 ? (
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded font-semibold text-[11px] border ${getLevelColor(
-                              4
-                            )}`}
-                          >
-                            {node.name}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground/20 font-mono">—</span>
-                        )}
-                      </td>
-
-                      {/* 6. Level-5 Column */}
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        {node.level === 5 ? (
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded font-semibold text-[11px] border ${getLevelColor(
-                              5
-                            )}`}
-                          >
-                            {node.name}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground/20 font-mono">—</span>
-                        )}
-                      </td>
-
-                      {/* 7. Level-6 Column */}
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        {node.level === 6 ? (
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded font-semibold text-[11px] border ${getLevelColor(
-                              6
-                            )}`}
-                          >
-                            {node.name}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground/20 font-mono">—</span>
-                        )}
-                      </td>
-
-                      {/* 8. Kebab Actions */}
-                      <td className="px-3 py-2 text-right whitespace-nowrap">
-                        <div
-                          className="relative inline-block"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => setActiveMenuId(isMenuOpen ? null : node.id)}
-                            className="size-7 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground grid place-items-center transition-colors cursor-pointer"
-                          >
-                            <MoreVertical className="size-4" />
-                          </button>
-
-                          {isMenuOpen && (
-                            <>
-                              <div
-                                className="fixed inset-0 z-40"
-                                onClick={() => setActiveMenuId(null)}
-                              />
-                              <div className="absolute right-0 top-full mt-1 z-50 w-44 bg-popover rounded-xl border border-border shadow-xl p-1 text-left animate-in fade-in-50 zoom-in-95 duration-100">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setActiveMenuId(null);
-                                    navigate(`/chart-of-accounts/${node.id}/edit`);
-                                  }}
-                                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-                                >
-                                  <Edit2 className="size-3.5 text-primary" />
-                                  <span>Edit Account</span>
-                                </button>
-
-                                {node.level < 6 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setActiveMenuId(null);
-                                      navigate(`/chart-of-accounts/new?parentId=${node.id}`);
-                                    }}
-                                    className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-                                  >
-                                    <PlusCircle className="size-3.5 text-emerald-600" />
-                                    <span>Add Child (L{node.level + 1})</span>
-                                  </button>
-                                )}
-
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setActiveMenuId(null);
-                                    onToggleActive(node.id);
-                                  }}
-                                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-                                >
-                                  <Power
-                                    className={`size-3.5 ${
-                                      node.activeStatus === 'Active'
-                                        ? 'text-amber-500'
-                                        : 'text-emerald-500'
-                                    }`}
-                                  />
-                                  <span>
-                                    {node.activeStatus === 'Active' ? 'Mark Inactive' : 'Mark Active'}
-                                  </span>
-                                </button>
-
-                                <div className="my-1 border-t border-border/50" />
-
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setActiveMenuId(null);
-                                    onDelete(node.id);
-                                  }}
-                                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                                >
-                                  <Trash2 className="size-3.5" />
-                                  <span>Delete</span>
-                                </button>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+          {/* Pinned Base Digit Legend Strip */}
+          <div className="rounded-xl border border-border/70 overflow-hidden shadow-2xs">
+            <BaseDigitLegend />
+          </div>
         </div>
-
-        {/* ── CRITICALLY IMPORTANT PINNED FOOTER STRIP ── */}
-        <BaseDigitLegend />
-      </div>
+      ) : (
+        /* ── Alternative: Indented Tree Table ── */
+        <div className="bg-card border border-border/70 rounded-xl overflow-hidden shadow-2xs">
+          <div className="overflow-x-auto sidebar-scroll">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead className="bg-muted/30 border-b border-border/70 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
+                <tr>
+                  <th className="px-4 py-2.5 w-64">Level No</th>
+                  <th className="px-3 py-2.5">Level-1</th>
+                  <th className="px-3 py-2.5">Level-2</th>
+                  <th className="px-3 py-2.5">Level-3</th>
+                  <th className="px-3 py-2.5">Level-4</th>
+                  <th className="px-3 py-2.5">Level-5</th>
+                  <th className="px-3 py-2.5">Level-6</th>
+                  <th className="px-3 py-2.5 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/30">
+                {accounts.map((acc) => (
+                  <tr
+                    key={acc.id}
+                    onClick={() => navigate(`/chart-of-accounts/${acc.id}/edit`)}
+                    className="hover:bg-muted/30 transition-colors cursor-pointer"
+                  >
+                    <td className="px-4 py-2 font-mono font-bold text-foreground">
+                      <div
+                        className="flex items-center gap-1.5"
+                        style={{ paddingLeft: `${(acc.level - 1) * 16}px` }}
+                      >
+                        <span className="size-1.5 rounded-full bg-primary shrink-0" />
+                        <span>{formatAccountCode(acc.code)}</span>
+                      </div>
+                    </td>
+                    {[1, 2, 3, 4, 5, 6].map((lvl) => (
+                      <td key={lvl} className="px-3 py-2 whitespace-nowrap">
+                        {acc.level === lvl ? (
+                          <span className="font-semibold text-foreground">{acc.name}</span>
+                        ) : (
+                          <span className="text-muted-foreground/20">—</span>
+                        )}
+                      </td>
+                    ))}
+                    <td className="px-3 py-2 text-right">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/chart-of-accounts/${acc.id}/edit`);
+                        }}
+                        className="size-6 rounded border border-border/70 hover:bg-muted text-muted-foreground hover:text-foreground inline-grid place-items-center transition-colors cursor-pointer"
+                      >
+                        <Edit2 className="size-3" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <BaseDigitLegend />
+        </div>
+      )}
     </div>
   );
 };

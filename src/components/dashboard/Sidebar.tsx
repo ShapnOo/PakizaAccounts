@@ -124,6 +124,18 @@ export const nav: NavItem[] = [
     ],
   },
   {
+    label: "Voucher Management",
+    icon: Receipt,
+    subitems: [
+      { label: "Voucher Setup (List)", to: "/vouchers" },
+      { label: "New Voucher Definition", to: "/vouchers/new" },
+      { label: "Journal Voucher (JV)", to: "/vouchers/entry/journal" },
+      { label: "Payment Voucher (PV)", to: "/vouchers/entry/payment" },
+      { label: "Receive Voucher (RV)", to: "/vouchers/entry/receive" },
+      { label: "Contra Voucher (CV)", to: "/vouchers/entry/contra" },
+    ],
+  },
+  {
     label: "Journal Books",
     icon: BookOpen,
     subitems: [

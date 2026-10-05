@@ -51,7 +51,7 @@ export const CoaCreatePage: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto px-4 md:px-6 py-5 md:py-6 space-y-4">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-5 md:py-6 space-y-4">
       {/* ── Breadcrumb & Navigation ── */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-muted-foreground/70 uppercase tracking-wider">

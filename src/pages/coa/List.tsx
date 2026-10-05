@@ -13,7 +13,7 @@ export const CoaListPage: React.FC = () => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   return (
-    <div className="w-full max-w-[1280px] mx-auto px-4 md:px-6 py-5 md:py-6 space-y-4">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-5 md:py-6 space-y-4">
       {/* Header with Title, Tabs, and Actions */}
       <CoaHeader
         onOpenUpload={() => setIsUploadOpen(true)}

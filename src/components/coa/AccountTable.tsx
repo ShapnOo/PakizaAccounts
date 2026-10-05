@@ -1,15 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  flexRender,
-  ColumnDef,
-  SortingState,
-} from '@tanstack/react-table';
 import { Account, HierarchyLevel } from '../../types/coa';
 import { formatAccountCode } from '../../lib/accountCode';
 import {
@@ -19,19 +9,14 @@ import {
   PlusCircle,
   Power,
   Trash2,
-  SlidersHorizontal,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
   ArrowUpDown,
-  Building2,
-  CheckCircle,
-  XCircle,
-  HelpCircle,
   Filter,
 } from 'lucide-react';
-import { ACCOUNTS_TYPE_TREE, COMPANY } from '../../constants/accountsTypeTree';
+import { ACCOUNTS_TYPE_TREE } from '../../constants/accountsTypeTree';
 
 interface AccountTableProps {
   accounts: Account[];
@@ -39,33 +24,36 @@ interface AccountTableProps {
   onDelete: (id: string) => void;
 }
 
+type SortField = 'code' | 'name' | 'level';
+type SortOrder = 'asc' | 'desc';
+
 export const AccountTable: React.FC<AccountTableProps> = ({
   accounts,
   onToggleActive,
   onDelete,
 }) => {
   const navigate = useNavigate();
-  const [globalFilter, setGlobalFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [accountsTypeFilter, setAccountsTypeFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sortField, setSortField] = useState<SortField>('code');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable');
+  const [pageSize, setPageSize] = useState<number>(25);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
-  // Filter accounts
+  // 1. Filter Data
   const filteredData = useMemo(() => {
     return accounts.filter((acc) => {
-      // Type filter
       if (accountsTypeFilter !== 'All' && acc.accountsType !== accountsTypeFilter) {
         return false;
       }
-      // Status filter
       if (statusFilter !== 'All' && acc.activeStatus !== statusFilter) {
         return false;
       }
-      // Global search across path, code, name
-      if (globalFilter.trim()) {
-        const query = globalFilter.toLowerCase();
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
         const matchesName = acc.name.toLowerCase().includes(query);
         const matchesCode = acc.code.includes(query);
         const matchesPath = acc.path.some((p) => p.toLowerCase().includes(query));
@@ -74,7 +62,39 @@ export const AccountTable: React.FC<AccountTableProps> = ({
       }
       return true;
     });
-  }, [accounts, accountsTypeFilter, statusFilter, globalFilter]);
+  }, [accounts, accountsTypeFilter, statusFilter, searchQuery]);
+
+  // 2. Sort Data
+  const sortedData = useMemo(() => {
+    return [...filteredData].sort((a, b) => {
+      let comparison = 0;
+      if (sortField === 'code') {
+        comparison = a.code.localeCompare(b.code);
+      } else if (sortField === 'name') {
+        comparison = a.name.localeCompare(b.name);
+      } else if (sortField === 'level') {
+        comparison = a.level - b.level;
+      }
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+  }, [filteredData, sortField, sortOrder]);
+
+  // 3. Paginate Data
+  const totalPages = Math.max(1, Math.ceil(sortedData.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedData = useMemo(() => {
+    const startIndex = (safeCurrentPage - 1) * pageSize;
+    return sortedData.slice(startIndex, startIndex + pageSize);
+  }, [sortedData, safeCurrentPage, pageSize]);
+
+  const handleSortToggle = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
 
   // Level Badge Colors
   const getLevelBadge = (level: HierarchyLevel, text: string, nameRaw?: string) => {
@@ -121,220 +141,6 @@ export const AccountTable: React.FC<AccountTableProps> = ({
     );
   };
 
-  const columns = useMemo<ColumnDef<Account>[]>(
-    () => [
-      // 1. Level No (Formatted 12-digit code)
-      {
-        accessorKey: 'code',
-        header: ({ column }) => (
-          <button
-            type="button"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="flex items-center gap-1 font-mono font-bold hover:text-foreground text-[11px] tracking-wide"
-          >
-            <span>Level No</span>
-            <ArrowUpDown className="size-3 text-muted-foreground/60" />
-          </button>
-        ),
-        cell: (info) => (
-          <div className="font-mono text-[11px] font-bold text-foreground tracking-tight select-all">
-            {formatAccountCode(info.getValue() as string)}
-          </div>
-        ),
-        size: 170,
-      },
-
-      // 2. Level-1
-      {
-        id: 'level1',
-        header: 'Level-1',
-        cell: ({ row }) => {
-          const acc = row.original;
-          const val = acc.path[0];
-          return val ? getLevelBadge(1, val, acc.level === 1 ? acc.nameRaw : undefined) : (
-            <span className="text-muted-foreground/30">—</span>
-          );
-        },
-      },
-
-      // 3. Level-2
-      {
-        id: 'level2',
-        header: 'Level-2',
-        cell: ({ row }) => {
-          const acc = row.original;
-          const val = acc.path[1];
-          return val ? getLevelBadge(2, val, acc.level === 2 ? acc.nameRaw : undefined) : (
-            <span className="text-muted-foreground/30">—</span>
-          );
-        },
-      },
-
-      // 4. Level-3
-      {
-        id: 'level3',
-        header: 'Level-3',
-        cell: ({ row }) => {
-          const acc = row.original;
-          const val = acc.path[2];
-          return val ? getLevelBadge(3, val, acc.level === 3 ? acc.nameRaw : undefined) : (
-            <span className="text-muted-foreground/30">—</span>
-          );
-        },
-      },
-
-      // 5. Level-4
-      {
-        id: 'level4',
-        header: 'Level-4',
-        cell: ({ row }) => {
-          const acc = row.original;
-          const val = acc.path[3];
-          return val ? getLevelBadge(4, val, acc.level === 4 ? acc.nameRaw : undefined) : (
-            <span className="text-muted-foreground/30">—</span>
-          );
-        },
-      },
-
-      // 6. Level-5
-      {
-        id: 'level5',
-        header: 'Level-5',
-        cell: ({ row }) => {
-          const acc = row.original;
-          const val = acc.path[4];
-          return val ? getLevelBadge(5, val, acc.level === 5 ? acc.nameRaw : undefined) : (
-            <span className="text-muted-foreground/30">—</span>
-          );
-        },
-      },
-
-      // 7. Level-6
-      {
-        id: 'level6',
-        header: 'Level-6',
-        cell: ({ row }) => {
-          const acc = row.original;
-          const val = acc.path[5];
-          return val ? getLevelBadge(6, val, acc.level === 6 ? acc.nameRaw : undefined) : (
-            <span className="text-muted-foreground/30">—</span>
-          );
-        },
-      },
-
-      // 8. Actions column (⋮)
-      {
-        id: 'actions',
-        header: '',
-        cell: ({ row }) => {
-          const acc = row.original;
-          const isMenuOpen = activeMenuId === acc.id;
-
-          return (
-            <div
-              className="relative flex items-center justify-end"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                type="button"
-                onClick={() => setActiveMenuId(isMenuOpen ? null : acc.id)}
-                className="size-7 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground grid place-items-center transition-colors cursor-pointer"
-              >
-                <MoreVertical className="size-4" />
-              </button>
-
-              {isMenuOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setActiveMenuId(null)}
-                  />
-                  <div className="absolute right-0 top-full mt-1 z-50 w-44 bg-popover rounded-xl border border-border shadow-xl p-1 animate-in fade-in-50 zoom-in-95 duration-100">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveMenuId(null);
-                        navigate(`/chart-of-accounts/${acc.id}/edit`);
-                      }}
-                      className="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-                    >
-                      <Edit2 className="size-3.5 text-primary" />
-                      <span>Edit Account</span>
-                    </button>
-
-                    {acc.level < 6 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveMenuId(null);
-                          navigate(`/chart-of-accounts/new?parentId=${acc.id}`);
-                        }}
-                        className="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-                      >
-                        <PlusCircle className="size-3.5 text-emerald-600" />
-                        <span>Add Child (L{acc.level + 1})</span>
-                      </button>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveMenuId(null);
-                        onToggleActive(acc.id);
-                      }}
-                      className="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-                    >
-                      <Power
-                        className={`size-3.5 ${
-                          acc.activeStatus === 'Active' ? 'text-amber-500' : 'text-emerald-500'
-                        }`}
-                      />
-                      <span>
-                        {acc.activeStatus === 'Active' ? 'Mark Inactive' : 'Mark Active'}
-                      </span>
-                    </button>
-
-                    <div className="my-1 border-t border-border/50" />
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveMenuId(null);
-                        onDelete(acc.id);
-                      }}
-                      className="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="size-3.5" />
-                      <span>Delete</span>
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          );
-        },
-      },
-    ],
-    [activeMenuId, navigate, onDelete, onToggleActive]
-  );
-
-  const table = useReactTable({
-    data: filteredData,
-    columns,
-    state: {
-      sorting,
-    },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: {
-      pagination: {
-        pageSize: 25,
-      },
-    },
-  });
-
   const rowPadding = density === 'comfortable' ? 'py-2.5' : 'py-1.5';
 
   return (
@@ -347,8 +153,11 @@ export const AccountTable: React.FC<AccountTableProps> = ({
           <input
             type="text"
             placeholder="Search level paths, account code, or title..."
-            value={globalFilter}
-            onChange={(e) => setGlobalFilter(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
             className="w-full h-8.5 pl-9 pr-3 rounded-lg bg-background border border-border/80 text-xs font-medium text-foreground placeholder:text-muted-foreground/60 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
           />
         </div>
@@ -360,7 +169,10 @@ export const AccountTable: React.FC<AccountTableProps> = ({
             <Filter className="size-3 text-muted-foreground" />
             <select
               value={accountsTypeFilter}
-              onChange={(e) => setAccountsTypeFilter(e.target.value)}
+              onChange={(e) => {
+                setAccountsTypeFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="text-xs font-semibold bg-transparent text-foreground outline-none cursor-pointer"
             >
               <option value="All">All Account Types</option>
@@ -376,7 +188,10 @@ export const AccountTable: React.FC<AccountTableProps> = ({
           <div className="flex items-center gap-1.5 bg-background border border-border/80 px-2 py-1 rounded-lg shadow-2xs">
             <select
               value={statusFilter}
-              onChange={(e: any) => setStatusFilter(e.target.value)}
+              onChange={(e: any) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="text-xs font-semibold bg-transparent text-foreground outline-none cursor-pointer"
             >
               <option value="All">All Statuses</option>
@@ -413,31 +228,35 @@ export const AccountTable: React.FC<AccountTableProps> = ({
         </div>
       </div>
 
-      {/* ── TanStack Table ── */}
+      {/* ── Table Container ── */}
       <div className="bg-card border border-border/70 rounded-xl overflow-hidden shadow-2xs">
         <div className="overflow-x-auto sidebar-scroll">
           <table className="w-full text-left border-collapse">
             <thead className="bg-muted/30 border-b border-border/70 sticky top-0 z-10 backdrop-blur-xs">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 select-none whitespace-nowrap"
-                      style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
-                  ))}
-                </tr>
-              ))}
+              <tr className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 select-none whitespace-nowrap">
+                <th className="px-3.5 py-2.5 w-48">
+                  <button
+                    type="button"
+                    onClick={() => handleSortToggle('code')}
+                    className="flex items-center gap-1 font-mono font-bold hover:text-foreground text-[11px] tracking-wide"
+                  >
+                    <span>Level No</span>
+                    <ArrowUpDown className="size-3 text-muted-foreground/60" />
+                  </button>
+                </th>
+                <th className="px-3.5 py-2.5">Level-1</th>
+                <th className="px-3.5 py-2.5">Level-2</th>
+                <th className="px-3.5 py-2.5">Level-3</th>
+                <th className="px-3.5 py-2.5">Level-4</th>
+                <th className="px-3.5 py-2.5">Level-5</th>
+                <th className="px-3.5 py-2.5">Level-6</th>
+                <th className="px-3.5 py-2.5 w-12 text-right">⋮</th>
+              </tr>
             </thead>
             <tbody className="divide-y divide-border/40 text-xs">
-              {table.getRowModel().rows.length === 0 ? (
+              {paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={8} className="py-12 text-center text-muted-foreground">
                     <p className="text-sm font-semibold">No accounts found</p>
                     <p className="text-xs text-muted-foreground/70 mt-1">
                       Try adjusting your search query or filters.
@@ -445,19 +264,162 @@ export const AccountTable: React.FC<AccountTableProps> = ({
                   </td>
                 </tr>
               ) : (
-                table.getRowModel().rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    onClick={() => navigate(`/chart-of-accounts/${row.original.id}/edit`)}
-                    className="hover:bg-muted/30 transition-colors cursor-pointer group"
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className={`px-3.5 ${rowPadding} whitespace-nowrap`}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                paginatedData.map((acc) => {
+                  const isMenuOpen = activeMenuId === acc.id;
+
+                  return (
+                    <tr
+                      key={acc.id}
+                      onClick={() => navigate(`/chart-of-accounts/${acc.id}/edit`)}
+                      className="hover:bg-muted/30 transition-colors cursor-pointer group"
+                    >
+                      {/* 1. Level No */}
+                      <td className="px-3.5 py-2 whitespace-nowrap font-mono text-[11px] font-bold text-foreground tracking-tight select-all">
+                        {formatAccountCode(acc.code)}
                       </td>
-                    ))}
-                  </tr>
-                ))
+
+                      {/* 2. Level-1 */}
+                      <td className={`px-3.5 ${rowPadding} whitespace-nowrap`}>
+                        {acc.path[0] ? (
+                          getLevelBadge(1, acc.path[0], acc.level === 1 ? acc.nameRaw : undefined)
+                        ) : (
+                          <span className="text-muted-foreground/30">—</span>
+                        )}
+                      </td>
+
+                      {/* 3. Level-2 */}
+                      <td className={`px-3.5 ${rowPadding} whitespace-nowrap`}>
+                        {acc.path[1] ? (
+                          getLevelBadge(2, acc.path[1], acc.level === 2 ? acc.nameRaw : undefined)
+                        ) : (
+                          <span className="text-muted-foreground/30">—</span>
+                        )}
+                      </td>
+
+                      {/* 4. Level-3 */}
+                      <td className={`px-3.5 ${rowPadding} whitespace-nowrap`}>
+                        {acc.path[2] ? (
+                          getLevelBadge(3, acc.path[2], acc.level === 3 ? acc.nameRaw : undefined)
+                        ) : (
+                          <span className="text-muted-foreground/30">—</span>
+                        )}
+                      </td>
+
+                      {/* 5. Level-4 */}
+                      <td className={`px-3.5 ${rowPadding} whitespace-nowrap`}>
+                        {acc.path[3] ? (
+                          getLevelBadge(4, acc.path[3], acc.level === 4 ? acc.nameRaw : undefined)
+                        ) : (
+                          <span className="text-muted-foreground/30">—</span>
+                        )}
+                      </td>
+
+                      {/* 6. Level-5 */}
+                      <td className={`px-3.5 ${rowPadding} whitespace-nowrap`}>
+                        {acc.path[4] ? (
+                          getLevelBadge(5, acc.path[4], acc.level === 5 ? acc.nameRaw : undefined)
+                        ) : (
+                          <span className="text-muted-foreground/30">—</span>
+                        )}
+                      </td>
+
+                      {/* 7. Level-6 */}
+                      <td className={`px-3.5 ${rowPadding} whitespace-nowrap`}>
+                        {acc.path[5] ? (
+                          getLevelBadge(6, acc.path[5], acc.level === 6 ? acc.nameRaw : undefined)
+                        ) : (
+                          <span className="text-muted-foreground/30">—</span>
+                        )}
+                      </td>
+
+                      {/* 8. Kebab Actions */}
+                      <td
+                        className="px-3.5 py-2 text-right whitespace-nowrap"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="relative inline-block">
+                          <button
+                            type="button"
+                            onClick={() => setActiveMenuId(isMenuOpen ? null : acc.id)}
+                            className="size-7 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground grid place-items-center transition-colors cursor-pointer"
+                          >
+                            <MoreVertical className="size-4" />
+                          </button>
+
+                          {isMenuOpen && (
+                            <>
+                              <div
+                                className="fixed inset-0 z-40"
+                                onClick={() => setActiveMenuId(null)}
+                              />
+                              <div className="absolute right-0 top-full mt-1 z-50 w-44 bg-popover rounded-xl border border-border shadow-xl p-1 text-left animate-in fade-in-50 zoom-in-95 duration-100">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveMenuId(null);
+                                    navigate(`/chart-of-accounts/${acc.id}/edit`);
+                                  }}
+                                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
+                                >
+                                  <Edit2 className="size-3.5 text-primary" />
+                                  <span>Edit Account</span>
+                                </button>
+
+                                {acc.level < 6 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setActiveMenuId(null);
+                                      navigate(`/chart-of-accounts/new?parentId=${acc.id}`);
+                                    }}
+                                    className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
+                                  >
+                                    <PlusCircle className="size-3.5 text-emerald-600" />
+                                    <span>Add Child (L{acc.level + 1})</span>
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveMenuId(null);
+                                    onToggleActive(acc.id);
+                                  }}
+                                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
+                                >
+                                  <Power
+                                    className={`size-3.5 ${
+                                      acc.activeStatus === 'Active'
+                                        ? 'text-amber-500'
+                                        : 'text-emerald-500'
+                                    }`}
+                                  />
+                                  <span>
+                                    {acc.activeStatus === 'Active' ? 'Mark Inactive' : 'Mark Active'}
+                                  </span>
+                                </button>
+
+                                <div className="my-1 border-t border-border/50" />
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveMenuId(null);
+                                    onDelete(acc.id);
+                                  }}
+                                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="size-3.5" />
+                                  <span>Delete</span>
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -469,30 +431,29 @@ export const AccountTable: React.FC<AccountTableProps> = ({
             <span>
               Showing{' '}
               <strong className="text-foreground">
-                {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}
+                {sortedData.length === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1}
               </strong>{' '}
               to{' '}
               <strong className="text-foreground">
-                {Math.min(
-                  (table.getState().pagination.pageIndex + 1) *
-                    table.getState().pagination.pageSize,
-                  filteredData.length
-                )}
+                {Math.min(safeCurrentPage * pageSize, sortedData.length)}
               </strong>{' '}
-              of <strong className="text-foreground">{filteredData.length}</strong> accounts
+              of <strong className="text-foreground">{sortedData.length}</strong> accounts
             </span>
 
             {/* Page Size Selector */}
             <div className="flex items-center gap-1 ml-3">
               <span className="text-[11px]">Rows:</span>
               <select
-                value={table.getState().pagination.pageSize}
-                onChange={(e) => table.setPageSize(Number(e.target.value))}
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
                 className="h-7 px-2 rounded-md bg-card border border-border/80 text-xs font-semibold text-foreground outline-none cursor-pointer"
               >
-                {[25, 50, 100, 500].map((pageSize) => (
-                  <option key={pageSize} value={pageSize}>
-                    {pageSize === 500 ? 'All' : pageSize}
+                {[25, 50, 100, 500].map((size) => (
+                  <option key={size} value={size}>
+                    {size === 500 ? 'All' : size}
                   </option>
                 ))}
               </select>
@@ -503,8 +464,8 @@ export const AccountTable: React.FC<AccountTableProps> = ({
           <div className="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
+              onClick={() => setCurrentPage(1)}
+              disabled={safeCurrentPage <= 1}
               className="size-7 rounded-lg border border-border bg-card hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed grid place-items-center transition-colors cursor-pointer"
               title="First Page"
             >
@@ -512,20 +473,20 @@ export const AccountTable: React.FC<AccountTableProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={safeCurrentPage <= 1}
               className="size-7 rounded-lg border border-border bg-card hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed grid place-items-center transition-colors cursor-pointer"
               title="Previous Page"
             >
               <ChevronLeft className="size-3.5" />
             </button>
             <span className="px-2 font-mono font-bold text-foreground">
-              {table.getState().pagination.pageIndex + 1} / {table.getPageCount() || 1}
+              {safeCurrentPage} / {totalPages}
             </span>
             <button
               type="button"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safeCurrentPage >= totalPages}
               className="size-7 rounded-lg border border-border bg-card hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed grid place-items-center transition-colors cursor-pointer"
               title="Next Page"
             >
@@ -533,8 +494,8 @@ export const AccountTable: React.FC<AccountTableProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-              disabled={!table.getCanNextPage()}
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={safeCurrentPage >= totalPages}
               className="size-7 rounded-lg border border-border bg-card hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed grid place-items-center transition-colors cursor-pointer"
               title="Last Page"
             >
