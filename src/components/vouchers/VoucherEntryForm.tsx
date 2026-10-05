@@ -23,6 +23,8 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCustomFields } from '../../hooks/useCustomFields';
+import { CustomFieldContext } from '../../types/customField';
 
 interface VoucherEntryFormProps {
   type: VoucherType;
@@ -94,6 +96,17 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({ type, onSave
     return true;
   }, [lines, config, headerAccountId, totals, type]);
 
+  const voucherContext: CustomFieldContext =
+    type === 'Journal Voucher'
+      ? 'journal'
+      : type === 'Payment Voucher'
+      ? 'payment'
+      : type === 'Receive Voucher'
+      ? 'receive'
+      : 'contra';
+
+  const { fields: customFields } = useCustomFields(voucherContext);
+
   const handleSaveVoucher = () => {
     if (!isSaveValid) {
       if (config.isDoubleEntry && !totals.isBalanced) {
@@ -104,6 +117,21 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({ type, onSave
         toast.error('Please complete all required fields and amounts before saving.');
       }
       return;
+    }
+
+    // Check mandatory custom fields
+    const mandatoryFields = customFields.filter((cf) => cf.mandatory && cf.activeStatus === 'Active');
+    for (const mf of mandatoryFields) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.accountHeadId) {
+          const val = line.customFields?.[mf.id];
+          if (val === undefined || val === null || String(val).trim() === '') {
+            toast.error(`Line #${i + 1}: Custom field "${mf.label}" is required before saving.`);
+            return;
+          }
+        }
+      }
     }
 
     const newVoucher: VoucherEntry = {

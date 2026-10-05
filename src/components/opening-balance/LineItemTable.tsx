@@ -6,6 +6,7 @@ import { TableSkeleton } from './TableSkeleton';
 import { EmptyState } from './EmptyState';
 import { Search, X, Filter, Plus, FileSpreadsheet } from 'lucide-react';
 import { useOpeningMasterLookups } from '../../hooks/useOpeningMasterLookups';
+import { useCustomFields } from '../../hooks/useCustomFields';
 
 interface LineItemTableProps {
   lines: OpeningBalanceLine[];
@@ -39,6 +40,8 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
 
   const { getAccount, getCostCenter, getSubsidiary, getEmployee, getVehicle } =
     useOpeningMasterLookups();
+
+  const { fields: customFields } = useCustomFields('opening-balance');
 
   const filteredLines = useMemo(() => {
     return lines.filter((line) => {
@@ -161,6 +164,20 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
                 <th className="py-2.5 px-2.5 min-w-[120px]">Employee</th>
                 <th className="py-2.5 px-2.5 min-w-[130px]">Vehicles</th>
                 <th className="py-2.5 px-2.5 min-w-[110px]">Reference</th>
+
+                {/* Dynamic Custom Fields */}
+                {customFields.map((cf) => (
+                  <th
+                    key={cf.id}
+                    className="py-2.5 px-2.5 min-w-[130px] bg-indigo-50/50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-300 border-x border-indigo-100/50 dark:border-indigo-900/30"
+                  >
+                    <div className="flex items-center gap-1">
+                      <span>{cf.label}</span>
+                      {cf.mandatory && <span className="text-rose-500 font-bold">*</span>}
+                    </div>
+                  </th>
+                ))}
+
                 <th className="py-2.5 px-2.5 min-w-[120px]">Currency / Rate</th>
                 <th className="py-2.5 px-3 text-right w-32 bg-emerald-500/5 text-emerald-800 dark:text-emerald-300">
                   Debit (BDT)
@@ -175,19 +192,19 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={11} className="p-0">
+                  <td colSpan={11 + customFields.length} className="p-0">
                     <TableSkeleton />
                   </td>
                 </tr>
               ) : lines.length === 0 ? (
                 <tr>
-                  <td colSpan={11}>
+                  <td colSpan={11 + customFields.length}>
                     <EmptyState onAddLine={onAddLine} />
                   </td>
                 </tr>
               ) : filteredLines.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="py-12 text-center text-xs text-muted-foreground space-y-2">
+                  <td colSpan={11 + customFields.length} className="py-12 text-center text-xs text-muted-foreground space-y-2">
                     <p className="font-semibold text-foreground">No entries match your search criteria</p>
                     <p className="text-[11px]">Try clearing your search keyword or balance direction filter.</p>
                     <button
@@ -208,6 +225,7 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
                     key={line.id}
                     line={line}
                     index={idx}
+                    customFields={customFields}
                     onEdit={onEditLine}
                     onDuplicate={onDuplicateLine}
                     onDelete={onDeleteLine}

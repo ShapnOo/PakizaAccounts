@@ -10,6 +10,9 @@ import {
 } from '../../constants/voucherTypeConfig';
 import { AccountHeadPicker } from './AccountHeadPicker';
 import { Plus, Trash2, Info } from 'lucide-react';
+import { useCustomFields } from '../../hooks/useCustomFields';
+import { CustomFieldCell } from '../shared/CustomFieldCell';
+import { CustomFieldContext } from '../../types/customField';
 
 interface LineItemTableProps {
   voucherType: VoucherType;
@@ -24,7 +27,25 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
 }) => {
   const config = VOUCHER_TYPE_CONFIGS[voucherType];
 
+  const voucherContext: CustomFieldContext =
+    voucherType === 'Journal Voucher'
+      ? 'journal'
+      : voucherType === 'Payment Voucher'
+      ? 'payment'
+      : voucherType === 'Receive Voucher'
+      ? 'receive'
+      : 'contra';
+
+  const { fields: customFields } = useCustomFields(voucherContext);
+
   const handleAddLine = () => {
+    const initialCustom: Record<string, any> = {};
+    customFields.forEach((cf) => {
+      if (cf.defaultValue !== undefined && cf.defaultValue !== null) {
+        initialCustom[cf.id] = cf.defaultValue;
+      }
+    });
+
     const newLine: VoucherLine = {
       id: `vl-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
       accountHeadId: '',
@@ -35,6 +56,7 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
       vehicleId: '',
       reference: '',
       description: '',
+      customFields: initialCustom,
       currency: 'BDT',
       exchangeRate: 1,
       debit: config.showDebit ? 0 : undefined,
@@ -92,6 +114,20 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
                 <th className="py-2.5 px-2.5 min-w-[140px]">Vehicles</th>
                 <th className="py-2.5 px-2 min-w-[110px]">Reference</th>
                 <th className="py-2.5 px-2 min-w-[150px]">Description</th>
+
+                {/* Dynamic Custom Field Columns (between Description and Currency) */}
+                {customFields.map((cf) => (
+                  <th
+                    key={cf.id}
+                    className="py-2.5 px-2.5 min-w-[140px] bg-indigo-50/50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-300 border-x border-indigo-100/50 dark:border-indigo-900/30"
+                  >
+                    <div className="flex items-center gap-1">
+                      <span>{cf.label}</span>
+                      {cf.mandatory && <span className="text-rose-500 font-bold">*</span>}
+                    </div>
+                  </th>
+                ))}
+
                 <th className="py-2.5 px-2 w-20">Currency</th>
                 <th className="py-2.5 px-2 w-20 text-right">Exc. Rate</th>
 
@@ -116,7 +152,7 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
               {lines.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={10 + (config.showDebit ? 2 : 0) + (config.showCredit ? 2 : 0)}
+                    colSpan={10 + customFields.length + (config.showDebit ? 2 : 0) + (config.showCredit ? 2 : 0)}
                     className="py-8 text-center text-muted-foreground"
                   >
                     No line items added yet. Click "+ Add Line ++" below to start.
@@ -237,6 +273,28 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
                         className="w-full h-8.5 px-2 rounded-lg bg-card border border-border/70 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs"
                       />
                     </td>
+
+                    {/* Dynamic Custom Field Cells (between Description and Currency) */}
+                    {customFields.map((cf) => (
+                      <td
+                        key={cf.id}
+                        className="py-1.5 px-2 bg-indigo-50/15 dark:bg-indigo-950/10 border-x border-indigo-100/40 dark:border-indigo-900/20 min-w-[140px]"
+                      >
+                        <CustomFieldCell
+                          field={cf}
+                          value={line.customFields?.[cf.id] ?? cf.defaultValue}
+                          onChange={(val) => {
+                            const existingCustom = line.customFields || {};
+                            handleUpdateLine(line.id, {
+                              customFields: {
+                                ...existingCustom,
+                                [cf.id]: val,
+                              },
+                            });
+                          }}
+                        />
+                      </td>
+                    ))}
 
                     {/* Currency */}
                     <td className="py-1.5 px-2">

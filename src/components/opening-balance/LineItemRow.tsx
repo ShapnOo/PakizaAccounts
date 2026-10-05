@@ -1,5 +1,5 @@
-import React from 'react';
 import { OpeningBalanceLine } from '../../types/openingBalance';
+import { CustomField } from '../../types/customField';
 import { Pencil, Trash2, Copy, Building2, Users, Truck } from 'lucide-react';
 import { formatCurrency, formatNumber } from '../../lib/format';
 import { useOpeningMasterLookups } from '../../hooks/useOpeningMasterLookups';
@@ -7,6 +7,7 @@ import { useOpeningMasterLookups } from '../../hooks/useOpeningMasterLookups';
 interface LineItemRowProps {
   line: OpeningBalanceLine;
   index: number;
+  customFields?: CustomField[];
   onEdit: (line: OpeningBalanceLine) => void;
   onDuplicate: (id: string) => void;
   onDelete: (line: OpeningBalanceLine) => void;
@@ -15,6 +16,7 @@ interface LineItemRowProps {
 export const LineItemRow: React.FC<LineItemRowProps> = ({
   line,
   index,
+  customFields = [],
   onEdit,
   onDuplicate,
   onDelete,
@@ -142,6 +144,25 @@ export const LineItemRow: React.FC<LineItemRowProps> = ({
           <span className="text-slate-300 dark:text-muted-foreground/40">—</span>
         )}
       </td>
+
+      {/* ── Dynamic Custom Fields (Opening Balance) ── */}
+      {customFields.map((cf) => {
+        const val = line.customFields?.[cf.id];
+        return (
+          <td
+            key={cf.id}
+            className="py-2.5 px-2.5 min-w-[130px] bg-indigo-50/15 dark:bg-indigo-950/10 border-x border-indigo-100/40 dark:border-indigo-900/20 text-xs"
+          >
+            {val !== undefined && val !== null && String(val).trim() !== '' ? (
+              <span className="font-semibold text-foreground font-mono">
+                {String(val)}
+              </span>
+            ) : (
+              <span className="text-slate-300 dark:text-muted-foreground/30">—</span>
+            )}
+          </td>
+        );
+      })}
 
       {/* ── 8. Currency & Conversion ── */}
       <td className="py-2.5 px-2.5 min-w-[120px] text-[11px] whitespace-nowrap">

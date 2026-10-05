@@ -21,6 +21,8 @@ import { EmployeePicker } from './EmployeePicker';
 import { VehiclePicker } from './VehiclePicker';
 import { formatNumber } from '../../lib/format';
 import { round2 } from '../../lib/math/openingBalance';
+import { useCustomFields } from '../../hooks/useCustomFields';
+import { CustomFieldCell } from '../shared/CustomFieldCell';
 
 interface OpeningBalanceLineModalProps {
   isOpen: boolean;
@@ -48,6 +50,9 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
   const [vehicleId, setVehicleId] = useState('');
   const [reference, setReference] = useState('');
   const [description, setDescription] = useState('');
+  const [customFieldsValues, setCustomFieldsValues] = useState<Record<string, any>>({});
+
+  const { fields: customFields } = useCustomFields('opening-balance');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -71,6 +76,7 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
         setVehicleId(line.vehicleId || '');
         setReference(line.reference || '');
         setDescription(line.description || '');
+        setCustomFieldsValues(line.customFields || {});
       } else {
         // Reset form for new entry
         setAccountHeadId('');
@@ -84,10 +90,18 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
         setVehicleId('');
         setReference('');
         setDescription('');
+
+        const initialCustom: Record<string, any> = {};
+        customFields.forEach((cf) => {
+          if (cf.defaultValue !== undefined && cf.defaultValue !== null) {
+            initialCustom[cf.id] = cf.defaultValue;
+          }
+        });
+        setCustomFieldsValues(initialCustom);
       }
       setErrors({});
     }
-  }, [isOpen, line]);
+  }, [isOpen, line, customFields]);
 
   // Handle ESC key press
   useEffect(() => {
@@ -139,6 +153,15 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
       newErrors.exchangeRate = 'Exchange rate must be greater than 0';
     }
 
+    // Check mandatory custom fields
+    const mandatoryCustom = customFields.filter((cf) => cf.mandatory && cf.activeStatus === 'Active');
+    for (const mcf of mandatoryCustom) {
+      const val = customFieldsValues[mcf.id];
+      if (val === undefined || val === null || String(val).trim() === '') {
+        newErrors[`custom_${mcf.id}`] = `${mcf.label} is required`;
+      }
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -156,6 +179,7 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
       vehicleId: vehicleId || undefined,
       reference: reference.trim() || undefined,
       description: description.trim() || undefined,
+      customFields: customFieldsValues,
       currency,
       exchangeRate: isForeign ? numRate : 1,
       debit: isCredit ? undefined : (isForeign ? numAmount : undefined),
@@ -417,6 +441,45 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
               </div>
             </div>
           </div>
+
+          {/* Dynamic Custom Fields Section */}
+          {customFields.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 pb-1 border-b border-slate-100 dark:border-border">
+                <FileText className="size-3.5 text-indigo-600" />
+                <span className="text-xs font-bold text-slate-800 dark:text-foreground">
+                  Custom Fields ({customFields.length})
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {customFields.map((cf) => (
+                  <div key={cf.id} className="space-y-1">
+                    <label className="block text-[11px] font-bold text-slate-600 dark:text-muted-foreground flex items-center justify-between">
+                      <span>
+                        {cf.label} {cf.mandatory && <span className="text-rose-500">*</span>}
+                      </span>
+                    </label>
+                    <CustomFieldCell
+                      field={cf}
+                      value={customFieldsValues[cf.id] ?? cf.defaultValue}
+                      onChange={(val) =>
+                        setCustomFieldsValues((prev) => ({
+                          ...prev,
+                          [cf.id]: val,
+                        }))
+                      }
+                    />
+                    {errors[`custom_${cf.id}`] && (
+                      <p className="text-[10.5px] text-rose-500 font-semibold">
+                        {errors[`custom_${cf.id}`]}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 4. Reference & Description */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
