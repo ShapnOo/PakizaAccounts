@@ -36,7 +36,11 @@ import { JournalEntryPage } from "./pages/journal-entries/Entry";
 import { JournalEntryPrintPage } from "./pages/journal-entries/Print";
 import { RecurringJournalListPage } from "./pages/recurring-journal/List";
 import { RecurringJournalFormPage } from "./pages/recurring-journal/Form";
-import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen, Repeat } from "lucide-react";
+import { PresetJournalListPage } from "./pages/preset-journal/List";
+import { PresetJournalFormPage } from "./pages/preset-journal/Form";
+import { BulkUploadPage } from "./pages/bulk-upload/Index";
+import { BulkUpdatePage } from "./pages/bulk-update/Index";
+import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen, Repeat, UploadCloud, RefreshCw } from "lucide-react";
 import { Toaster } from "sonner";
 
 function ContentArea() {
@@ -227,6 +231,18 @@ export default function App() {
                   <Route path="/recurring-journal/new" element={<RecurringJournalFormPage />} />
                   <Route path="/recurring-journal/:id/edit" element={<RecurringJournalFormPage />} />
                   <Route path="/journal-books/recurring-journal" element={<Navigate to="/recurring-journal" replace />} />
+
+                  {/* Preset Journal Routes */}
+                  <Route path="/preset-journal" element={<PresetJournalListPage />} />
+                  <Route path="/preset-journal/new" element={<PresetJournalFormPage />} />
+                  <Route path="/preset-journal/:id/edit" element={<PresetJournalFormPage />} />
+                  <Route path="/journal-books/preset-journal" element={<Navigate to="/preset-journal" replace />} />
+
+                  {/* Bulk Data Upload & Update Routes */}
+                  <Route path="/bulk-upload" element={<BulkUploadPage />} />
+                  <Route path="/journal-books/bulk-data-upload" element={<BulkUploadPage />} />
+                  <Route path="/bulk-update" element={<BulkUpdatePage />} />
+                  <Route path="/journal-books/bulk-update" element={<BulkUpdatePage />} />
 
                   {/* Opening Balance Routes */}
                   <Route path="/opening-balance" element={<OpeningBalanceEntryPage />} />

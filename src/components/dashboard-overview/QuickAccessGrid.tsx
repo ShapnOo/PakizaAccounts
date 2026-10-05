@@ -45,6 +45,15 @@ const QUICK_LINKS: QuickLinkItem[] = [
     category: 'Vouchers',
   },
   {
+    title: 'Preset Journal',
+    subtitle: 'Fast entry template library',
+    to: '/preset-journal',
+    icon: Receipt,
+    color: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/60',
+    badge: '10 Presets',
+    category: 'Vouchers',
+  },
+  {
     title: 'Chart of Accounts',
     subtitle: 'Multi-level COA ledger tree',
     to: '/chart-of-accounts',

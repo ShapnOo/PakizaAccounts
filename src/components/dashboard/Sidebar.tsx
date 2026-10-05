@@ -281,6 +281,12 @@ const READY_ROUTE_PATTERNS = [
   '/journal-books/journal-entries',
   '/recurring-journal',
   '/journal-books/recurring-journal',
+  '/preset-journal',
+  '/journal-books/preset-journal',
+  '/bulk-upload',
+  '/journal-books/bulk-data-upload',
+  '/bulk-update',
+  '/journal-books/bulk-update',
 ];
 
 function isRouteReady(path?: string): boolean {
@@ -309,6 +315,12 @@ function isPathActive(itemTo: string | undefined, currentPath: string): boolean 
   if (itemTo === '/journal-books/journal-entries' && (currentPath.startsWith('/journal-entries') || currentPath.startsWith('/journal-books/journal-entries'))) return true;
   if (itemTo === '/recurring-journal' && (currentPath.startsWith('/recurring-journal') || currentPath.startsWith('/journal-books/recurring-journal'))) return true;
   if (itemTo === '/journal-books/recurring-journal' && (currentPath.startsWith('/recurring-journal') || currentPath.startsWith('/journal-books/recurring-journal'))) return true;
+  if (itemTo === '/preset-journal' && (currentPath.startsWith('/preset-journal') || currentPath.startsWith('/journal-books/preset-journal'))) return true;
+  if (itemTo === '/journal-books/preset-journal' && (currentPath.startsWith('/preset-journal') || currentPath.startsWith('/journal-books/preset-journal'))) return true;
+  if (itemTo === '/bulk-upload' && (currentPath.startsWith('/bulk-upload') || currentPath.startsWith('/journal-books/bulk-data-upload'))) return true;
+  if (itemTo === '/journal-books/bulk-data-upload' && (currentPath.startsWith('/bulk-upload') || currentPath.startsWith('/journal-books/bulk-data-upload'))) return true;
+  if (itemTo === '/bulk-update' && (currentPath.startsWith('/bulk-update') || currentPath.startsWith('/journal-books/bulk-update'))) return true;
+  if (itemTo === '/journal-books/bulk-update' && (currentPath.startsWith('/bulk-update') || currentPath.startsWith('/journal-books/bulk-update'))) return true;
   if (itemTo === '/accounts-report/journal' && (currentPath === '/accounts-report/journal' || currentPath.startsWith('/voucher-template'))) return true;
 
   return false;
