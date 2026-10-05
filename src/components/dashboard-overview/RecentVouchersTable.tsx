@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  FileText,
   Search,
   ArrowRight,
   Eye,
@@ -14,10 +13,10 @@ import { formatBDTAmount } from '../../services/dashboardService';
 import { VoucherPreviewModal } from './VoucherPreviewModal';
 
 const TYPE_STYLES: Record<string, string> = {
-  Journal: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-900/60',
-  Payment: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900/60',
-  Receive: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/60',
-  Contra: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-900/60',
+  Journal: 'bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-600/20',
+  Payment: 'bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20',
+  Receive: 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20',
+  Contra: 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20',
 };
 
 export function RecentVouchersTable() {
@@ -55,16 +54,16 @@ export function RecentVouchersTable() {
   const recentList = filtered.slice(0, 8);
 
   return (
-    <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs space-y-3.5 transition-all duration-200 hover:shadow-md">
+    <div className="rounded-xl border border-border/70 bg-card p-4 sm:p-5 shadow-2xs space-y-3.5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border/40">
-        <div className="space-y-0.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50">
+        <div>
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-bold text-foreground">
               Recent Transactions & Vouchers
             </h3>
-            <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold">
-              {entries.length} Total in Ledger
+            <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-[10px] font-semibold">
+              {entries.length} in Ledger
             </span>
           </div>
           <p className="text-[11px] text-muted-foreground">
@@ -88,7 +87,7 @@ export function RecentVouchersTable() {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="h-8 px-2.5 rounded-lg border border-border bg-card text-xs font-semibold text-foreground focus:outline-none cursor-pointer"
+            className="h-8 px-2.5 rounded-lg border border-border bg-card text-xs font-medium text-foreground focus:outline-none cursor-pointer"
           >
             <option value="all">All Types</option>
             <option value="Journal">Journal</option>
@@ -99,7 +98,7 @@ export function RecentVouchersTable() {
 
           <Link
             to="/journal-entries"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-xs font-bold text-foreground transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-xs font-medium text-foreground transition-all cursor-pointer"
           >
             <span>View All</span>
             <ArrowRight className="size-3" />
@@ -108,9 +107,9 @@ export function RecentVouchersTable() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-border">
+      <div className="overflow-x-auto rounded-lg border border-border/60">
         <table className="w-full text-xs text-left">
-          <thead className="bg-muted/70 text-muted-foreground uppercase text-[10px] font-bold border-b border-border">
+          <thead className="bg-muted/50 text-muted-foreground uppercase text-[10px] font-semibold border-b border-border/60">
             <tr>
               <th className="px-3.5 py-2.5">Voucher No</th>
               <th className="px-3.5 py-2.5">Date</th>
@@ -121,7 +120,7 @@ export function RecentVouchersTable() {
               <th className="px-3.5 py-2.5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border/60 font-medium">
+          <tbody className="divide-y divide-border/40 font-normal">
             {recentList.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground text-xs">
@@ -136,22 +135,22 @@ export function RecentVouchersTable() {
                 return (
                   <tr
                     key={row.id}
-                    className="hover:bg-muted/40 transition-colors group cursor-pointer"
+                    className="hover:bg-muted/30 transition-colors group cursor-pointer"
                     onClick={() => setSelectedVoucher(row)}
                   >
-                    <td className="px-3.5 py-2.5 font-bold font-mono text-primary flex items-center gap-1.5">
-                      <Receipt className="size-3.5 text-muted-foreground group-hover:text-primary shrink-0" />
+                    <td className="px-3.5 py-2.5 font-semibold font-mono text-indigo-600 flex items-center gap-1.5 whitespace-nowrap">
+                      <Receipt className="size-3.5 text-muted-foreground group-hover:text-indigo-600 shrink-0" />
                       <span>{row.voucherNo}</span>
                     </td>
 
-                    <td className="px-3.5 py-2.5 text-muted-foreground font-mono">
+                    <td className="px-3.5 py-2.5 text-muted-foreground font-mono whitespace-nowrap">
                       {row.voucherDate}
                     </td>
 
-                    <td className="px-3.5 py-2.5">
+                    <td className="px-3.5 py-2.5 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[10px] font-bold ${
-                          TYPE_STYLES[row.voucherType] || 'bg-muted text-muted-foreground'
+                        className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold whitespace-nowrap select-none ${
+                          TYPE_STYLES[row.voucherType] || 'bg-slate-100 text-slate-700'
                         }`}
                       >
                         {row.voucherType}
@@ -159,7 +158,7 @@ export function RecentVouchersTable() {
                     </td>
 
                     <td className="px-3.5 py-2.5 max-w-[240px]">
-                      <p className="font-semibold text-foreground truncate">
+                      <p className="font-medium text-foreground truncate">
                         {debitLine?.accountHeadName || row.headerAccountName || 'Multiple Debit Heads'}
                       </p>
                       <p className="text-[10px] text-muted-foreground truncate">
@@ -167,18 +166,18 @@ export function RecentVouchersTable() {
                       </p>
                     </td>
 
-                    <td className="px-3.5 py-2.5 text-right font-mono font-bold text-foreground">
+                    <td className="px-3.5 py-2.5 text-right font-mono font-semibold text-foreground tabular-nums whitespace-nowrap">
                       {formatBDTAmount(row.amount || 0)}
                     </td>
 
-                    <td className="px-3.5 py-2.5 text-center">
+                    <td className="px-3.5 py-2.5 text-center whitespace-nowrap">
                       {row.voided ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20 text-[10px] font-semibold whitespace-nowrap select-none">
                           <span className="size-1.5 rounded-full bg-rose-500" />
                           Voided
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 text-[10px] font-semibold whitespace-nowrap select-none">
                           <span className="size-1.5 rounded-full bg-emerald-500" />
                           Posted
                         </span>

@@ -12,7 +12,9 @@ import {
   Layers,
   ListFilter,
   ArrowRight,
-  PlusCircle,
+  Plus,
+  UploadCloud,
+  RefreshCw,
 } from 'lucide-react';
 
 interface QuickLinkItem {
@@ -20,145 +22,105 @@ interface QuickLinkItem {
   subtitle: string;
   to: string;
   icon: any;
-  color: string;
   badge?: string;
-  category: string;
 }
 
 const QUICK_LINKS: QuickLinkItem[] = [
   {
     title: 'Journal Entries',
-    subtitle: 'Manage & post all vouchers',
+    subtitle: 'Post & verify all vouchers',
     to: '/journal-entries',
     icon: FileText,
-    color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/60',
     badge: '14 Vouchers',
-    category: 'Vouchers',
   },
   {
     title: 'Recurring Journal',
     subtitle: 'Automated schedules & templates',
     to: '/recurring-journal',
     icon: Repeat,
-    color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/60',
     badge: '10 Profiles',
-    category: 'Vouchers',
   },
   {
     title: 'Preset Journal',
     subtitle: 'Fast entry template library',
     to: '/preset-journal',
     icon: Receipt,
-    color: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/60',
     badge: '10 Presets',
-    category: 'Vouchers',
+  },
+  {
+    title: 'Bulk Data Upload',
+    subtitle: 'Import vouchers via Excel',
+    to: '/bulk-upload',
+    icon: UploadCloud,
+    badge: 'Excel Import',
+  },
+  {
+    title: 'Bulk Data Update',
+    subtitle: 'Filter & batch edit fields',
+    to: '/bulk-update',
+    icon: RefreshCw,
+    badge: 'Batch Wizard',
   },
   {
     title: 'Chart of Accounts',
-    subtitle: 'Multi-level COA ledger tree',
+    subtitle: 'COA ledger hierarchy tree',
     to: '/chart-of-accounts',
     icon: FolderTree,
-    color: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/60',
-    badge: 'Tree View',
-    category: 'Master',
-  },
-  {
-    title: 'Voucher Setup',
-    subtitle: 'Configure JV, PV, RV & Contra',
-    to: '/vouchers',
-    icon: Receipt,
-    color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-900/60',
-    badge: '4 Formats',
-    category: 'Vouchers',
-  },
-  {
-    title: 'Cheque Management',
-    subtitle: 'Cheque prepare & register',
-    to: '/cheques/register',
-    icon: BookOpen,
-    color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/60',
-    badge: 'Books & Print',
-    category: 'Banking',
+    badge: 'Master Tree',
   },
   {
     title: 'Bank & Branch Setup',
-    subtitle: 'Company bank accounts',
+    subtitle: 'Corporate bank accounts',
     to: '/banks',
     icon: Landmark,
-    color: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-200 dark:border-cyan-900/60',
     badge: '8 Banks',
-    category: 'Banking',
+  },
+  {
+    title: 'Cheque Management',
+    subtitle: 'Cheque issue & register',
+    to: '/cheques/register',
+    icon: BookOpen,
+    badge: 'Register',
   },
   {
     title: 'Customer Master',
     subtitle: 'Receivables & customer groups',
     to: '/customers',
     icon: UserCheck,
-    color: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/60',
-    badge: 'Clients',
-    category: 'Master',
+    badge: 'Directory',
   },
   {
     title: 'Currency & Rates',
     subtitle: 'Multi-currency exchange rates',
     to: '/currency-setup',
     icon: Coins,
-    color: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-900/60',
-    badge: 'USD/EUR/BDT',
-    category: 'Master',
+    badge: 'USD/EUR',
   },
   {
-    title: 'Custom Field Builder',
-    subtitle: 'Dynamic form schema fields',
-    to: '/custom-fields',
-    icon: ListFilter,
-    color: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-900/60',
-    badge: 'Dynamic',
-    category: 'System',
-  },
-  {
-    title: 'Subledger Management',
+    title: 'Subledger Master',
     subtitle: 'Auxiliary subledger codes',
     to: '/subledger',
     icon: Layers,
-    color: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800',
     badge: 'Sub-Heads',
-    category: 'Master',
   },
   {
-    title: 'Master Config (F&A)',
-    subtitle: 'Financial year & module rules',
-    to: '/accounts-config/master-config',
-    icon: Settings,
-    color: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-900/60',
-    badge: 'System Rules',
-    category: 'System',
-  },
-  {
-    title: 'Voucher Template Print',
-    subtitle: 'Print designer & layout config',
-    to: '/accounts-report/journal',
-    icon: FileText,
-    color: 'bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-200 dark:border-pink-900/60',
-    badge: 'Designer',
-    category: 'Reports',
+    title: 'Custom Field Builder',
+    subtitle: 'Dynamic schema form fields',
+    to: '/custom-fields',
+    icon: ListFilter,
+    badge: 'Schema',
   },
 ];
 
 export function QuickAccessGrid() {
   return (
-    <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs space-y-3 transition-all duration-200 hover:shadow-md">
+    <div className="rounded-xl border border-border/70 bg-card p-4 sm:p-5 shadow-2xs space-y-3.5">
       {/* Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-border/40">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold text-foreground">
-              Quick Access Modules
-            </h3>
-            <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold">
-              12 Active Modules
-            </span>
-          </div>
+      <div className="flex items-center justify-between pb-2.5 border-b border-border/50">
+        <div>
+          <h3 className="text-sm font-bold text-foreground">
+            Quick Access Modules
+          </h3>
           <p className="text-[11px] text-muted-foreground">
             Direct shortcuts to key accounting configuration, entry screens, and registers
           </p>
@@ -166,9 +128,9 @@ export function QuickAccessGrid() {
 
         <Link
           to="/journal-entries"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold shadow-xs hover:bg-primary/90 transition-all cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
         >
-          <PlusCircle className="size-3.5" />
+          <Plus className="size-3.5" />
           <span>New Voucher</span>
         </Link>
       </div>
@@ -181,23 +143,21 @@ export function QuickAccessGrid() {
             <Link
               key={link.title}
               to={link.to}
-              className="group p-2.5 rounded-xl border border-border/60 bg-card hover:bg-muted/50 hover:border-border transition-all flex flex-col justify-between space-y-2 hover:-translate-y-0.5 hover:shadow-xs cursor-pointer"
+              className="group p-3 rounded-lg border border-border/60 bg-card hover:bg-muted/40 hover:border-border transition-all flex flex-col justify-between space-y-2.5 cursor-pointer"
             >
               <div className="flex items-start justify-between gap-1.5">
-                <div
-                  className={`size-8 rounded-lg flex items-center justify-center border ${link.color} shrink-0`}
-                >
-                  <Icon className="size-4" />
+                <div className="size-7 rounded-md bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                  <Icon className="size-3.5" />
                 </div>
                 {link.badge && (
-                  <span className="text-[9px] font-mono font-semibold px-1.5 py-0.2 rounded bg-muted text-muted-foreground truncate">
+                  <span className="text-[9px] font-medium px-1.5 py-0.2 rounded bg-muted text-muted-foreground truncate">
                     {link.badge}
                   </span>
                 )}
               </div>
 
               <div>
-                <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors truncate">
+                <p className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors truncate">
                   {link.title}
                 </p>
                 <p className="text-[10px] text-muted-foreground truncate">
@@ -205,8 +165,8 @@ export function QuickAccessGrid() {
                 </p>
               </div>
 
-              <div className="flex items-center justify-between text-[10px] text-muted-foreground group-hover:text-primary font-semibold pt-0.5">
-                <span>Open module</span>
+              <div className="flex items-center justify-between text-[10px] text-muted-foreground group-hover:text-primary font-medium pt-0.5">
+                <span>Open</span>
                 <ArrowRight className="size-3 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </Link>

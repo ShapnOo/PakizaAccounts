@@ -61,17 +61,17 @@ export function ChartCardWrapper({
 
   return (
     <div
-      className={`rounded-2xl border border-border/80 bg-card p-4 shadow-xs flex flex-col justify-between transition-all duration-200 hover:shadow-md ${
+      className={`rounded-xl border border-border/70 bg-card p-4 sm:p-5 shadow-2xs flex flex-col justify-between transition-all duration-150 ${
         isFullscreen ? 'fixed inset-4 z-50 bg-background shadow-2xl p-6' : 'h-[360px]'
       }`}
     >
       {/* Card Header */}
-      <div className="flex items-start justify-between gap-3 pb-2 border-b border-border/40 shrink-0">
+      <div className="flex items-start justify-between gap-3 pb-3 border-b border-border/50 shrink-0">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="text-sm font-bold text-foreground">{title}</h3>
             {badge && (
-              <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold">
+              <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-[10px] font-semibold">
                 {badge}
               </span>
             )}
@@ -90,11 +90,11 @@ export function ChartCardWrapper({
             <button
               type="button"
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex h-7.5 items-center gap-1.5 rounded-lg border border-border bg-card px-2 text-[11px] font-semibold text-foreground hover:bg-muted transition-all cursor-pointer"
+              className="flex h-7.5 items-center gap-1.5 rounded-lg border border-border bg-card px-2 text-[11px] font-medium text-foreground hover:bg-muted transition-all cursor-pointer"
               title="Change Chart View"
             >
-              <CurrentIcon className="size-3.5 text-primary" />
-              <span className="hidden sm:inline font-medium">
+              <CurrentIcon className="size-3.5 text-muted-foreground" />
+              <span className="hidden sm:inline">
                 {VIEW_CONFIG[currentView]?.label}
               </span>
               <ChevronDown className="size-3 text-muted-foreground" />
@@ -119,7 +119,7 @@ export function ChartCardWrapper({
                         }}
                         className={`flex w-full items-center justify-between px-2 py-1.5 text-xs rounded-md transition-all ${
                           currentView === v
-                            ? 'bg-primary/10 text-primary font-bold'
+                            ? 'bg-primary/10 text-primary font-semibold'
                             : 'text-foreground hover:bg-muted'
                         }`}
                       >

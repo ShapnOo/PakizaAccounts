@@ -1,15 +1,19 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  BellRing,
   AlertTriangle,
   CalendarCheck,
   ArrowRight,
   Sparkles,
+  X,
 } from 'lucide-react';
 import { getPendingAlerts } from '../../services/dashboardService';
 
 export function PendingAlertsBanner() {
+  const [dismissed, setDismissed] = useState(false);
   const alerts = getPendingAlerts();
+
+  if (dismissed || alerts.length === 0) return null;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -20,22 +24,16 @@ export function PendingAlertsBanner() {
         return (
           <div
             key={alert.id}
-            className={`flex items-center justify-between gap-3 p-3 rounded-xl border transition-all ${
-              isWarning
-                ? 'bg-amber-500/10 border-amber-300 dark:border-amber-900/60 text-amber-950 dark:text-amber-100'
-                : isSuccess
-                ? 'bg-emerald-500/10 border-emerald-300 dark:border-emerald-900/60 text-emerald-950 dark:text-emerald-100'
-                : 'bg-blue-500/10 border-blue-300 dark:border-blue-900/60 text-blue-950 dark:text-blue-100'
-            }`}
+            className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border/70 bg-card hover:border-border transition-all shadow-2xs"
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <div
                 className={`size-8 rounded-lg flex items-center justify-center shrink-0 ${
                   isWarning
-                    ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
                     : isSuccess
-                    ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                    : 'bg-blue-500/20 text-blue-600 dark:text-blue-400'
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                    : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
                 }`}
               >
                 {isWarning ? (
@@ -48,8 +46,10 @@ export function PendingAlertsBanner() {
               </div>
 
               <div className="min-w-0">
-                <h4 className="text-xs font-bold truncate">{alert.title}</h4>
-                <p className="text-[11px] opacity-80 line-clamp-1">
+                <h4 className="text-xs font-semibold text-foreground truncate">
+                  {alert.title}
+                </h4>
+                <p className="text-[11px] text-muted-foreground line-clamp-1">
                   {alert.description}
                 </p>
               </div>
@@ -57,16 +57,10 @@ export function PendingAlertsBanner() {
 
             <Link
               to={alert.link}
-              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold shrink-0 transition-all ${
-                isWarning
-                  ? 'bg-amber-600 text-white hover:bg-amber-700'
-                  : isSuccess
-                  ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-muted hover:bg-muted/80 text-foreground transition-all shrink-0"
             >
               <span>{alert.actionLabel}</span>
-              <ArrowRight className="size-3" />
+              <ArrowRight className="size-3 text-muted-foreground" />
             </Link>
           </div>
         );

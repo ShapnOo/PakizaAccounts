@@ -7,59 +7,40 @@ import {
   Scale,
   ArrowUpRight,
   ArrowDownRight,
-  ShieldCheck,
 } from 'lucide-react';
 import { useDashboardStore } from '../../stores/useDashboardStore';
 import { getFinancialKpis } from '../../services/dashboardService';
 
-const toneStyles = {
+const toneConfig = {
   income: {
-    accent: 'bg-emerald-500',
-    border: 'border-emerald-200 dark:border-emerald-900/60',
-    bgLight: 'from-emerald-500/10 via-emerald-500/5 to-transparent',
-    iconBg: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
-    pill: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
     icon: TrendingUp,
+    iconBg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400',
+    pillText: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50/80 dark:bg-emerald-950/30',
   },
   expense: {
-    accent: 'bg-rose-500',
-    border: 'border-rose-200 dark:border-rose-900/60',
-    bgLight: 'from-rose-500/10 via-rose-500/5 to-transparent',
-    iconBg: 'bg-rose-500/15 text-rose-600 dark:text-rose-400',
-    pill: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800',
     icon: TrendingDown,
+    iconBg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400',
+    pillText: 'text-rose-700 dark:text-rose-300 bg-rose-50/80 dark:bg-rose-950/30',
   },
   profit: {
-    accent: 'bg-blue-600',
-    border: 'border-blue-200 dark:border-blue-900/60',
-    bgLight: 'from-blue-500/10 via-blue-500/5 to-transparent',
-    iconBg: 'bg-blue-500/15 text-blue-600 dark:text-blue-400',
-    pill: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-800',
     icon: Scale,
+    iconBg: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400',
+    pillText: 'text-indigo-700 dark:text-indigo-300 bg-indigo-50/80 dark:bg-indigo-950/30',
   },
   receivable: {
-    accent: 'bg-indigo-600',
-    border: 'border-indigo-200 dark:border-indigo-900/60',
-    bgLight: 'from-indigo-500/10 via-indigo-500/5 to-transparent',
-    iconBg: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400',
-    pill: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800',
     icon: WalletCards,
+    iconBg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400',
+    pillText: 'text-blue-700 dark:text-blue-300 bg-blue-50/80 dark:bg-blue-950/30',
   },
   payable: {
-    accent: 'bg-amber-500',
-    border: 'border-amber-200 dark:border-amber-900/60',
-    bgLight: 'from-amber-500/10 via-amber-500/5 to-transparent',
-    iconBg: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
-    pill: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800',
     icon: Wallet,
+    iconBg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400',
+    pillText: 'text-amber-700 dark:text-amber-300 bg-amber-50/80 dark:bg-amber-950/30',
   },
   cash: {
-    accent: 'bg-cyan-600',
-    border: 'border-cyan-200 dark:border-cyan-900/60',
-    bgLight: 'from-cyan-500/10 via-cyan-500/5 to-transparent',
-    iconBg: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400',
-    pill: 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border-cyan-300 dark:border-cyan-800',
     icon: Landmark,
+    iconBg: 'bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400',
+    pillText: 'text-teal-700 dark:text-teal-300 bg-teal-50/80 dark:bg-teal-950/30',
   },
 };
 
@@ -70,60 +51,51 @@ export function FinancialStatsGrid() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
       {kpis.map((kpi) => {
-        const tone = toneStyles[kpi.type];
-        const Icon = tone.icon;
+        const config = toneConfig[kpi.type] || toneConfig.income;
+        const Icon = config.icon;
 
         return (
           <div
             key={kpi.id}
-            className={`group relative overflow-hidden rounded-2xl border ${tone.border} bg-card p-3.5 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-md`}
+            className="group relative rounded-xl border border-border/70 bg-card p-4 shadow-2xs hover:shadow-sm hover:border-border transition-all duration-150 flex flex-col justify-between"
           >
-            {/* Top Accent line */}
-            <div
-              className={`absolute inset-x-0 top-0 h-1 bg-linear-to-r ${tone.accent} from-transparent`}
-            />
-
-            {/* Subtle Gradient Glow */}
-            <div
-              className={`absolute inset-0 pointer-events-none bg-radial ${tone.bgLight} opacity-50`}
-            />
-
-            <div className="relative flex flex-col justify-between h-full space-y-3">
-              {/* Header: Label + Icon Box */}
-              <div className="flex items-start justify-between gap-2">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide leading-tight">
-                  {kpi.label}
-                </span>
-                <div
-                  className={`size-8 rounded-xl ${tone.iconBg} flex items-center justify-center shadow-inner shrink-0`}
-                >
-                  <Icon className="size-4" />
-                </div>
+            {/* Header: Label + Soft Icon */}
+            <div className="flex items-center justify-between gap-2 mb-2.5">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                {kpi.label}
+              </span>
+              <div
+                className={`size-7.5 rounded-lg ${config.iconBg} flex items-center justify-center shrink-0`}
+              >
+                <Icon className="size-4" />
               </div>
+            </div>
 
-              {/* Value */}
-              <div>
-                <p className="text-xl font-black text-foreground tracking-tight">
-                  {kpi.formattedValue}
-                </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                  {kpi.note}
-                </p>
-              </div>
+            {/* Value & Subtitle */}
+            <div className="space-y-0.5 my-1">
+              <p className="text-xl font-bold tracking-tight text-foreground font-mono">
+                {kpi.formattedValue}
+              </p>
+              <p className="text-[11px] text-muted-foreground truncate">
+                {kpi.note}
+              </p>
+            </div>
 
-              {/* Footer Pill */}
-              <div className="pt-1">
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${tone.pill}`}
-                >
-                  {kpi.isPositive ? (
-                    <ArrowUpRight className="size-3" />
-                  ) : (
-                    <ArrowDownRight className="size-3" />
-                  )}
-                  <span>{kpi.badge}</span>
-                </span>
-              </div>
+            {/* Bottom Badge */}
+            <div className="pt-2 mt-1 border-t border-border/40 flex items-center justify-between">
+              <span
+                className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${config.pillText}`}
+              >
+                {kpi.isPositive ? (
+                  <ArrowUpRight className="size-3 shrink-0" />
+                ) : (
+                  <ArrowDownRight className="size-3 shrink-0" />
+                )}
+                <span>{kpi.badge}</span>
+              </span>
+              <span className="text-[10px] text-muted-foreground font-normal">
+                vs last period
+              </span>
             </div>
           </div>
         );
