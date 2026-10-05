@@ -15,6 +15,7 @@ export interface OpeningBalanceLine {
   credit?: number; // original currency
   debitBDT?: number; // BDT amount
   creditBDT?: number; // BDT amount
+  customFields?: Record<string, any>;
 }
 
 export interface OpeningBalance {

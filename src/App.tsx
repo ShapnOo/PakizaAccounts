@@ -15,7 +15,9 @@ import { ExchangeRateListPage } from "./pages/currency/ExchangeRateList";
 import { CurrencySetupFormPage } from "./pages/currency/CurrencySetupForm";
 import { SubledgerListPage } from "./pages/subledger/SubledgerList";
 import { SubledgerFormPage } from "./pages/subledger/SubledgerForm";
-import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers } from "lucide-react";
+import { CustomFieldBuilderPage } from "./pages/custom-fields/Builder";
+import { CustomFieldFormPage } from "./pages/custom-fields/Form";
+import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter } from "lucide-react";
 import { Toaster } from "sonner";
 
 function ContentArea() {
@@ -82,12 +84,20 @@ function ContentArea() {
               <Layers className="size-3.5 text-indigo-600" />
               <span>Subledger Management</span>
             </Link>
+
+            <Link
+              to="/custom-fields"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-indigo-200 bg-indigo-50/50 text-indigo-700 text-xs font-bold shadow-sm hover:bg-indigo-100/60 transition-all cursor-pointer"
+            >
+              <ListFilter className="size-3.5 text-indigo-600" />
+              <span>Custom Field Builder</span>
+            </Link>
           </div>
 
           <div className="text-[12px] text-muted-foreground/80 flex items-center justify-center gap-2">
-            <span>Enterprise Multi-Type Subledger & Dimensions</span>
+            <span>Dynamic Schema & Extra Columns</span>
             <ArrowRight className="size-3.5" />
-            <span className="font-semibold text-foreground">Cost Center • Reference Center • Vehicles</span>
+            <span className="font-semibold text-foreground">Journal • Payment • Receive • Contra • Opening Balance</span>
           </div>
         </div>
       </div>
@@ -148,6 +158,12 @@ export default function App() {
                   <Route path="/accounts-config/subledger" element={<Navigate to="/subledger" replace />} />
                   <Route path="/subledger/new" element={<SubledgerFormPage />} />
                   <Route path="/subledger/:id/edit" element={<SubledgerFormPage />} />
+
+                  {/* Custom Field Routes */}
+                  <Route path="/custom-fields" element={<CustomFieldBuilderPage />} />
+                  <Route path="/accounts-config/custom-field" element={<Navigate to="/custom-fields" replace />} />
+                  <Route path="/custom-fields/new" element={<CustomFieldFormPage />} />
+                  <Route path="/custom-fields/:id/edit" element={<CustomFieldFormPage />} />
 
                   <Route path="*" element={<ContentArea />} />
                 </Routes>

@@ -40,6 +40,7 @@ export interface VoucherLine {
   credit?: number;
   debitBDT?: number; // debit * exchangeRate
   creditBDT?: number; // credit * exchangeRate
+  customFields?: Record<string, any>;
 }
 
 export interface VoucherEntry {
