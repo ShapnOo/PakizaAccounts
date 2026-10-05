@@ -62,7 +62,7 @@ export const DefaultAccountsTable: React.FC<DefaultAccountsTableProps> = ({
 
   return (
     <div className="space-y-3 pt-3 border-t border-border/60">
-      {/* Section Header with Dynamic Label & N.B. */}
+      {/* Section Header with Dynamic Label */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
         <div className="flex items-center gap-2">
           <span className="text-xs font-black uppercase tracking-wider text-foreground">
@@ -80,13 +80,6 @@ export const DefaultAccountsTable: React.FC<DefaultAccountsTableProps> = ({
             </span>
           )}
         </div>
-
-        {isCashBankRestricted && (
-          <div className="flex items-center gap-1.5 text-[10.5px] italic text-muted-foreground/80">
-            <Info className="size-3 text-muted-foreground/50 not-italic shrink-0" />
-            <span>N.B. Cash and Bank only for payment voucher and receive voucher</span>
-          </div>
-        )}
       </div>
 
       {/* Table */}

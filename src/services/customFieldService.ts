@@ -8,7 +8,12 @@ function getStored(): CustomField[] {
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length < MOCK_CUSTOM_FIELDS.length) {
+        localStorage.setItem(LS_KEY, JSON.stringify(MOCK_CUSTOM_FIELDS));
+        return MOCK_CUSTOM_FIELDS;
+      }
+      return parsed;
     }
   } catch (err) {
     console.warn('Failed to parse stored custom fields:', err);

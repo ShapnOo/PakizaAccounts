@@ -164,11 +164,9 @@ export const CurrencySetupFormPage: React.FC = () => {
           </Link>
         </div>
 
-        {/* Form Fields: Two columns on desktop, stacked on mobile */}
+        {/* Form Fields */}
         <form onSubmit={handleSave} className="p-5 sm:p-6 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* ── LEFT COLUMN: Interactive Form Inputs (8 cols) ── */}
-            <div className="lg:col-span-8 space-y-5">
+          <div className="max-w-2xl space-y-5">
               {/* 1. Currency Code */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-foreground flex items-center justify-between">
@@ -299,45 +297,6 @@ export const CurrencySetupFormPage: React.FC = () => {
                   </p>
                 </div>
               )}
-            </div>
-
-            {/* ── RIGHT COLUMN: N.B. Specification Hints (4 cols) ── */}
-            <div className="lg:col-span-4 bg-slate-50/80 dark:bg-muted/15 rounded-xl border border-border/70 p-4 space-y-4">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-foreground border-b border-border/60 pb-2">
-                <Info className="size-3.5 text-indigo-600 dark:text-indigo-400" />
-                <span>Field Guidance & Constraints</span>
-              </div>
-
-              <div className="space-y-3.5 text-xs">
-                <div>
-                  <span className="font-semibold text-foreground text-[11px]">1. Currency Code</span>
-                  <p className="text-[11px] text-muted-foreground italic mt-0.5">
-                    Select from 200+ countries. Once created, code is locked to preserve ledger audit trail.
-                  </p>
-                </div>
-
-                <div>
-                  <span className="font-semibold text-foreground text-[11px]">2. Symbol, Name & Subunit</span>
-                  <p className="text-[11px] text-muted-foreground italic mt-0.5">
-                    Value will populate automatically after selecting currency code from the master lookup.
-                  </p>
-                </div>
-
-                <div>
-                  <span className="font-semibold text-foreground text-[11px]">3. Decimal Place</span>
-                  <p className="text-[11px] text-muted-foreground italic mt-0.5">
-                    Number field. Governs transaction decimal precision across vouchers and reports.
-                  </p>
-                </div>
-
-                <div>
-                  <span className="font-semibold text-foreground text-[11px]">4. Comma Format</span>
-                  <p className="text-[11px] text-muted-foreground italic mt-0.5">
-                    Select regional number presentation style: Indian (lakh/crore), Western, or European.
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Form Actions Footer */}

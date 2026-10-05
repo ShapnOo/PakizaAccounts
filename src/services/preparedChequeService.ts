@@ -40,6 +40,11 @@ export async function listPreparedCheques(): Promise<ChequePrepare[]> {
   }
   try {
     const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length < MOCK_PREPARED_CHEQUES.length) {
+      const normalized = normalizePreparedList(MOCK_PREPARED_CHEQUES);
+      localStorage.setItem(LS_PREP, JSON.stringify(normalized));
+      return normalized;
+    }
     return normalizePreparedList(parsed);
   } catch (e) {
     const normalized = normalizePreparedList(MOCK_PREPARED_CHEQUES);

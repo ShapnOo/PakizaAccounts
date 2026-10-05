@@ -8,7 +8,7 @@ export const MOCK_CURRENCY_SETUPS: CurrencySetup[] = [
   { id: 'c5', code: 'JPY', country: 'Japan', displayCode: 'JPY-Japan', name: 'Japanese Yen', symbol: '¥', decimalPlace: 0, subunit: 'Sen', commaFormat: '1,234,567,890' },
   { id: 'c6', code: 'CAD', country: 'Canada', displayCode: 'CAD-Canada', name: 'Canadian Dollar', symbol: 'C$', decimalPlace: 2, subunit: 'Cent', commaFormat: '1,234,567,890' },
   { id: 'c7', code: 'AUD', country: 'Australia', displayCode: 'AUD-Australia', name: 'Australian Dollar', symbol: 'A$', decimalPlace: 2, subunit: 'Cent', commaFormat: '1,234,567,890' },
-  { id: 'c8', code: 'CHF', country: 'Switzerland', displayCode: 'CHF-Switzerland', name: 'Swiss Franc', symbol: 'CHF', decimalPlace: 2, subunit: 'Rappen', commaFormat: "1'234'567.89" },
+  { id: 'c8', code: 'CHF', country: 'Switzerland', displayCode: 'CHF-Switzerland', name: 'Swiss Franc', symbol: 'CHF', decimalPlace: 2, subunit: 'Rappen', commaFormat: '1,234,567,890' },
   { id: 'c9', code: 'CNY', country: 'China', displayCode: 'CNY-China', name: 'Chinese Yuan Renminbi', symbol: '¥', decimalPlace: 2, subunit: 'Fen', commaFormat: '1,234,567,890' },
   { id: 'c10', code: 'INR', country: 'India', displayCode: 'INR-India', name: 'Indian Rupee', symbol: '₹', decimalPlace: 2, subunit: 'Paisa', commaFormat: '12,34,56,789' },
   { id: 'c11', code: 'AED', country: 'United Arab Emirates', displayCode: 'AED-UAE', name: 'UAE Dirham', symbol: 'د.إ', decimalPlace: 2, subunit: 'Fils', commaFormat: '1,234,567,890' },

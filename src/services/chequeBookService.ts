@@ -12,7 +12,12 @@ export async function listChequeBooks(): Promise<ChequeBook[]> {
     return MOCK_CHEQUE_BOOKS;
   }
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length < MOCK_CHEQUE_BOOKS.length) {
+      localStorage.setItem(LS_BOOKS, JSON.stringify(MOCK_CHEQUE_BOOKS));
+      return MOCK_CHEQUE_BOOKS;
+    }
+    return parsed;
   } catch (e) {
     return MOCK_CHEQUE_BOOKS;
   }

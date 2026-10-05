@@ -51,7 +51,7 @@ export const ConfigRow: React.FC<ConfigRowProps> = ({
           <div className="flex items-center gap-1.5 text-[10.5px] italic text-muted-foreground/75 leading-tight select-none">
             <Info className="size-3 shrink-0 text-muted-foreground/50 not-italic" />
             <span className="truncate" title={hint}>
-              N.B. {hint}
+              {hint}
             </span>
           </div>
         ) : (

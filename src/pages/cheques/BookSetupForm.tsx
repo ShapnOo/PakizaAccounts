@@ -9,7 +9,6 @@ import { getChequeBook } from '../../services/chequeBookService';
 import { BookSetupHeaderBlock } from '../../components/cheques/BookSetupHeaderBlock';
 import { BookSetupBookBlock } from '../../components/cheques/BookSetupBookBlock';
 import { GeneratedChequesTable } from '../../components/cheques/GeneratedChequesTable';
-import { NbHintRail } from '../../components/cheques/NbHintRail';
 import { CoaBankAccount } from '../../mock/coaBankAccounts';
 import { ArrowLeft, Save, Loader2, BookOpen } from 'lucide-react';
 
@@ -221,92 +220,86 @@ export const BookSetupFormPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Layout: Form + N.B. Rail */}
-      <div className="w-full flex flex-col xl:flex-row items-start gap-8">
-        {/* Main Form Content */}
-        <form onSubmit={handleSubmit} className="flex-1 w-full space-y-5 min-w-0">
-          {/* 1. Header Block: Bank Account & Enforce Serial */}
-          <BookSetupHeaderBlock
-            accountsBankId={accountsBankId}
-            bankName={bankName}
-            glName={glName}
-            enforceBySerial={enforceBySerial}
-            onAccountChange={handleAccountChange}
-            onEnforceChange={setEnforceBySerial}
-            errors={errors}
-          />
+      {/* Main Form Content */}
+      <form onSubmit={handleSubmit} className="w-full space-y-5 min-w-0">
+        {/* 1. Header Block: Bank Account & Enforce Serial */}
+        <BookSetupHeaderBlock
+          accountsBankId={accountsBankId}
+          bankName={bankName}
+          glName={glName}
+          enforceBySerial={enforceBySerial}
+          onAccountChange={handleAccountChange}
+          onEnforceChange={setEnforceBySerial}
+          errors={errors}
+        />
 
-          {/* 2. Book Block: Name, First No, Count, ADD>> button */}
-          <BookSetupBookBlock
-            bookName={bookName}
-            firstChequeNo={firstChequeNo}
-            noOfCheque={noOfCheque}
-            onBookNameChange={setBookName}
-            onFirstChequeNoChange={setFirstChequeNo}
-            onNoOfChequeChange={setNoOfCheque}
-            onAddClick={handleGenerateCheques}
-            errors={errors}
-          />
+        {/* 2. Book Block: Name, First No, Count, ADD>> button */}
+        <BookSetupBookBlock
+          bookName={bookName}
+          firstChequeNo={firstChequeNo}
+          noOfCheque={noOfCheque}
+          onBookNameChange={setBookName}
+          onFirstChequeNoChange={setFirstChequeNo}
+          onNoOfChequeChange={setNoOfCheque}
+          onAddClick={handleGenerateCheques}
+          errors={errors}
+        />
 
-          {/* 3. Generated Cheques Table */}
-          {cheques.length > 0 ? (
-            <div className="bg-card rounded-xl border border-border p-5 shadow-2xs">
-              <GeneratedChequesTable
-                cheques={cheques}
-                enforceBySerial={enforceBySerial}
-                onToggleInactive={handleToggleInactive}
-                onSignatoryChange={handleSignatoryChange}
-                onRemoveRow={handleRemoveRow}
-              />
-            </div>
-          ) : (
-            <div className="border border-dashed border-border rounded-xl p-8 text-center bg-card">
-              <p className="text-xs font-semibold text-foreground">
-                No Cheque Details Generated Yet
-              </p>
-              <p className="text-[11px] text-muted-foreground mt-0.5 max-w-sm mx-auto">
-                Fill in the First Cheque No and Number of Cheques above, then click{' '}
-                <strong className="text-primary">"ADD &gt;&gt;"</strong> to auto-populate leaves.
-              </p>
-              {errors.cheques && (
-                <p className="text-xs text-rose-500 font-bold mt-2">{errors.cheques}</p>
-              )}
-            </div>
-          )}
-
-          {/* 4. Form Actions: Cancel + Submit */}
-          <div className="flex items-center justify-between pt-4 border-t border-border mt-6">
-            <button
-              type="button"
-              onClick={() => navigate('/cheque-setup')}
-              className="px-4 py-2 rounded-lg border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="inline-flex items-center gap-1.5 px-6 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-sm shadow-primary/20 transition-all disabled:opacity-50 cursor-pointer active:scale-95"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="size-3.5 animate-spin" />
-                  <span>Saving Book...</span>
-                </>
-              ) : (
-                <>
-                  <Save className="size-3.5" />
-                  <span>Submit Cheque Book</span>
-                </>
-              )}
-            </button>
+        {/* 3. Generated Cheques Table */}
+        {cheques.length > 0 ? (
+          <div className="bg-card rounded-xl border border-border p-5 shadow-2xs">
+            <GeneratedChequesTable
+              cheques={cheques}
+              enforceBySerial={enforceBySerial}
+              onToggleInactive={handleToggleInactive}
+              onSignatoryChange={handleSignatoryChange}
+              onRemoveRow={handleRemoveRow}
+            />
           </div>
-        </form>
+        ) : (
+          <div className="border border-dashed border-border rounded-xl p-8 text-center bg-card">
+            <p className="text-xs font-semibold text-foreground">
+              No Cheque Details Generated Yet
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 max-w-sm mx-auto">
+              Fill in the First Cheque No and Number of Cheques above, then click{' '}
+              <strong className="text-primary">"ADD &gt;&gt;"</strong> to auto-populate leaves.
+            </p>
+            {errors.cheques && (
+              <p className="text-xs text-rose-500 font-bold mt-2">{errors.cheques}</p>
+            )}
+          </div>
+        )}
 
-        {/* Right Rail: 10 Numbered N.B. Hints from Sheet 1 */}
-        <NbHintRail />
-      </div>
+        {/* 4. Form Actions: Cancel + Submit */}
+        <div className="flex items-center justify-between pt-4 border-t border-border mt-6">
+          <button
+            type="button"
+            onClick={() => navigate('/cheque-setup')}
+            className="px-4 py-2 rounded-lg border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="inline-flex items-center gap-1.5 px-6 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-sm shadow-primary/20 transition-all disabled:opacity-50 cursor-pointer active:scale-95"
+          >
+            {submitting ? (
+              <>
+                <Loader2 className="size-3.5 animate-spin" />
+                <span>Saving Book...</span>
+              </>
+            ) : (
+              <>
+                <Save className="size-3.5" />
+                <span>Submit Cheque Book</span>
+              </>
+            )}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

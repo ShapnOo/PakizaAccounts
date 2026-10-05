@@ -13,6 +13,10 @@ function getStoredEntries(): SubledgerEntry[] {
   }
   try {
     const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length < MOCK_SUBLEDGER.length) {
+      localStorage.setItem(LS_KEY, JSON.stringify(MOCK_SUBLEDGER));
+      return MOCK_SUBLEDGER;
+    }
     // Ensure all items conform to SubledgerEntry
     return parsed.map((item: any) => ({
       ...item,

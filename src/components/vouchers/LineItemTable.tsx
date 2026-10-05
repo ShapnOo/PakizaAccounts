@@ -93,14 +93,6 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
 
   return (
     <div className="space-y-3">
-      {/* Contra N.B. notice */}
-      {config.allowOnlyCashBankLines && (
-        <div className="flex items-center gap-1.5 p-2 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs font-semibold border border-amber-500/20">
-          <Info className="size-3.5 shrink-0" />
-          <span>N.B. Only bank and cash account will show as accounts head</span>
-        </div>
-      )}
-
       {/* Responsive Scrollable Table */}
       <div className="border border-border/80 rounded-xl overflow-hidden shadow-2xs bg-card">
         <div className="overflow-x-auto sidebar-scroll">

@@ -13,7 +13,6 @@ import { BankAliasDisplay } from '../../components/banks/BankAliasDisplay';
 import { SwiftBicInput } from '../../components/banks/SwiftBicInput';
 import { AccountsInfoSection } from '../../components/banks/AccountsInfoSection';
 import { FormFooter } from '../../components/banks/FormFooter';
-import { NbHint, NbHintRail } from '../../components/banks/NbHintRail';
 import { DeleteConfirmDialog } from '../../components/banks/DeleteConfirmDialog';
 import { TableSkeleton } from '../../components/banks/TableSkeleton';
 
@@ -220,12 +219,6 @@ export const BranchForm: React.FC = () => {
                     />
                   )}
                 />
-
-                <NbHint
-                  number={1}
-                  text="Bank name should come from Bank modal"
-                  className="mt-1 xl:hidden"
-                />
               </div>
 
               {/* Row 2: Bank Alias (Read-Only) */}
@@ -309,12 +302,6 @@ export const BranchForm: React.FC = () => {
                 onAddAccount={handleAddAccount}
                 onRemoveAccount={handleRemoveAccount}
               />
-
-              <NbHint
-                number={2}
-                text="Accounts Info. Should come from Chart of Accounts"
-                className="mt-2 xl:hidden"
-              />
             </div>
 
             {/* Footer */}
@@ -339,9 +326,6 @@ export const BranchForm: React.FC = () => {
             </div>
           )}
         </div>
-
-        {/* Right Rail N.B. Hints for large screens */}
-        <NbHintRail />
       </div>
 
       {/* Delete Confirmation Dialog */}

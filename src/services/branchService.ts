@@ -12,7 +12,12 @@ export async function listBranches(): Promise<Branch[]> {
     return MOCK_BRANCHES;
   }
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length < MOCK_BRANCHES.length) {
+      localStorage.setItem(LS_BRANCHES_KEY, JSON.stringify(MOCK_BRANCHES));
+      return MOCK_BRANCHES;
+    }
+    return parsed;
   } catch (e) {
     return MOCK_BRANCHES;
   }

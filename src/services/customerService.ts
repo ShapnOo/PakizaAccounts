@@ -13,7 +13,12 @@ export async function listCustomers(): Promise<Customer[]> {
     return MOCK_CUSTOMERS;
   }
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length < MOCK_CUSTOMERS.length) {
+      localStorage.setItem(LS_CUSTOMERS_KEY, JSON.stringify(MOCK_CUSTOMERS));
+      return MOCK_CUSTOMERS;
+    }
+    return parsed;
   } catch (e) {
     return MOCK_CUSTOMERS;
   }
