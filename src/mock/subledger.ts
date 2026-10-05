@@ -1,0 +1,108 @@
+import { SubledgerEntry } from '../types/subledger';
+
+export const MOCK_SUBLEDGER: SubledgerEntry[] = [
+  // ── 1. Cost Centers ──
+  {
+    id: 'cc-1',
+    type: 'cost-center',
+    name: 'Head Office (Dhaka)',
+    effectiveCompanyIds: ['PSL', 'PKCL'],
+    activeStatus: 'Active',
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: 'cc-2',
+    type: 'cost-center',
+    name: 'Factory Unit-1 (Dhamrai)',
+    effectiveCompanyIds: ['PKCL'],
+    activeStatus: 'Active',
+    createdAt: '2026-09-02T00:00:00Z',
+    updatedAt: '2026-09-02T00:00:00Z',
+  },
+  {
+    id: 'cc-3',
+    type: 'cost-center',
+    name: 'Spinning Mill Division',
+    effectiveCompanyIds: ['PCL', 'PKCL'],
+    activeStatus: 'Active',
+    createdAt: '2026-09-03T00:00:00Z',
+    updatedAt: '2026-09-03T00:00:00Z',
+  },
+  {
+    id: 'cc-4',
+    type: 'cost-center',
+    name: 'Sales Office - Gulshan',
+    effectiveCompanyIds: ['PSL'],
+    activeStatus: 'Inactive',
+    createdAt: '2026-09-04T00:00:00Z',
+    updatedAt: '2026-09-04T00:00:00Z',
+  },
+
+  // ── 2. Reference Centers ──
+  {
+    id: 'rc-1',
+    type: 'reference-center',
+    name: 'REF-2026-EXP-A',
+    effectiveCompanyIds: ['PSL', 'PKCL'],
+    activeStatus: 'Active',
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: 'rc-2',
+    type: 'reference-center',
+    name: 'REF-2026-LOCAL-B',
+    effectiveCompanyIds: ['PKCL'],
+    activeStatus: 'Active',
+    createdAt: '2026-09-02T00:00:00Z',
+    updatedAt: '2026-09-02T00:00:00Z',
+  },
+  {
+    id: 'rc-3',
+    type: 'reference-center',
+    name: 'PROJECT-DIGITAL-CORE',
+    effectiveCompanyIds: ['PSL'],
+    activeStatus: 'Active',
+    createdAt: '2026-09-03T00:00:00Z',
+    updatedAt: '2026-09-03T00:00:00Z',
+  },
+
+  // ── 3. Vehicles ──
+  {
+    id: 'v-1',
+    type: 'vehicle',
+    name: 'Truck-01 (Dhaka Metro-GA-11-2041)',
+    effectiveCompanyIds: ['PSL', 'PKCL'],
+    activeStatus: 'Active',
+    createdAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: 'v-2',
+    type: 'vehicle',
+    name: 'Pickup-02 (Chattogram-CHA-53-9012)',
+    effectiveCompanyIds: ['PKCL'],
+    activeStatus: 'Active',
+    createdAt: '2026-09-02T00:00:00Z',
+    updatedAt: '2026-09-02T00:00:00Z',
+  },
+  {
+    id: 'v-3',
+    type: 'vehicle',
+    name: 'Staff Minibus (Dhaka Metro-BA-14-8832)',
+    effectiveCompanyIds: ['PSL'],
+    activeStatus: 'Active',
+    createdAt: '2026-09-03T00:00:00Z',
+    updatedAt: '2026-09-03T00:00:00Z',
+  },
+  {
+    id: 'v-4',
+    type: 'vehicle',
+    name: 'Director Sedan (Dhaka Metro-GHA-22-1099)',
+    effectiveCompanyIds: ['PSL'],
+    activeStatus: 'Inactive',
+    createdAt: '2026-09-04T00:00:00Z',
+    updatedAt: '2026-09-04T00:00:00Z',
+  },
+];

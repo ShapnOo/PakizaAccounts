@@ -10,7 +10,12 @@ import { VoucherProvider } from "./context/VoucherContext";
 import { VoucherListPage } from "./pages/vouchers/List";
 import { VoucherSetupPage } from "./pages/vouchers/Setup";
 import { VoucherEntryPage } from "./pages/vouchers/Entry";
-import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt } from "lucide-react";
+import { OpeningBalanceEntryPage } from "./pages/opening-balance/Entry";
+import { ExchangeRateListPage } from "./pages/currency/ExchangeRateList";
+import { CurrencySetupFormPage } from "./pages/currency/CurrencySetupForm";
+import { SubledgerListPage } from "./pages/subledger/SubledgerList";
+import { SubledgerFormPage } from "./pages/subledger/SubledgerForm";
+import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers } from "lucide-react";
 import { Toaster } from "sonner";
 
 function ContentArea() {
@@ -69,12 +74,20 @@ function ContentArea() {
               <Receipt className="size-3.5 text-indigo-600" />
               <span>Voucher Setup & Entry</span>
             </Link>
+
+            <Link
+              to="/subledger"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-indigo-200 bg-white text-slate-800 text-xs font-bold shadow-sm hover:bg-slate-50 transition-all cursor-pointer"
+            >
+              <Layers className="size-3.5 text-indigo-600" />
+              <span>Subledger Management</span>
+            </Link>
           </div>
 
           <div className="text-[12px] text-muted-foreground/80 flex items-center justify-center gap-2">
-            <span>Enterprise Multi-Type Voucher Engine</span>
+            <span>Enterprise Multi-Type Subledger & Dimensions</span>
             <ArrowRight className="size-3.5" />
-            <span className="font-semibold text-foreground">JV • PV • RV • CV</span>
+            <span className="font-semibold text-foreground">Cost Center • Reference Center • Vehicles</span>
           </div>
         </div>
       </div>
@@ -118,6 +131,23 @@ export default function App() {
                   <Route path="/vouchers/entry/receive" element={<VoucherEntryPage forcedType="Receive Voucher" />} />
                   <Route path="/vouchers/entry/contra" element={<VoucherEntryPage forcedType="Contra Voucher" />} />
                   <Route path="/vouchers/entry/:type" element={<VoucherEntryPage />} />
+
+                  {/* Opening Balance Routes */}
+                  <Route path="/opening-balance" element={<OpeningBalanceEntryPage />} />
+                  <Route path="/accounts-config/opening-balance" element={<OpeningBalanceEntryPage />} />
+
+                  {/* Currency Setup Routes */}
+                  <Route path="/currency-setup" element={<ExchangeRateListPage />} />
+                  <Route path="/currency-setup/rates" element={<ExchangeRateListPage />} />
+                  <Route path="/accounts-config/currency-setup" element={<Navigate to="/currency-setup" replace />} />
+                  <Route path="/currency-setup/new" element={<CurrencySetupFormPage />} />
+                  <Route path="/currency-setup/:id/edit" element={<CurrencySetupFormPage />} />
+
+                  {/* Subledger Routes */}
+                  <Route path="/subledger" element={<SubledgerListPage />} />
+                  <Route path="/accounts-config/subledger" element={<Navigate to="/subledger" replace />} />
+                  <Route path="/subledger/new" element={<SubledgerFormPage />} />
+                  <Route path="/subledger/:id/edit" element={<SubledgerFormPage />} />
 
                   <Route path="*" element={<ContentArea />} />
                 </Routes>

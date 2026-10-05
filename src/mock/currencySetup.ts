@@ -1,0 +1,48 @@
+import { CurrencySetup } from '../types/currency';
+
+export const MOCK_CURRENCY_SETUPS: CurrencySetup[] = [
+  {
+    id: 'c1',
+    code: 'BDT',
+    country: 'Bangladesh',
+    displayCode: 'BDT-Bangladesh',
+    name: 'BDT',
+    symbol: '৳',
+    decimalPlace: 2,
+    subunit: 'Poisa',
+    commaFormat: '12,34,56,789',
+  },
+  {
+    id: 'c2',
+    code: 'USD',
+    country: 'United States',
+    displayCode: 'USD-United States',
+    name: 'USD',
+    symbol: '$',
+    decimalPlace: 2,
+    subunit: 'Cent',
+    commaFormat: '1,234,567,890',
+  },
+  {
+    id: 'c3',
+    code: 'GBP',
+    country: 'United Kingdom',
+    displayCode: 'GBP-United Kingdom',
+    name: 'GBP',
+    symbol: '£',
+    decimalPlace: 2,
+    subunit: 'Penny',
+    commaFormat: '1,234,567,890',
+  },
+  {
+    id: 'c4',
+    code: 'EUR',
+    country: 'Eurozone',
+    displayCode: 'EUR-Eurozone',
+    name: 'EUR',
+    symbol: '€',
+    decimalPlace: 2,
+    subunit: 'Cent',
+    commaFormat: '1.234.567.890',
+  },
+];
