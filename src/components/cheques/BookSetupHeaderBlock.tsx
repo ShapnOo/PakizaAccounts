@@ -47,7 +47,7 @@ export const BookSetupHeaderBlock: React.FC<BookSetupHeaderBlockProps> = ({
   };
 
   return (
-    <div className="bg-slate-50/60 dark:bg-slate-900/30 rounded-xl border border-border p-4.5 space-y-4">
+    <div className="bg-card rounded-xl border border-border shadow-2xs p-4.5 space-y-4">
       <div className="flex items-center justify-between pb-2 border-b border-border/70">
         <div className="flex items-center gap-2">
           <div className="size-7 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">

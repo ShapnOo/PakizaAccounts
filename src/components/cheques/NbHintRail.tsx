@@ -34,7 +34,7 @@ export const NbHintRail: React.FC = () => {
 
   return (
     <aside className="w-full xl:w-72 shrink-0">
-      <div className="bg-slate-50 dark:bg-slate-900/50 border border-border/80 rounded-xl p-4 shadow-2xs space-y-3 sticky top-24">
+      <div className="bg-card border border-border rounded-xl p-4 shadow-2xs space-y-3 sticky top-24">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
             <Info className="size-3.5 text-indigo-500" />

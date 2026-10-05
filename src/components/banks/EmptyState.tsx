@@ -15,7 +15,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   onAction,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center p-12 text-center rounded-xl border border-dashed border-border bg-slate-50/40 dark:bg-slate-900/10">
+    <div className="flex flex-col items-center justify-center p-12 text-center rounded-xl border border-dashed border-border bg-card">
       <div className="size-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-muted-foreground mb-3">
         <Building2 className="size-6 text-muted-foreground/80" />
       </div>

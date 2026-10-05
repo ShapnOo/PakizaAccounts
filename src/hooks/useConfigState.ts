@@ -4,16 +4,15 @@ import { toast } from 'sonner';
 
 export const DEFAULT_CONFIG: Config = {
   costCenter: {
-    effectiveCompany: 'Pakiza Software Ltd.',
     mandatory: true,
-    effectivePart: 'Balance sheet',
-    partEffectiveCompany: 'Pakiza Software Ltd.',
+    effectivePart: ['Balance sheet'],
+    partEffectiveCompany: ['Pakiza Software Ltd.'],
   },
   voucherControlling: {
     enabled: true,
     maxDueDays: 5,
     effectivePart: { voucherType: 'Voucher Type', user: 'All' },
-    effectiveCompany: 'Pakiza Software Ltd.',
+    effectiveCompany: ['Pakiza Software Ltd.'],
   },
   monthLock: {
     fiscalYear: '2025-2026',
@@ -31,17 +30,16 @@ export const DEFAULT_CONFIG: Config = {
       May: false,
       Jun: false,
     },
-    effectiveCompany: 'Pakiza Software Ltd.',
+    effectiveCompany: ['Pakiza Software Ltd.'],
   },
   voucher: {
     dateFormat: 'DD/MM/YYYY',
-    idRenewal: true,
-    fiscalYearly: true,
+    idRenewal: 'Fiscal Yearly',
   },
   accountsCode: {
     mergeView: true,
-    pathVisible: true,
-    effectiveCompany: 'Pakiza Software Ltd.',
+    pathVisible: 'Before accounts',
+    effectiveCompany: ['Pakiza Software Ltd.'],
   },
   accountsIdentifications: {
     accountsPayable: '2011',
@@ -53,10 +51,60 @@ export const DEFAULT_CONFIG: Config = {
     defaultVoucherType: 'Bank Payment Voucher',
     defaultAccount: '1012',
   },
-  globalEffectiveCompany: 'Pakiza Software Ltd.',
+  globalEffectiveCompany: ['Pakiza Software Ltd.'],
 };
 
+export const COMPANY_LIST = [
+  'Pakiza Software Ltd.',
+  'Pakiza Knit Composite Ltd.',
+  'Pakiza Apparels Ltd.',
+];
+
 const STORAGE_KEY = 'pakiza_fa_master_config_v1';
+
+/** Converts legacy single-string values into arrays; "All" expands to every option. */
+function toArray(v: unknown, all: string[] = COMPANY_LIST): string[] {
+  if (Array.isArray(v)) return v;
+  if (typeof v !== 'string' || !v) return [];
+  return v === 'All' ? [...all] : [v];
+}
+
+function normalizeConfig(parsed: any): Config {
+  const merged: any = {
+    ...DEFAULT_CONFIG,
+    ...parsed,
+    costCenter: { ...DEFAULT_CONFIG.costCenter, ...parsed?.costCenter },
+    voucherControlling: { ...DEFAULT_CONFIG.voucherControlling, ...parsed?.voucherControlling },
+    monthLock: { ...DEFAULT_CONFIG.monthLock, ...parsed?.monthLock },
+    voucher: { ...DEFAULT_CONFIG.voucher, ...parsed?.voucher },
+    accountsCode: { ...DEFAULT_CONFIG.accountsCode, ...parsed?.accountsCode },
+  };
+
+  // Normalize idRenewal if boolean
+  if (typeof merged.voucher.idRenewal === 'boolean') {
+    merged.voucher.idRenewal = merged.voucher.idRenewal ? 'Fiscal Yearly' : 'Continuous';
+  }
+  delete merged.voucher.fiscalYearly;
+  delete merged.costCenter.effectiveCompany;
+
+  // Normalize pathVisible if boolean
+  if (typeof merged.accountsCode.pathVisible === 'boolean') {
+    merged.accountsCode.pathVisible = merged.accountsCode.pathVisible ? 'Before accounts' : 'Hide';
+  }
+
+  // Multi-select migrations
+  merged.costCenter.effectivePart = toArray(merged.costCenter.effectivePart, [
+    'Balance sheet',
+    'Income Statement',
+  ]);
+  merged.costCenter.partEffectiveCompany = toArray(merged.costCenter.partEffectiveCompany);
+  merged.voucherControlling.effectiveCompany = toArray(merged.voucherControlling.effectiveCompany);
+  merged.monthLock.effectiveCompany = toArray(merged.monthLock.effectiveCompany);
+  merged.accountsCode.effectiveCompany = toArray(merged.accountsCode.effectiveCompany);
+  merged.globalEffectiveCompany = toArray(merged.globalEffectiveCompany);
+
+  return merged as Config;
+}
 
 export function useConfigState() {
   const [config, setConfig] = useState<Config>(() => {
@@ -64,7 +112,7 @@ export function useConfigState() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         try {
-          return { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
+          return normalizeConfig(JSON.parse(saved));
         } catch (e) {
           console.error('Failed to parse saved config', e);
         }
@@ -81,7 +129,7 @@ export function useConfigState() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         try {
-          const parsed = JSON.parse(saved);
+          const parsed = normalizeConfig(JSON.parse(saved));
           setSavedConfig(parsed);
         } catch (e) {}
       }
@@ -102,8 +150,8 @@ export function useConfigState() {
     []
   );
 
-  const updateGlobalEffectiveCompany = useCallback((company: string) => {
-    setConfig((prev) => ({ ...prev, globalEffectiveCompany: company }));
+  const updateGlobalEffectiveCompany = useCallback((companies: string[]) => {
+    setConfig((prev) => ({ ...prev, globalEffectiveCompany: companies }));
   }, []);
 
   // Check if a section is dirty

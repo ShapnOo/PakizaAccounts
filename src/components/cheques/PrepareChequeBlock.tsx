@@ -43,7 +43,7 @@ export const PrepareChequeBlock: React.FC<PrepareChequeBlockProps> = ({
 
   // Flat list of leaf accounts from COA
   const selectableGlAccounts = INITIAL_ACCOUNTS.filter(
-    (a) => a.type === 'ledger' || !a.children || a.children.length === 0
+    (a) => !a.isParent || !a.children || a.children.length === 0
   );
 
   return (

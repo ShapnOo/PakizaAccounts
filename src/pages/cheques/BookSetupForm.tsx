@@ -265,7 +265,7 @@ export const BookSetupFormPage: React.FC = () => {
               />
             </div>
           ) : (
-            <div className="border border-dashed border-border rounded-xl p-8 text-center bg-slate-50/40 dark:bg-slate-900/20">
+            <div className="border border-dashed border-border rounded-xl p-8 text-center bg-card">
               <p className="text-xs font-semibold text-foreground">
                 No Cheque Details Generated Yet
               </p>

@@ -1,30 +1,32 @@
+export type IdRenewalOption = 'Fiscal Yearly' | 'Calendar Yearly' | 'Monthly' | 'Continuous';
+export type AccountsPathVisibleOption = 'Hide' | 'Before accounts' | 'After accounts';
+
 export type Config = {
   costCenter: {
-    effectiveCompany: string;
     mandatory: boolean;
-    effectivePart: 'Balance sheet' | 'Income Statement';
-    partEffectiveCompany: string;
+    effectivePart: string[]; // multi: 'Balance sheet' | 'Income Statement'
+    partEffectiveCompany: string[];
   };
   voucherControlling: {
     enabled: boolean;
     maxDueDays: number;
     effectivePart: { voucherType: string; user: string };
-    effectiveCompany: string;
+    effectiveCompany: string[];
   };
   monthLock: {
     fiscalYear: string;
     months: Record<string, boolean>; // 12 keys
-    effectiveCompany: string;
+    effectiveCompany: string[];
   };
   voucher: {
     dateFormat: string; // "DD/MM/YYYY"
-    idRenewal: boolean;
-    fiscalYearly: boolean;
+    idRenewal: IdRenewalOption | string;
+    fiscalYearly?: boolean;
   };
   accountsCode: {
     mergeView: boolean;
-    pathVisible: boolean;
-    effectiveCompany: string;
+    pathVisible: AccountsPathVisibleOption | string;
+    effectiveCompany: string[];
   };
   accountsIdentifications: {
     accountsPayable: string | null;
@@ -36,7 +38,7 @@ export type Config = {
     defaultVoucherType: string; // "Bank Payment Voucher"
     defaultAccount: string | null;
   };
-  globalEffectiveCompany: string;
+  globalEffectiveCompany: string[];
 };
 
 export type ConfigSectionKey =

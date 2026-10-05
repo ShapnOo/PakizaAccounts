@@ -42,7 +42,7 @@ export const AccountsInfoSection: React.FC<AccountsInfoSectionProps> = ({
 
       {/* Table or Empty State */}
       {accounts.length === 0 ? (
-        <div className="border border-dashed border-border rounded-xl p-8 text-center flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-900/20">
+        <div className="border border-dashed border-border rounded-xl p-8 text-center flex flex-col items-center justify-center bg-card">
           <div className="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-muted-foreground mb-2">
             <Landmark className="size-5" />
           </div>

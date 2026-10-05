@@ -35,6 +35,19 @@ const EFFECTIVE_PART_OPTIONS = ['Balance sheet', 'Income Statement'];
 
 const VOUCHER_TYPE_OPTIONS = ['Voucher Type', 'User', 'All'];
 
+const ID_RENEWAL_OPTIONS = [
+  'Fiscal Yearly',
+  'Calendar Yearly',
+  'Monthly',
+  'Continuous',
+];
+
+const ACCOUNTS_PATH_OPTIONS = [
+  'Hide',
+  'Before accounts',
+  'After accounts',
+] as const;
+
 export const MasterConfigPage: React.FC = () => {
   const {
     config,
@@ -92,14 +105,6 @@ export const MasterConfigPage: React.FC = () => {
         onApply={() => saveSection('costCenter', 'Cost Center')}
         isDirty={isSectionDirty('costCenter')}
       >
-        <ConfigRow label="Effective Company">
-          <Dropdown
-            value={config.costCenter.effectiveCompany}
-            onChange={(val) => updateSection('costCenter', { effectiveCompany: val })}
-            options={COMPANY_OPTIONS}
-          />
-        </ConfigRow>
-
         <ConfigRow
           label="Cost Center"
           hint="This part will visible when it's mandatory"
@@ -245,41 +250,29 @@ export const MasterConfigPage: React.FC = () => {
         </ConfigRow>
       </SectionCard>
 
-      {/* ── 3.4 VOUCHER ── */}
+      {/* ── 3.4 VOUCHER & ACCOUNTS CODE (merged) ── */}
       <SectionCard
         sectionNo="3.4"
-        title="Voucher"
+        title="Voucher & Accounts Code"
         icon={FileText}
-        onApply={() => saveSection('voucher', 'Voucher Settings')}
-        isDirty={isSectionDirty('voucher')}
+        onApply={() => {
+          saveSection('voucher', 'Voucher Settings');
+          saveSection('accountsCode', 'Accounts Code');
+        }}
+        isDirty={isSectionDirty('voucher') || isSectionDirty('accountsCode')}
       >
         <ConfigRow label="Voucher Date Format" hint="Standard system date pattern">
           <DateFmtInput value={config.voucher.dateFormat} />
         </ConfigRow>
 
-        <ConfigRow label="ID Renewal" hint="Resets voucher sequence annually">
-          <ToggleYesNo
-            value={config.voucher.idRenewal}
+        <ConfigRow label="ID Renewal" hint="When voucher sequence resets">
+          <Dropdown
+            value={String(config.voucher.idRenewal)}
             onChange={(val) => updateSection('voucher', { idRenewal: val })}
+            options={ID_RENEWAL_OPTIONS}
           />
         </ConfigRow>
 
-        <ConfigRow label="Fiscal Yearly" hint="Enforces fiscal calendar prefixes">
-          <ToggleYesNo
-            value={config.voucher.fiscalYearly}
-            onChange={(val) => updateSection('voucher', { fiscalYearly: val })}
-          />
-        </ConfigRow>
-      </SectionCard>
-
-      {/* ── 3.5 ACCOUNTS CODE ── */}
-      <SectionCard
-        sectionNo="3.5"
-        title="Accounts Code"
-        icon={GitMerge}
-        onApply={() => saveSection('accountsCode', 'Accounts Code')}
-        isDirty={isSectionDirty('accountsCode')}
-      >
         <ConfigRow
           label="Subsidiary & Accounts Merge View"
           hint="Consolidates subledger codes into primary chart tree"
@@ -290,34 +283,26 @@ export const MasterConfigPage: React.FC = () => {
           />
         </ConfigRow>
 
-        {/* CONDITIONAL (mergeView === true) */}
-        <div
-          className={`transition-all duration-300 overflow-hidden ${
-            config.accountsCode.mergeView ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-          }`}
-        >
-          <div className="pl-4 md:pl-6 my-1 border-l-2 border-primary/50 bg-muted/20 rounded-r-lg space-y-0.5 py-1">
-            <ConfigRow label="Accounts Path Visible">
-              <ToggleYesNo
-                value={config.accountsCode.pathVisible}
-                onChange={(val) => updateSection('accountsCode', { pathVisible: val })}
-              />
-            </ConfigRow>
+        <ConfigRow label="Accounts Path Visible" hint="Where the account path is shown">
+          <Dropdown
+            value={String(config.accountsCode.pathVisible)}
+            onChange={(val) => updateSection('accountsCode', { pathVisible: val })}
+            options={[...ACCOUNTS_PATH_OPTIONS]}
+          />
+        </ConfigRow>
 
-            <ConfigRow label="Effective Company">
-              <Dropdown
-                value={config.accountsCode.effectiveCompany}
-                onChange={(val) => updateSection('accountsCode', { effectiveCompany: val })}
-                options={['All', 'Pakiza Software Ltd.']}
-              />
-            </ConfigRow>
-          </div>
-        </div>
+        <ConfigRow label="Effective Company">
+          <Dropdown
+            value={config.accountsCode.effectiveCompany}
+            onChange={(val) => updateSection('accountsCode', { effectiveCompany: val })}
+            options={COMPANY_OPTIONS}
+          />
+        </ConfigRow>
       </SectionCard>
 
       {/* ── 3.6 ACCOUNTS IDENTIFICATIONS ── */}
       <SectionCard
-        sectionNo="3.6"
+        sectionNo="3.5"
         title="Accounts Identifications"
         icon={Landmark}
         onApply={() => saveSection('accountsIdentifications', 'Accounts Identifications')}
@@ -380,7 +365,7 @@ export const MasterConfigPage: React.FC = () => {
 
       {/* ── 3.7 BANK & CHEQUE ── */}
       <SectionCard
-        sectionNo="3.7"
+        sectionNo="3.6"
         title="Bank & Cheque"
         icon={Wallet}
         onApply={() => saveSection('bankCheque', 'Bank & Cheque')}

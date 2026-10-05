@@ -19,7 +19,7 @@ export const BuildJournalBlock: React.FC<BuildJournalBlockProps> = ({
   onNarrationChange,
 }) => {
   return (
-    <div className="bg-slate-50/60 dark:bg-slate-900/30 rounded-xl border border-border p-5 space-y-4">
+    <div className="bg-card rounded-xl border border-border shadow-2xs p-5 space-y-4">
       <div className="flex items-center gap-2 pb-2 border-b border-border/80">
         <div className="size-7 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
           <BookOpen className="size-4" />
