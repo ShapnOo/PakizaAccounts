@@ -17,6 +17,7 @@ import {
   ChevronRight,
   SlidersHorizontal,
   ArrowRight,
+  Printer,
 } from 'lucide-react';
 
 export const VoucherListPage: React.FC = () => {
@@ -89,6 +90,14 @@ export const VoucherListPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <Link
+              to="/accounts-report/journal"
+              className="inline-flex items-center gap-1.5 h-8.5 px-3 rounded-lg border border-border bg-card hover:bg-muted text-xs font-semibold text-foreground transition-all cursor-pointer shadow-2xs"
+            >
+              <Printer className="size-3.5 text-indigo-600" />
+              <span>Print Templates</span>
+            </Link>
+
             <Link
               to="/vouchers/new"
               className="inline-flex items-center gap-1.5 h-8.5 px-3.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-bold shadow-sm shadow-primary/20 transition-all cursor-pointer whitespace-nowrap active:scale-95"
@@ -334,6 +343,19 @@ export const VoucherListPage: React.FC = () => {
                               >
                                 <Edit2 className="size-3.5 text-primary" />
                                 <span>Edit Setup</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveMenuId(null);
+                                  const typeSlug = v.voucherType.replace(' Voucher', '');
+                                  navigate(`/accounts-report/journal?type=${typeSlug}`);
+                                }}
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
+                              >
+                                <Printer className="size-3.5 text-indigo-600" />
+                                <span>Print Template</span>
                               </button>
 
                               <button

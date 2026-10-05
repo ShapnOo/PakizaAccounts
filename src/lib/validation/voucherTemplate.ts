@@ -28,6 +28,10 @@ export const voucherTemplateSchema = z
       companyNameSize: z.number().min(8).max(72),
       addressSize: z.number().min(6).max(48),
       align: z.enum(['Left', 'Center', 'Right']),
+      showLogo: z.boolean().optional(),
+      logoUrl: z.string().optional(),
+      logoWidth: z.number().min(20).max(300).optional(),
+      logoPosition: z.enum(['left', 'center', 'right']).optional(),
     }),
     footer: z.object({
       text: z.string().optional(),
@@ -37,6 +41,7 @@ export const voucherTemplateSchema = z
     }),
     table: z.object({
       columns: z.record(
+        z.string(),
         z.object({
           visible: z.boolean(),
           label: z.string().min(1).max(40),
@@ -52,7 +57,7 @@ export const voucherTemplateSchema = z
   .refine(
     (data) => {
       const visibleCols = Object.values(data.table.columns).filter(
-        (c) => c.visible
+        (c: any) => c && c.visible
       );
       return visibleCols.length >= 4;
     },

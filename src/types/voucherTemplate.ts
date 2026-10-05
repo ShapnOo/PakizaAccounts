@@ -70,6 +70,10 @@ export interface VoucherTemplate {
     companyNameSize: number;
     addressSize: number;
     align: Align;
+    showLogo?: boolean;
+    logoUrl?: string;
+    logoWidth?: number;
+    logoPosition?: 'left' | 'center' | 'right';
   };
   footer: {
     text?: string;

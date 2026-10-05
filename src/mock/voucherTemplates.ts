@@ -48,7 +48,15 @@ export const MOCK_TEMPLATES: VoucherTemplate[] = [
       background: '',
       backgroundColor: '#ffffff',
     },
-    header: { companyNameSize: 24, addressSize: 16, align: 'Center' },
+    header: {
+      companyNameSize: 24,
+      addressSize: 16,
+      align: 'Center',
+      showLogo: true,
+      logoUrl: '/company_logo.png',
+      logoWidth: 70,
+      logoPosition: 'left',
+    },
     footer: {
       text: '',
       showPrintDateTime: true,
@@ -78,7 +86,15 @@ export const MOCK_TEMPLATES: VoucherTemplate[] = [
       background: '',
       backgroundColor: '#ffffff',
     },
-    header: { companyNameSize: 24, addressSize: 16, align: 'Center' },
+    header: {
+      companyNameSize: 24,
+      addressSize: 16,
+      align: 'Center',
+      showLogo: true,
+      logoUrl: '/company_logo.png',
+      logoWidth: 70,
+      logoPosition: 'left',
+    },
     footer: {
       text: '',
       showPrintDateTime: true,
@@ -112,7 +128,15 @@ export const MOCK_TEMPLATES: VoucherTemplate[] = [
       background: '',
       backgroundColor: '#ffffff',
     },
-    header: { companyNameSize: 24, addressSize: 16, align: 'Center' },
+    header: {
+      companyNameSize: 24,
+      addressSize: 16,
+      align: 'Center',
+      showLogo: true,
+      logoUrl: '/company_logo.png',
+      logoWidth: 70,
+      logoPosition: 'left',
+    },
     footer: {
       text: '',
       showPrintDateTime: true,
@@ -146,7 +170,15 @@ export const MOCK_TEMPLATES: VoucherTemplate[] = [
       background: '',
       backgroundColor: '#ffffff',
     },
-    header: { companyNameSize: 24, addressSize: 16, align: 'Center' },
+    header: {
+      companyNameSize: 24,
+      addressSize: 16,
+      align: 'Center',
+      showLogo: true,
+      logoUrl: '/company_logo.png',
+      logoWidth: 70,
+      logoPosition: 'left',
+    },
     footer: {
       text: '',
       showPrintDateTime: true,
@@ -168,6 +200,7 @@ export const MOCK_COMPANY = {
   addressLine1: 'ABC Khan Trade Palace',
   addressLine2: 'Dhaka Banagladesh', // typo preserved from source sheet
   website: 'www.Pakizasoftware.com',
+  logoUrl: '/company_logo.png',
 };
 
 export const MOCK_PREVIEW_LINES = [

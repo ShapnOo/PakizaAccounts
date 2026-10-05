@@ -74,6 +74,7 @@ export const nav: NavItem[] = [
           { label: "Subledger", to: "/accounts-config/subledger" },
           { label: "Voucher Approval Setup", to: "/accounts-config/voucher-approval-setup" },
           { label: "Custom Field", to: "/accounts-config/custom-field" },
+          { label: "Customer Master Setup", to: "/customers" },
         ],
       },
       {

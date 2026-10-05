@@ -1,5 +1,5 @@
-import React from 'react';
-import { Type } from 'lucide-react';
+import React, { useState } from 'react';
+import { Type, ChevronDown } from 'lucide-react';
 import {
   FONT_FAMILIES,
   PDF_FONTS,
@@ -15,6 +15,7 @@ interface FontSectionProps {
   size: number;
   background?: string;
   backgroundColor?: string;
+  defaultCollapsed?: boolean;
   onChange: (patch: {
     family?: string;
     theme?: string;
@@ -34,18 +35,39 @@ export const FontSection: React.FC<FontSectionProps> = ({
   size,
   background = '',
   backgroundColor = '#ffffff',
+  defaultCollapsed = false,
   onChange,
 }) => {
-  return (
-    <div className="space-y-3 p-3.5 bg-card rounded-xl border border-border/80 shadow-2xs">
-      <div className="flex items-center gap-2 pb-1 border-b border-border/60">
-        <Type className="size-3.5 text-indigo-600" />
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-          Typography & Styling
-        </h3>
-      </div>
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
-      <div className="space-y-3">
+  return (
+    <div className="bg-card rounded-xl border border-border/80 shadow-2xs overflow-hidden transition-all duration-200">
+      <button
+        type="button"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="w-full flex items-center justify-between p-3.5 hover:bg-muted/40 transition-colors text-left cursor-pointer group"
+        aria-expanded={!isCollapsed}
+      >
+        <div className="flex items-center gap-2">
+          <Type className="size-3.5 text-indigo-600 transition-transform group-hover:scale-110" />
+          <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+            Typography & Styling
+          </h3>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-semibold text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-md">
+            {family} • {size}px
+          </span>
+          <ChevronDown
+            className={`size-3.5 text-muted-foreground transition-transform duration-200 ${
+              isCollapsed ? '-rotate-90' : 'rotate-0'
+            }`}
+          />
+        </div>
+      </button>
+
+      {!isCollapsed && (
+        <div className="p-3.5 pt-1 border-t border-border/40 space-y-3">
         {/* Font Family & Color Theme */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <div className="space-y-1">
@@ -153,6 +175,7 @@ export const FontSection: React.FC<FontSectionProps> = ({
           />
         </div>
       </div>
-    </div>
+    )}
+  </div>
   );
 };

@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PaperSize, Orientation, PAPER_SIZES_MM } from '../../types/voucherTemplate';
 import { OrientationToggle } from './OrientationToggle';
-import { FileText } from 'lucide-react';
+import { FileText, ChevronDown } from 'lucide-react';
 
 interface PaperSectionProps {
   paperSize: PaperSize;
   orientation: Orientation;
   customWidthMm?: number;
   customHeightMm?: number;
+  defaultCollapsed?: boolean;
   onChange: (patch: {
     size?: PaperSize;
     orientation?: Orientation;
@@ -21,18 +22,40 @@ export const PaperSection: React.FC<PaperSectionProps> = ({
   orientation,
   customWidthMm = 210,
   customHeightMm = 297,
+  defaultCollapsed = false,
   onChange,
 }) => {
-  return (
-    <div className="space-y-3 p-3.5 bg-card rounded-xl border border-border/80 shadow-2xs">
-      <div className="flex items-center gap-2 pb-1 border-b border-border/60">
-        <FileText className="size-3.5 text-indigo-600" />
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-          Paper Setup
-        </h3>
-      </div>
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
-      <div className="space-y-3">
+  return (
+    <div className="bg-card rounded-xl border border-border/80 shadow-2xs overflow-hidden transition-all duration-200">
+      <button
+        type="button"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="w-full flex items-center justify-between p-3.5 hover:bg-muted/40 transition-colors text-left cursor-pointer group"
+        aria-expanded={!isCollapsed}
+      >
+        <div className="flex items-center gap-2">
+          <FileText className="size-3.5 text-indigo-600 transition-transform group-hover:scale-110" />
+          <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+            Paper Setup
+          </h3>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-semibold text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-md">
+            {paperSize} • {orientation}
+          </span>
+          <ChevronDown
+            className={`size-3.5 text-muted-foreground transition-transform duration-200 ${
+              isCollapsed ? '-rotate-90' : 'rotate-0'
+            }`}
+          />
+        </div>
+      </button>
+
+      {!isCollapsed && (
+        <div className="p-3.5 pt-1 border-t border-border/40 space-y-3">
         {/* Paper Size */}
         <div className="space-y-1">
           <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
@@ -89,6 +112,7 @@ export const PaperSection: React.FC<PaperSectionProps> = ({
           onChange={(newOrientation) => onChange({ orientation: newOrientation })}
         />
       </div>
-    </div>
+    )}
+  </div>
   );
 };

@@ -17,7 +17,10 @@ import { SubledgerListPage } from "./pages/subledger/SubledgerList";
 import { SubledgerFormPage } from "./pages/subledger/SubledgerForm";
 import { CustomFieldBuilderPage } from "./pages/custom-fields/Builder";
 import { CustomFieldFormPage } from "./pages/custom-fields/Form";
-import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter } from "lucide-react";
+import { VoucherTemplateDesignerPage } from "./pages/voucher-template/Designer";
+import { CustomerListPage } from "./pages/customers/List";
+import { CustomerFormPage } from "./pages/customers/Form";
+import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck } from "lucide-react";
 import { Toaster } from "sonner";
 
 function ContentArea() {
@@ -92,12 +95,28 @@ function ContentArea() {
               <ListFilter className="size-3.5 text-indigo-600" />
               <span>Custom Field Builder</span>
             </Link>
+
+            <Link
+              to="/accounts-report/journal"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-indigo-200 bg-white text-slate-800 text-xs font-bold shadow-sm hover:bg-slate-50 transition-all cursor-pointer"
+            >
+              <FileText className="size-3.5 text-indigo-600" />
+              <span>Voucher Print Template</span>
+            </Link>
+
+            <Link
+              to="/customers"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-indigo-200 bg-indigo-50/50 text-indigo-700 text-xs font-bold shadow-sm hover:bg-indigo-100/60 transition-all cursor-pointer"
+            >
+              <UserCheck className="size-3.5 text-indigo-600" />
+              <span>Customer Master Setup</span>
+            </Link>
           </div>
 
           <div className="text-[12px] text-muted-foreground/80 flex items-center justify-center gap-2">
-            <span>Dynamic Schema & Extra Columns</span>
+            <span>Dynamic Schema & Print Template Designer</span>
             <ArrowRight className="size-3.5" />
-            <span className="font-semibold text-foreground">Journal • Payment • Receive • Contra • Opening Balance</span>
+            <span className="font-semibold text-foreground">Journal • Payment • Receive • Contra</span>
           </div>
         </div>
       </div>
@@ -164,6 +183,17 @@ export default function App() {
                   <Route path="/accounts-config/custom-field" element={<Navigate to="/custom-fields" replace />} />
                   <Route path="/custom-fields/new" element={<CustomFieldFormPage />} />
                   <Route path="/custom-fields/:id/edit" element={<CustomFieldFormPage />} />
+
+                  {/* Voucher Print Template Designer Routes */}
+                  <Route path="/accounts-report/journal" element={<VoucherTemplateDesignerPage />} />
+                  <Route path="/voucher-template" element={<VoucherTemplateDesignerPage />} />
+
+                  {/* Customer Master Setup Routes */}
+                  <Route path="/customers" element={<CustomerListPage />} />
+                  <Route path="/accounts-receivable/customer-master-list" element={<Navigate to="/customers" replace />} />
+                  <Route path="/customers/new" element={<CustomerFormPage />} />
+                  <Route path="/accounts-receivable/customer-master-setup" element={<Navigate to="/customers/new" replace />} />
+                  <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
 
                   <Route path="*" element={<ContentArea />} />
                 </Routes>
