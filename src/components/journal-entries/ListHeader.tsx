@@ -13,9 +13,10 @@ import { VoucherType, VOUCHER_TYPES, VOUCHER_TYPE_CONFIG } from '../../types/jou
 
 interface ListHeaderProps {
   totalCount: number;
+  onSelectNewType?: (type: VoucherType) => void;
 }
 
-export const ListHeader: React.FC<ListHeaderProps> = ({ totalCount }) => {
+export const ListHeader: React.FC<ListHeaderProps> = ({ totalCount, onSelectNewType }) => {
   const navigate = useNavigate();
   const [popoverOpen, setPopoverOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -32,7 +33,11 @@ export const ListHeader: React.FC<ListHeaderProps> = ({ totalCount }) => {
 
   const handleSelectType = (type: VoucherType) => {
     setPopoverOpen(false);
-    navigate(`/journal-entries/new?type=${type}`);
+    if (onSelectNewType) {
+      onSelectNewType(type);
+    } else {
+      navigate(`/journal-entries/new?type=${type}`);
+    }
   };
 
   const getIcon = (type: VoucherType) => {

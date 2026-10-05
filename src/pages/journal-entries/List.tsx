@@ -13,9 +13,11 @@ import { ListView } from '../../components/journal-entries/ListView';
 import { KanbanView } from '../../components/journal-entries/KanbanView';
 import { BarChartView } from '../../components/journal-entries/BarChartView';
 import { AttachmentDrawer } from '../../components/journal-entries/AttachmentDrawer';
+import { VoucherEntryForm } from '../../components/journal-entries/VoucherEntryForm';
 
 export const JournalEntriesListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [modalVoucherType, setModalVoucherType] = React.useState<VoucherType | null>(null);
 
   const {
     entries,
@@ -145,8 +147,11 @@ export const JournalEntriesListPage: React.FC = () => {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 w-full max-w-7xl mx-auto space-y-6">
-      {/* 1. Header */}
-      <ListHeader totalCount={entries.length} />
+      {/* 1. Header with modal type trigger */}
+      <ListHeader
+        totalCount={entries.length}
+        onSelectNewType={(type) => setModalVoucherType(type)}
+      />
 
       {/* 2. Toolbar */}
       <Toolbar
@@ -209,6 +214,30 @@ export const JournalEntriesListPage: React.FC = () => {
         onUpload={uploadAttachment}
         onDelete={deleteAttachment}
       />
+
+      {/* 6. New Voucher Interactive Modal Dialog */}
+      {modalVoucherType && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setModalVoucherType(null);
+            }
+          }}
+        >
+          <div className="w-full max-w-6xl max-h-[92vh] overflow-y-auto rounded-3xl bg-background border border-border shadow-2xl p-4 sm:p-6 relative animate-in zoom-in-95 duration-200">
+            <VoucherEntryForm
+              voucherType={modalVoucherType}
+              isModal={true}
+              onClose={() => setModalVoucherType(null)}
+              onSuccess={() => {
+                setModalVoucherType(null);
+                loadEntries();
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

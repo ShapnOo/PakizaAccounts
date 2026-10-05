@@ -180,7 +180,7 @@ export const useJournalEntryStore = create<JournalEntryState>()(
       },
     }),
     {
-      name: 'journal:ui_state_v1',
+      name: 'journal:ui_state_v3',
       partialize: (state) => ({
         viewType: state.viewType,
         filterRange: state.filterRange,

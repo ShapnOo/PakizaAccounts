@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation, Link, Navigate } from "react-router-dom";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
+import { OverviewDashboardPage } from "./pages/dashboard";
 import { MasterConfigPage } from "./pages/master-config";
 import { CoaListPage } from "./pages/coa/List";
 import { CoaTreePage } from "./pages/coa/Tree";
@@ -33,7 +34,9 @@ import { RegisterPage } from "./pages/cheques/Register";
 import { JournalEntriesListPage } from "./pages/journal-entries/List";
 import { JournalEntryPage } from "./pages/journal-entries/Entry";
 import { JournalEntryPrintPage } from "./pages/journal-entries/Print";
-import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen } from "lucide-react";
+import { RecurringJournalListPage } from "./pages/recurring-journal/List";
+import { RecurringJournalFormPage } from "./pages/recurring-journal/Form";
+import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen, Repeat } from "lucide-react";
 import { Toaster } from "sonner";
 
 function ContentArea() {
@@ -148,6 +151,14 @@ function ContentArea() {
               <FileText className="size-3.5" />
               <span>Journal Entries (All Vouchers)</span>
             </Link>
+
+            <Link
+              to="/recurring-journal"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-indigo-200 bg-white text-slate-800 text-xs font-bold shadow-sm hover:bg-slate-50 transition-all cursor-pointer"
+            >
+              <Repeat className="size-3.5 text-indigo-600" />
+              <span>Recurring Journal Schedules</span>
+            </Link>
           </div>
 
           <div className="text-[12px] text-muted-foreground/80 flex items-center justify-center gap-2">
@@ -176,6 +187,12 @@ export default function App() {
               <Topbar />
               <main className="flex-1 overflow-x-hidden overflow-y-auto sidebar-scroll">
                 <Routes>
+                  {/* Dashboard Routes */}
+                  <Route path="/" element={<OverviewDashboardPage />} />
+                  <Route path="/dashboard" element={<OverviewDashboardPage />} />
+                  <Route path="/management-dashboard" element={<OverviewDashboardPage />} />
+                  <Route path="/user-dashboard" element={<OverviewDashboardPage />} />
+
                   <Route path="/accounts-config/master-config" element={<MasterConfigPage />} />
                   
                   {/* Chart of Accounts Routes */}
@@ -204,6 +221,12 @@ export default function App() {
                   <Route path="/journal-entries/:id/edit" element={<JournalEntryPage />} />
                   <Route path="/journal-entries/:id/print" element={<JournalEntryPrintPage />} />
                   <Route path="/journal-books/journal-entries" element={<Navigate to="/journal-entries" replace />} />
+
+                  {/* Recurring Journal Routes */}
+                  <Route path="/recurring-journal" element={<RecurringJournalListPage />} />
+                  <Route path="/recurring-journal/new" element={<RecurringJournalFormPage />} />
+                  <Route path="/recurring-journal/:id/edit" element={<RecurringJournalFormPage />} />
+                  <Route path="/journal-books/recurring-journal" element={<Navigate to="/recurring-journal" replace />} />
 
                   {/* Opening Balance Routes */}
                   <Route path="/opening-balance" element={<OpeningBalanceEntryPage />} />

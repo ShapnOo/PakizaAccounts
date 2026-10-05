@@ -2,7 +2,7 @@ import { VoucherEntry, Attachment } from '../types/journalEntry';
 import { MOCK_JOURNAL_ENTRIES } from '../mock/journalEntries';
 import { delay } from '../lib/delay';
 
-const LS_KEY = 'journal-entries';
+const LS_KEY = 'journal-entries-v3';
 
 export async function listEntries(): Promise<VoucherEntry[]> {
   await delay(250);

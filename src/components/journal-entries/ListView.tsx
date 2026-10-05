@@ -89,7 +89,7 @@ export const ListView: React.FC<ListViewProps> = ({
             <tr>
               <th
                 onClick={() => handleSort('voucherNo')}
-                className="py-3 px-4 cursor-pointer hover:text-foreground transition-colors min-w-[140px]"
+                className="py-3 px-4 cursor-pointer hover:text-foreground transition-colors min-w-[140px] whitespace-nowrap"
               >
                 <div className="flex items-center gap-1.5">
                   <span>Voucher No</span>
@@ -99,7 +99,7 @@ export const ListView: React.FC<ListViewProps> = ({
 
               <th
                 onClick={() => handleSort('voucherType')}
-                className="py-3 px-4 cursor-pointer hover:text-foreground transition-colors min-w-[130px]"
+                className="py-3 px-4 cursor-pointer hover:text-foreground transition-colors min-w-[150px] whitespace-nowrap"
               >
                 <div className="flex items-center gap-1.5">
                   <span>Voucher Type</span>
@@ -109,7 +109,7 @@ export const ListView: React.FC<ListViewProps> = ({
 
               <th
                 onClick={() => handleSort('source')}
-                className="py-3 px-4 cursor-pointer hover:text-foreground transition-colors min-w-[140px]"
+                className="py-3 px-4 cursor-pointer hover:text-foreground transition-colors min-w-[160px] whitespace-nowrap"
               >
                 <div className="flex items-center gap-1.5">
                   <span>Source</span>
@@ -119,7 +119,7 @@ export const ListView: React.FC<ListViewProps> = ({
 
               <th
                 onClick={() => handleSort('voucherDate')}
-                className="py-3 px-4 cursor-pointer hover:text-foreground transition-colors min-w-[120px]"
+                className="py-3 px-4 cursor-pointer hover:text-foreground transition-colors min-w-[130px] whitespace-nowrap"
               >
                 <div className="flex items-center gap-1.5">
                   <span>Voucher Date</span>
@@ -131,7 +131,7 @@ export const ListView: React.FC<ListViewProps> = ({
 
               <th
                 onClick={() => handleSort('amount')}
-                className="py-3 px-4 text-right cursor-pointer hover:text-foreground transition-colors min-w-[130px]"
+                className="py-3 px-4 text-right cursor-pointer hover:text-foreground transition-colors min-w-[140px] whitespace-nowrap"
               >
                 <div className="flex items-center justify-end gap-1.5">
                   <span>Amount (৳)</span>
@@ -156,7 +156,7 @@ export const ListView: React.FC<ListViewProps> = ({
                   }`}
                 >
                   {/* Voucher No */}
-                  <td className="py-3 px-4 font-mono font-bold">
+                  <td className="py-3 px-4 font-mono font-bold whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <Link
                         to={isVoided ? '#' : `/journal-entries/${entry.id}/edit`}
@@ -170,7 +170,7 @@ export const ListView: React.FC<ListViewProps> = ({
                       </Link>
 
                       {isVoided && (
-                        <span className="text-[10px] font-black px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-600 border border-rose-500/30">
+                        <span className="text-[10px] font-black px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-600 border border-rose-500/30 whitespace-nowrap">
                           VOID
                         </span>
                       )}
@@ -189,17 +189,17 @@ export const ListView: React.FC<ListViewProps> = ({
                   </td>
 
                   {/* Voucher Type */}
-                  <td className="py-3 px-4">
+                  <td className="py-3 px-4 whitespace-nowrap">
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${cfg.color.badge}`}
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-bold border whitespace-nowrap select-none ${cfg.color.badge}`}
                     >
                       {cfg.label}
                     </span>
                   </td>
 
                   {/* Source */}
-                  <td className="py-3 px-4">
-                    <span className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
+                  <td className="py-3 px-4 whitespace-nowrap">
+                    <span className="text-xs text-muted-foreground font-medium inline-flex items-center gap-1.5 whitespace-nowrap">
                       <Layers className="size-3 text-muted-foreground/60 shrink-0" />
                       <span>{entry.source}</span>
                     </span>

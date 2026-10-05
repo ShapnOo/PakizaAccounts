@@ -143,7 +143,7 @@ export const nav: NavItem[] = [
     icon: BookOpen,
     subitems: [
       { label: "Journal Entries", to: "/journal-entries" },
-      { label: "Recurring Journal", to: "/journal-books/recurring-journal" },
+      { label: "Recurring Journal", to: "/recurring-journal" },
       { label: "Preset Journal", to: "/journal-books/preset-journal" },
       { label: "Bulk Data Upload", to: "/journal-books/bulk-data-upload" },
       { label: "Bulk Update", to: "/journal-books/bulk-update" },
@@ -279,6 +279,8 @@ const READY_ROUTE_PATTERNS = [
   '/cheque-prepare/register',
   '/journal-entries',
   '/journal-books/journal-entries',
+  '/recurring-journal',
+  '/journal-books/recurring-journal',
 ];
 
 function isRouteReady(path?: string): boolean {
@@ -305,6 +307,8 @@ function isPathActive(itemTo: string | undefined, currentPath: string): boolean 
   if (itemTo === '/cheque-prepare/register' && currentPath === '/cheque-prepare/register') return true;
   if (itemTo === '/journal-entries' && (currentPath.startsWith('/journal-entries') || currentPath.startsWith('/journal-books/journal-entries'))) return true;
   if (itemTo === '/journal-books/journal-entries' && (currentPath.startsWith('/journal-entries') || currentPath.startsWith('/journal-books/journal-entries'))) return true;
+  if (itemTo === '/recurring-journal' && (currentPath.startsWith('/recurring-journal') || currentPath.startsWith('/journal-books/recurring-journal'))) return true;
+  if (itemTo === '/journal-books/recurring-journal' && (currentPath.startsWith('/recurring-journal') || currentPath.startsWith('/journal-books/recurring-journal'))) return true;
   if (itemTo === '/accounts-report/journal' && (currentPath === '/accounts-report/journal' || currentPath.startsWith('/voucher-template'))) return true;
 
   return false;

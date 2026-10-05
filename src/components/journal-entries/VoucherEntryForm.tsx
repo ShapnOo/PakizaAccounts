@@ -36,14 +36,20 @@ import { MOCK_COA_BANK_ACCOUNTS } from '../../mock/coaBankAccounts';
 import { MOCK_CURRENCY_SETUPS } from '../../mock/currencySetup';
 import { SaveAsPresetDialog } from './SaveAsPresetDialog';
 
-interface VoucherEntryFormProps {
+export interface VoucherEntryFormProps {
   voucherType: VoucherType;
   initialData?: VoucherEntry | null;
+  isModal?: boolean;
+  onClose?: () => void;
+  onSuccess?: () => void;
 }
 
 export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
   voucherType,
   initialData,
+  isModal = false,
+  onClose,
+  onSuccess,
 }) => {
   const navigate = useNavigate();
   const { addEntry, editEntry } = useJournalEntryStore();
@@ -286,7 +292,11 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
         toast.success(`New ${cfg.label} (${payload.voucherNo}) saved successfully.`);
       }
 
-      navigate('/journal-entries');
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate('/journal-entries');
+      }
     } catch (err: any) {
       toast.error(err.message || 'Failed to save voucher');
     } finally {
@@ -331,7 +341,10 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => navigate('/journal-entries')}
+              onClick={() => {
+                if (onClose) onClose();
+                else navigate('/journal-entries');
+              }}
               className="p-2 rounded-xl border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               <ArrowLeft className="size-4" />
@@ -823,7 +836,10 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
             <button
               type="button"
-              onClick={() => navigate('/journal-entries')}
+              onClick={() => {
+                if (onClose) onClose();
+                else navigate('/journal-entries');
+              }}
               className="px-4 py-2.5 rounded-xl border border-border text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
             >
               Cancel
