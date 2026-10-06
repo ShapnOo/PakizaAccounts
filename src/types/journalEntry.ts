@@ -3,6 +3,7 @@ import { LucideIcon, List, LayoutGrid, BarChart3 } from 'lucide-react';
 export type VoucherType = 'Journal' | 'Receive' | 'Payment' | 'Contra';
 export type ViewType = 'list' | 'kanban' | 'bar';
 export type FilterRange = 'all' | 'today' | 'this-week' | 'this-month' | 'this-quarter' | 'this-year' | 'custom';
+export type ApprovalStatus = 'Approved' | 'Pending' | 'Rejected' | 'Draft';
 
 export interface Attachment {
   id: string;
@@ -34,11 +35,13 @@ export interface VoucherLine {
 export interface VoucherEntry {
   id: string;
   voucherNo: string;     // "JV-2026-0001"
+  voucherName?: string;  // "Cash Payment Voucher", "Bank Receive Voucher", etc.
   voucherType: VoucherType;
+  approvalStatus?: ApprovalStatus; // "Approved" | "Pending" | "Rejected" | "Draft"
   source: string;        // "Manual" | "Cheque Prepare" | "Opening Balance" | "Bank Reconciliation" | "Purchase Integration"
   voucherDate: string;   // YYYY-MM-DD
   narration?: string;
-  amount: number;        // total amount in BDT
+  amount: number;        // total amount in base currency (BDT)
 
   headerAccountId?: string;      // Receive / Payment only
   headerAccountName?: string;
@@ -66,6 +69,26 @@ export const VOUCHER_TYPES: VoucherType[] = [
   'Receive',
   'Payment',
   'Contra',
+];
+
+export interface VoucherNameOption {
+  name: string;
+  type: VoucherType;
+  shortCode: string;
+  description: string;
+}
+
+export const VOUCHER_NAMES: VoucherNameOption[] = [
+  { name: 'Journal Voucher', type: 'Journal', shortCode: 'JV', description: 'Standard double-entry journal posting' },
+  { name: 'Cash Payment Voucher', type: 'Payment', shortCode: 'CPV', description: 'Petty cash / cash hand disbursements' },
+  { name: 'Bank Payment Voucher', type: 'Payment', shortCode: 'BPV', description: 'Bank cheque & electronic transfer payments' },
+  { name: 'Cash Receive Voucher', type: 'Receive', shortCode: 'CRV', description: 'Physical cash collections & receipts' },
+  { name: 'Bank Receive Voucher', type: 'Receive', shortCode: 'BRV', description: 'Inward wire transfers & bank deposits' },
+  { name: 'Contra Voucher', type: 'Contra', shortCode: 'CV', description: 'Cash to Bank / Bank to Bank transfers' },
+  { name: 'Foreign Currency Adjustment Voucher', type: 'Journal', shortCode: 'FXV', description: 'Realized & unrealized FX gain/loss adjustments' },
+  { name: 'Employee Salary & Wages Voucher', type: 'Payment', shortCode: 'SAL', description: 'Monthly payroll & workers wages disbursement' },
+  { name: 'Direct Tax & VAT Payment Voucher', type: 'Payment', shortCode: 'TAXV', description: 'NBR treasury challan & tax payments' },
+  { name: 'Asset Depreciation Voucher', type: 'Journal', shortCode: 'DEPR', description: 'Monthly fixed asset depreciation amortization' },
 ];
 
 export const VIEW_TYPES: { value: ViewType; label: string; icon: LucideIcon }[] = [

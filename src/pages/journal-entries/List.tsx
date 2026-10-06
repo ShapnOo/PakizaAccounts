@@ -17,7 +17,6 @@ import { VoucherEntryForm } from '../../components/journal-entries/VoucherEntryF
 
 export const JournalEntriesListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [modalVoucherType, setModalVoucherType] = React.useState<VoucherType | null>(null);
 
   const {
     entries,
@@ -101,6 +100,8 @@ export const JournalEntriesListPage: React.FC = () => {
   // Compute active filter count
   let activeFilterCount = 0;
   if (advancedFilters.types.length > 0) activeFilterCount++;
+  if (advancedFilters.voucherNames && advancedFilters.voucherNames.length > 0) activeFilterCount++;
+  if (advancedFilters.approvalStatuses && advancedFilters.approvalStatuses.length > 0) activeFilterCount++;
   if (advancedFilters.sources.length > 0) activeFilterCount++;
   if (advancedFilters.minAmount || advancedFilters.maxAmount) activeFilterCount++;
   if (advancedFilters.hasAttachmentsOnly) activeFilterCount++;
@@ -113,10 +114,12 @@ export const JournalEntriesListPage: React.FC = () => {
       return;
     }
 
-    const headers = ['Voucher No', 'Voucher Type', 'Source', 'Date', 'Narration', 'Amount (BDT)', 'Status'];
+    const headers = ['Voucher No', 'Voucher Name', 'Voucher Type', 'Approval Status', 'Source', 'Date', 'Narration', 'Amount', 'Status'];
     const rows = filteredEntries.map((e) => [
       `"${e.voucherNo}"`,
+      `"${e.voucherName || e.voucherType}"`,
       `"${e.voucherType}"`,
+      `"${e.approvalStatus || 'Approved'}"`,
       `"${e.source}"`,
       `"${e.voucherDate}"`,
       `"${(e.narration || '').replace(/"/g, '""')}"`,
@@ -147,11 +150,8 @@ export const JournalEntriesListPage: React.FC = () => {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 w-full max-w-7xl mx-auto space-y-6">
-      {/* 1. Header with modal type trigger */}
-      <ListHeader
-        totalCount={entries.length}
-        onSelectNewType={(type) => setModalVoucherType(type)}
-      />
+      {/* 1. Header */}
+      <ListHeader totalCount={entries.length} />
 
       {/* 2. Toolbar */}
       <Toolbar
@@ -214,30 +214,6 @@ export const JournalEntriesListPage: React.FC = () => {
         onUpload={uploadAttachment}
         onDelete={deleteAttachment}
       />
-
-      {/* 6. New Voucher Interactive Modal Dialog */}
-      {modalVoucherType && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setModalVoucherType(null);
-            }
-          }}
-        >
-          <div className="w-full max-w-6xl max-h-[92vh] overflow-y-auto rounded-3xl bg-background border border-border shadow-2xl p-4 sm:p-6 relative animate-in zoom-in-95 duration-200">
-            <VoucherEntryForm
-              voucherType={modalVoucherType}
-              isModal={true}
-              onClose={() => setModalVoucherType(null)}
-              onSuccess={() => {
-                setModalVoucherType(null);
-                loadEntries();
-              }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

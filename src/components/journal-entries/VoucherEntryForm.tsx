@@ -23,9 +23,12 @@ import {
   VoucherEntry,
   VoucherLine,
   VOUCHER_TYPE_CONFIG,
+  VOUCHER_NAMES,
+  ApprovalStatus,
   FormPreset,
 } from '../../types/journalEntry';
 import { useJournalEntryStore } from '../../stores/journalEntryStore';
+import { useCurrencyStore } from '../../stores/currencyStore';
 import { listPresets, savePreset } from '../../services/presetService';
 import { MOCK_ACCOUNTS } from '../../mock/accounts';
 import { MOCK_SUBLEDGER } from '../../mock/subledger';
@@ -38,6 +41,7 @@ import { SaveAsPresetDialog } from './SaveAsPresetDialog';
 
 export interface VoucherEntryFormProps {
   voucherType: VoucherType;
+  initialVoucherName?: string;
   initialData?: VoucherEntry | null;
   isModal?: boolean;
   onClose?: () => void;
@@ -46,6 +50,7 @@ export interface VoucherEntryFormProps {
 
 export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
   voucherType,
+  initialVoucherName,
   initialData,
   isModal = false,
   onClose,
@@ -54,8 +59,34 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
   const navigate = useNavigate();
   const { addEntry, editEntry } = useJournalEntryStore();
 
-  const cfg = VOUCHER_TYPE_CONFIG[voucherType];
+  const { rates, setups } = useCurrencyStore();
+  const baseRate = rates.find((r) => r.isBase);
+  const baseSetup = setups.find((s) => s.id === baseRate?.currencyId);
+  const baseSymbol = baseSetup?.symbol || '৳';
+  const baseCode = baseSetup?.code || 'BDT';
+
   const isEdit = Boolean(initialData);
+
+  // Voucher Name & Type states (#32)
+  const [selectedVoucherName, setSelectedVoucherName] = useState<string>(
+    initialData?.voucherName || initialVoucherName || VOUCHER_TYPE_CONFIG[voucherType].label
+  );
+  const [activeType, setActiveType] = useState<VoucherType>(
+    initialData?.voucherType || voucherType
+  );
+  const [approvalStatus, setApprovalStatus] = useState<ApprovalStatus>(
+    initialData?.approvalStatus || 'Approved'
+  );
+
+  const cfg = VOUCHER_TYPE_CONFIG[activeType];
+
+  const handleVoucherNameChange = (name: string) => {
+    setSelectedVoucherName(name);
+    const matched = VOUCHER_NAMES.find((v) => v.name === name);
+    if (matched) {
+      setActiveType(matched.type);
+    }
+  };
 
   // Form states
   const [voucherDate, setVoucherDate] = useState(
@@ -263,7 +294,7 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
     try {
       const headerAcc = MOCK_COA_BANK_ACCOUNTS.find((b) => b.id === headerAccountId);
       const computedAmount =
-        voucherType === 'Receive' ? totalCreditBDT : totalDebitBDT;
+        activeType === 'Receive' ? totalCreditBDT : totalDebitBDT;
 
       const payload = {
         voucherNo:
@@ -271,7 +302,9 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
           `${cfg.shortCode}-${new Date(voucherDate).getFullYear()}-${String(
             Math.floor(Math.random() * 9000) + 1000
           )}`,
-        voucherType,
+        voucherName: selectedVoucherName,
+        voucherType: activeType,
+        approvalStatus,
         source: initialData?.source || 'Manual',
         voucherDate,
         narration,
@@ -289,7 +322,7 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
         toast.success(`Voucher ${payload.voucherNo} updated successfully.`);
       } else {
         await addEntry(payload);
-        toast.success(`New ${cfg.label} (${payload.voucherNo}) saved successfully.`);
+        toast.success(`New ${selectedVoucherName} (${payload.voucherNo}) saved successfully.`);
       }
 
       if (onSuccess) {
@@ -322,13 +355,13 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
     }));
 
     await savePreset({
-      voucherType,
+      voucherType: activeType,
       name: presetName,
       lineCount: linesToSave.length,
       lines: linesToSave,
     });
 
-    const refreshed = await listPresets(voucherType);
+    const refreshed = await listPresets(activeType);
     setPresets(refreshed);
     toast.success(`Preset "${presetName}" saved!`);
   };
@@ -352,7 +385,7 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-lg font-black tracking-tight text-foreground">
-                  {isEdit ? `Edit ${initialData?.voucherNo}` : `New ${cfg.label}`}
+                  {isEdit ? `Edit ${initialData?.voucherNo}` : `New ${selectedVoucherName}`}
                 </h1>
                 <span
                   className={`text-[11px] font-bold px-2 py-0.5 rounded-md border ${cfg.color.badge}`}
@@ -361,11 +394,11 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {voucherType === 'Journal'
+                {activeType === 'Journal'
                   ? 'Double-entry balanced transaction ledger posting'
-                  : voucherType === 'Receive'
+                  : activeType === 'Receive'
                   ? 'Single-sided cash or bank collection credit entry'
-                  : voucherType === 'Payment'
+                  : activeType === 'Payment'
                   ? 'Single-sided cash or bank disbursement debit entry'
                   : 'Fund movement between cash desks and bank accounts'}
               </p>
@@ -398,18 +431,30 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
 
       {/* Main Form */}
       <form onSubmit={handleSaveVoucher} className="space-y-6">
-        {/* Header Block (Date, Voucher Type, Header Account for Receive/Payment) */}
+        {/* Header Block (Voucher Name, Date, Approval Status, Header Account) */}
         <div className="p-5 sm:p-6 rounded-2xl border border-border/80 bg-card shadow-xs space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Voucher Type */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground">Voucher Type</label>
-              <input
-                type="text"
-                readOnly
-                value={cfg.label}
-                className="w-full h-9 px-3 rounded-xl border border-border bg-muted/40 text-xs font-bold text-foreground outline-none select-all"
-              />
+            {/* Voucher Name Selector (#32) */}
+            <div className="space-y-1.5 sm:col-span-2">
+              <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                <span>
+                  Voucher Name <span className="text-rose-500">*</span>
+                </span>
+                <span className="text-[10px] text-muted-foreground font-normal">
+                  Configured Definition
+                </span>
+              </label>
+              <select
+                value={selectedVoucherName}
+                onChange={(e) => handleVoucherNameChange(e.target.value)}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs font-bold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer"
+              >
+                {VOUCHER_NAMES.map((vn) => (
+                  <option key={vn.name} value={vn.name}>
+                    {vn.name} ({vn.shortCode} - {vn.type})
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Voucher Date */}
@@ -428,6 +473,21 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
               {errors.voucherDate && (
                 <p className="text-[11px] text-rose-500 font-bold">{errors.voucherDate}</p>
               )}
+            </div>
+
+            {/* Approval Status (#35) */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-foreground">Approval Status</label>
+              <select
+                value={approvalStatus}
+                onChange={(e) => setApprovalStatus(e.target.value as ApprovalStatus)}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs font-bold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer"
+              >
+                <option value="Approved">Approved</option>
+                <option value="Pending">Pending</option>
+                <option value="Draft">Draft</option>
+                <option value="Rejected">Rejected</option>
+              </select>
             </div>
 
             {/* Header Account (Only Receive & Payment) */}
@@ -470,9 +530,9 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
               Voucher Line Items ({lines.length})
             </h3>
             <span className="text-xs text-muted-foreground">
-              {voucherType === 'Payment'
+              {activeType === 'Payment'
                 ? 'Debit lines against header account'
-                : voucherType === 'Receive'
+                : activeType === 'Receive'
                 ? 'Credit lines against header account'
                 : 'Double-entry debit & credit lines'}
             </span>
@@ -492,7 +552,7 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
                   <th className="py-2.5 px-3 w-20 text-center">Curr.</th>
                   <th className="py-2.5 px-3 w-20 text-center">Rate</th>
 
-                  {/* Per-type Dr/Cr columns */}
+                  {/* Per-type Dr/Cr columns with Base Currency (#38) */}
                   {cfg.showDebit && (
                     <th className="py-2.5 px-3 w-28 text-right bg-indigo-500/5">Debit</th>
                   )}
@@ -500,10 +560,10 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
                     <th className="py-2.5 px-3 w-28 text-right bg-emerald-500/5">Credit</th>
                   )}
                   {cfg.showDebit && (
-                    <th className="py-2.5 px-3 w-28 text-right bg-indigo-500/10">Debit (BDT)</th>
+                    <th className="py-2.5 px-3 w-28 text-right bg-indigo-500/10">Debit ({baseCode})</th>
                   )}
                   {cfg.showCredit && (
-                    <th className="py-2.5 px-3 w-28 text-right bg-emerald-500/10">Credit (BDT)</th>
+                    <th className="py-2.5 px-3 w-28 text-right bg-emerald-500/10">Credit ({baseCode})</th>
                   )}
 
                   <th className="py-2.5 px-2 w-10 text-center"></th>
@@ -700,14 +760,14 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
                     {/* Debit BDT (Read-only) */}
                     {cfg.showDebit && (
                       <td className="py-2 px-2 text-right font-mono font-bold text-xs text-foreground bg-indigo-500/10">
-                        ৳ {(line.debitBDT || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        {baseSymbol} {(line.debitBDT || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </td>
                     )}
 
                     {/* Credit BDT (Read-only) */}
                     {cfg.showCredit && (
                       <td className="py-2 px-2 text-right font-mono font-bold text-xs text-foreground bg-emerald-500/10">
-                        ৳ {(line.creditBDT || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        {baseSymbol} {(line.creditBDT || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </td>
                     )}
 
@@ -735,25 +795,25 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
 
                   {cfg.showDebit && (
                     <td className="py-3 px-2 text-right font-mono font-black text-foreground bg-indigo-500/5">
-                      ৳ {totalDebitBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      {baseSymbol} {totalDebitBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </td>
                   )}
 
                   {cfg.showCredit && (
                     <td className="py-3 px-2 text-right font-mono font-black text-foreground bg-emerald-500/5">
-                      ৳ {totalCreditBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      {baseSymbol} {totalCreditBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </td>
                   )}
 
                   {cfg.showDebit && (
                     <td className="py-3 px-2 text-right font-mono font-black text-indigo-700 dark:text-indigo-300 bg-indigo-500/15">
-                      ৳ {totalDebitBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      {baseSymbol} {totalDebitBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </td>
                   )}
 
                   {cfg.showCredit && (
                     <td className="py-3 px-2 text-right font-mono font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/15">
-                      ৳ {totalCreditBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      {baseSymbol} {totalCreditBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </td>
                   )}
 
@@ -776,7 +836,7 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-500/15 text-rose-600 border border-rose-500/30">
                           <AlertCircle className="size-3.5" />
                           <span>
-                            Difference: ৳ {difference > 0 ? `+${difference.toFixed(2)}` : difference.toFixed(2)}
+                            Difference: {baseSymbol} {difference > 0 ? `+${difference.toFixed(2)}` : difference.toFixed(2)}
                           </span>
                         </span>
                       )}

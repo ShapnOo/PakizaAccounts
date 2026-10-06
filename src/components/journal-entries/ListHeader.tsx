@@ -7,16 +7,14 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   Repeat,
-  SlidersHorizontal,
 } from 'lucide-react';
-import { VoucherType, VOUCHER_TYPES, VOUCHER_TYPE_CONFIG } from '../../types/journalEntry';
+import { VoucherType, VOUCHER_NAMES, VOUCHER_TYPE_CONFIG, VoucherNameOption } from '../../types/journalEntry';
 
 interface ListHeaderProps {
   totalCount: number;
-  onSelectNewType?: (type: VoucherType) => void;
 }
 
-export const ListHeader: React.FC<ListHeaderProps> = ({ totalCount, onSelectNewType }) => {
+export const ListHeader: React.FC<ListHeaderProps> = ({ totalCount }) => {
   const navigate = useNavigate();
   const [popoverOpen, setPopoverOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -31,13 +29,9 @@ export const ListHeader: React.FC<ListHeaderProps> = ({ totalCount, onSelectNewT
     return () => document.removeEventListener('mousedown', handleOutside);
   }, []);
 
-  const handleSelectType = (type: VoucherType) => {
+  const handleSelectVoucherName = (vn: VoucherNameOption) => {
     setPopoverOpen(false);
-    if (onSelectNewType) {
-      onSelectNewType(type);
-    } else {
-      navigate(`/journal-entries/new?type=${type}`);
-    }
+    navigate(`/journal-entries/new?voucherName=${encodeURIComponent(vn.name)}&type=${vn.type}`);
   };
 
   const getIcon = (type: VoucherType) => {
@@ -68,7 +62,7 @@ export const ListHeader: React.FC<ListHeaderProps> = ({ totalCount, onSelectNewT
               </span>
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Comprehensive master log of all financial vouchers across types and transaction sources
+              Master log of all financial vouchers across voucher definitions and transaction sources
             </p>
           </div>
         </div>
@@ -90,43 +84,37 @@ export const ListHeader: React.FC<ListHeaderProps> = ({ totalCount, onSelectNewT
         </button>
 
         {popoverOpen && (
-          <div className="absolute right-0 mt-2 w-64 rounded-xl border border-border bg-popover text-popover-foreground shadow-xl z-50 p-2 space-y-1 animate-in fade-in-50 zoom-in-95 duration-150">
-            <div className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              Select Voucher Type
+          <div className="absolute right-0 mt-2 w-80 rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl z-50 p-2 space-y-1 animate-in fade-in-50 zoom-in-95 duration-150 max-h-[75vh] overflow-y-auto sidebar-scroll">
+            <div className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground border-b border-border/60 mb-1">
+              Select Voucher Name
             </div>
 
-            {VOUCHER_TYPES.map((type) => {
-              const cfg = VOUCHER_TYPE_CONFIG[type];
+            {VOUCHER_NAMES.map((vn) => {
+              const cfg = VOUCHER_TYPE_CONFIG[vn.type];
               return (
                 <button
-                  key={type}
+                  key={vn.name}
                   type="button"
-                  onClick={() => handleSelectType(type)}
+                  onClick={() => handleSelectVoucherName(vn)}
                   className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-muted/80 text-left transition-colors cursor-pointer group"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-1.5 rounded-md bg-background border border-border group-hover:border-border/80 shadow-2xs">
-                      {getIcon(type)}
+                  <div className="flex items-start gap-2.5 min-w-0">
+                    <div className="p-1.5 rounded-md bg-background border border-border group-hover:border-border/80 shadow-2xs shrink-0 mt-0.5">
+                      {getIcon(vn.type)}
                     </div>
-                    <div>
-                      <div className="text-xs font-bold text-foreground">
-                        {cfg.label}
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-foreground truncate">
+                        {vn.name}
                       </div>
-                      <div className="text-[10px] text-muted-foreground">
-                        {type === 'Journal'
-                          ? 'Double entry (Dr = Cr)'
-                          : type === 'Receive'
-                          ? 'Credit lines with cash/bank header'
-                          : type === 'Payment'
-                          ? 'Debit lines with cash/bank header'
-                          : 'Cash to Bank / Bank to Bank'}
+                      <div className="text-[10px] text-muted-foreground truncate">
+                        {vn.description}
                       </div>
                     </div>
                   </div>
                   <span
-                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${cfg.color.badge}`}
+                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 ml-2 ${cfg.color.badge}`}
                   >
-                    {cfg.shortCode}
+                    {vn.shortCode}
                   </span>
                 </button>
               );

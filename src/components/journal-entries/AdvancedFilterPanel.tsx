@@ -1,7 +1,8 @@
 import React from 'react';
-import { RotateCcw, Check, Paperclip, Ban } from 'lucide-react';
-import { VoucherType, VOUCHER_TYPES, VOUCHER_TYPE_CONFIG } from '../../types/journalEntry';
+import { RotateCcw, Check, Paperclip } from 'lucide-react';
+import { VoucherType, VOUCHER_TYPES, VOUCHER_TYPE_CONFIG, VOUCHER_NAMES, ApprovalStatus } from '../../types/journalEntry';
 import { AdvancedFilterState } from '../../stores/journalEntryStore';
+import { useCurrencyStore } from '../../stores/currencyStore';
 
 interface AdvancedFilterPanelProps {
   filters: AdvancedFilterState;
@@ -17,17 +18,43 @@ const AVAILABLE_SOURCES = [
   'Purchase Integration',
 ];
 
+const APPROVAL_STATUSES: ApprovalStatus[] = ['Approved', 'Pending', 'Draft', 'Rejected'];
+
 export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
   filters,
   onChange,
   onReset,
 }) => {
+  const { rates, setups } = useCurrencyStore();
+  const baseRate = rates.find((r) => r.isBase);
+  const baseSetup = setups.find((s) => s.id === baseRate?.currencyId);
+  const baseSymbol = baseSetup?.symbol || '৳';
+  const baseCode = baseSetup?.code || 'BDT';
+
   const toggleType = (t: VoucherType) => {
     const current = filters.types;
     if (current.includes(t)) {
       onChange({ types: current.filter((x) => x !== t) });
     } else {
       onChange({ types: [...current, t] });
+    }
+  };
+
+  const toggleVoucherName = (name: string) => {
+    const current = filters.voucherNames || [];
+    if (current.includes(name)) {
+      onChange({ voucherNames: current.filter((x) => x !== name) });
+    } else {
+      onChange({ voucherNames: [...current, name] });
+    }
+  };
+
+  const toggleApprovalStatus = (status: ApprovalStatus) => {
+    const current = filters.approvalStatuses || [];
+    if (current.includes(status)) {
+      onChange({ approvalStatuses: current.filter((x) => x !== status) });
+    } else {
+      onChange({ approvalStatuses: [...current, status] });
     }
   };
 
@@ -41,9 +68,88 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
   };
 
   return (
-    <div className="p-4 rounded-2xl border border-border/90 bg-card shadow-xs space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+    <div className="p-4 sm:p-5 rounded-2xl border border-border/90 bg-card shadow-xs space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* 1. Voucher Type Filter */}
+        {/* 1. Approval Status Filter (#35) */}
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-foreground">Approval Status</label>
+          <div className="flex flex-wrap gap-1.5">
+            {APPROVAL_STATUSES.map((status) => {
+              const isSelected = (filters.approvalStatuses || []).includes(status);
+              return (
+                <button
+                  key={status}
+                  type="button"
+                  onClick={() => toggleApprovalStatus(status)}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer select-none ${
+                    isSelected
+                      ? status === 'Approved'
+                        ? 'bg-emerald-500/15 border-emerald-500 text-emerald-600 font-bold shadow-2xs'
+                        : status === 'Pending'
+                        ? 'bg-amber-500/15 border-amber-500 text-amber-600 font-bold shadow-2xs'
+                        : status === 'Rejected'
+                        ? 'bg-rose-500/15 border-rose-500 text-rose-600 font-bold shadow-2xs'
+                        : 'bg-slate-500/15 border-slate-500 text-slate-600 font-bold shadow-2xs'
+                      : 'bg-muted/40 border-border text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {isSelected && <Check className="size-3 stroke-[2.5]" />}
+                  <span>{status}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 2. Voucher Name Filter (#30 & #32) */}
+        <div className="space-y-2 lg:col-span-2">
+          <label className="text-xs font-bold text-foreground">Voucher Name</label>
+          <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto sidebar-scroll pr-1">
+            {VOUCHER_NAMES.map((vn) => {
+              const isSelected = (filters.voucherNames || []).includes(vn.name);
+              return (
+                <button
+                  key={vn.name}
+                  type="button"
+                  onClick={() => toggleVoucherName(vn.name)}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer select-none ${
+                    isSelected
+                      ? 'bg-primary/15 border-primary text-primary font-bold shadow-2xs'
+                      : 'bg-muted/40 border-border text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {isSelected && <Check className="size-3 stroke-[2.5]" />}
+                  <span>{vn.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 3. Amount Range (Base Currency) (#38) */}
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-foreground">
+            Amount Range ({baseSymbol} {baseCode})
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="number"
+              placeholder={`Min ${baseCode}`}
+              value={filters.minAmount}
+              onChange={(e) => onChange({ minAmount: e.target.value })}
+              className="h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs"
+            />
+            <input
+              type="number"
+              placeholder={`Max ${baseCode}`}
+              value={filters.maxAmount}
+              onChange={(e) => onChange({ maxAmount: e.target.value })}
+              className="h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs"
+            />
+          </div>
+        </div>
+
+        {/* 4. Voucher Type Filter */}
         <div className="space-y-2">
           <label className="text-xs font-bold text-foreground">Voucher Type</label>
           <div className="flex flex-wrap gap-1.5">
@@ -69,7 +175,7 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
           </div>
         </div>
 
-        {/* 2. Source Filter */}
+        {/* 5. Source Filter */}
         <div className="space-y-2">
           <label className="text-xs font-bold text-foreground">Transaction Source</label>
           <div className="flex flex-wrap gap-1.5">
@@ -94,31 +200,10 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
           </div>
         </div>
 
-        {/* 3. Amount Range (Min / Max BDT) */}
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-foreground">Amount Range (৳ BDT)</label>
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              type="number"
-              placeholder="Min BDT"
-              value={filters.minAmount}
-              onChange={(e) => onChange({ minAmount: e.target.value })}
-              className="h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs"
-            />
-            <input
-              type="number"
-              placeholder="Max BDT"
-              value={filters.maxAmount}
-              onChange={(e) => onChange({ maxAmount: e.target.value })}
-              className="h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs"
-            />
-          </div>
-        </div>
-
-        {/* 4. Flags & Status */}
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-foreground">Status & Criteria</label>
-          <div className="flex flex-col gap-2">
+        {/* 6. Flags & Status */}
+        <div className="space-y-2 lg:col-span-2">
+          <label className="text-xs font-bold text-foreground">Status & Flags</label>
+          <div className="flex flex-wrap items-center gap-4">
             {/* Attachment Toggle */}
             <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer select-none">
               <input
@@ -134,7 +219,7 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
             </label>
 
             {/* Void Status Radio Group */}
-            <div className="inline-flex p-0.5 rounded-lg bg-muted/50 border border-border/80 w-fit">
+            <div className="inline-flex p-0.5 rounded-lg bg-muted/50 border border-border/80">
               {(['all', 'active', 'voided'] as const).map((v) => (
                 <button
                   key={v}

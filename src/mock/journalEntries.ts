@@ -10,7 +10,9 @@ export const MOCK_JOURNAL_ENTRIES: VoucherEntry[] = [
   {
     id: 'vch-1',
     voucherNo: 'JV-2026-0001',
+    voucherName: 'Asset Depreciation Voucher',
     voucherType: 'Journal',
+    approvalStatus: 'Approved',
     source: 'Opening Balance',
     voucherDate: getDateOffset(0),
     narration: 'Depreciation charge on factory machinery and transport pool vehicles for August 2026',
@@ -84,9 +86,11 @@ export const MOCK_JOURNAL_ENTRIES: VoucherEntry[] = [
   {
     id: 'vch-2',
     voucherNo: 'PV-2026-0042',
+    voucherName: 'Bank Payment Voucher',
     voucherType: 'Payment',
+    approvalStatus: 'Approved',
     source: 'Cheque Prepare',
-    voucherDate: getDateOffset(1),
+    voucherDate: getDateOffset(0),
     narration: 'Yarn procurement payment to Square Yarns Ltd net of TDS 3% via DBBL Principal Branch',
     amount: 450000,
     headerAccountId: 'acc-01-01-01-02-01-01',
@@ -144,9 +148,11 @@ export const MOCK_JOURNAL_ENTRIES: VoucherEntry[] = [
   {
     id: 'vch-3',
     voucherNo: 'RV-2026-0018',
+    voucherName: 'Bank Receive Voucher',
     voucherType: 'Receive',
+    approvalStatus: 'Approved',
     source: 'Bank Reconciliation',
-    voucherDate: getDateOffset(1),
+    voucherDate: getDateOffset(0),
     narration: 'Export proceeds remittance received from Next Sourcing Ltd UK (USD 10,000 @ 118.50 BDT)',
     amount: 1185000,
     headerAccountId: 'acc-01-01-01-02-01-03',
@@ -183,9 +189,11 @@ export const MOCK_JOURNAL_ENTRIES: VoucherEntry[] = [
   {
     id: 'vch-4',
     voucherNo: 'CV-2026-0009',
+    voucherName: 'Contra Voucher',
     voucherType: 'Contra',
+    approvalStatus: 'Approved',
     source: 'Manual',
-    voucherDate: getDateOffset(2),
+    voucherDate: getDateOffset(1),
     narration: 'Head Office petty cash replenishment withdrawal from Dutch-Bangla Bank Principal Branch',
     amount: 50000,
     lines: [

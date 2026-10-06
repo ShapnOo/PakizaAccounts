@@ -5,6 +5,7 @@ import {
   VoucherType,
   ViewType,
   FilterRange,
+  ApprovalStatus,
   Attachment,
 } from '../types/journalEntry';
 import {
@@ -21,6 +22,8 @@ import { isDateInRange } from '../lib/dateRangeFilter';
 
 export interface AdvancedFilterState {
   types: VoucherType[];
+  voucherNames: string[];
+  approvalStatuses: ApprovalStatus[];
   sources: string[];
   minAmount: string;
   maxAmount: string;
@@ -63,6 +66,8 @@ interface JournalEntryState {
 
 const DEFAULT_ADVANCED_FILTERS: AdvancedFilterState = {
   types: [],
+  voucherNames: [],
+  approvalStatuses: [],
   sources: [],
   minAmount: '',
   maxAmount: '',
@@ -77,7 +82,7 @@ export const useJournalEntryStore = create<JournalEntryState>()(
       loading: false,
       searchQuery: '',
       viewType: 'list',
-      filterRange: 'all',
+      filterRange: 'today',
       customFromDate: '',
       customToDate: '',
       advancedOpen: false,
@@ -180,7 +185,7 @@ export const useJournalEntryStore = create<JournalEntryState>()(
       },
     }),
     {
-      name: 'journal:ui_state_v3',
+      name: 'journal:ui_state_v4',
       partialize: (state) => ({
         viewType: state.viewType,
         filterRange: state.filterRange,
@@ -202,17 +207,56 @@ export function selectFilteredEntries(state: JournalEntryState): VoucherEntry[] 
   } = state;
 
   return entries.filter((item) => {
-    // 1. Search Query (Voucher No, Narration, Source, Accounts)
+    // 1. Comprehensive Search Query across ALL fields of the voucher entry page (#33)
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchNo = item.voucherNo.toLowerCase().includes(q);
-      const matchNarration = (item.narration || '').toLowerCase().includes(q);
+      const matchName = (item.voucherName || '').toLowerCase().includes(q);
+      const matchType = item.voucherType.toLowerCase().includes(q);
+      const matchStatus = (item.approvalStatus || '').toLowerCase().includes(q);
       const matchSource = item.source.toLowerCase().includes(q);
+      const matchDate = item.voucherDate.toLowerCase().includes(q);
+      const matchNarration = (item.narration || '').toLowerCase().includes(q);
+      const matchAmount = item.amount.toString().includes(q);
+      const matchHeaderAcc =
+        (item.headerAccountName || '').toLowerCase().includes(q) ||
+        (item.headerAccountId || '').toLowerCase().includes(q);
+      const matchHeaderCC = (item.headerCostCenterId || '').toLowerCase().includes(q);
+      const matchVoided = item.voided ? 'void'.includes(q) : 'active'.includes(q);
+      const matchAttachments = (item.attachments || []).some((att) =>
+        att.name.toLowerCase().includes(q)
+      );
       const matchLines = item.lines.some((l) =>
         (l.accountHeadName || '').toLowerCase().includes(q) ||
-        (l.description || '').toLowerCase().includes(q)
+        (l.accountHeadId || '').toLowerCase().includes(q) ||
+        (l.description || '').toLowerCase().includes(q) ||
+        (l.reference || '').toLowerCase().includes(q) ||
+        (l.costCenterId || '').toLowerCase().includes(q) ||
+        (l.subsidiaryId || '').toLowerCase().includes(q) ||
+        (l.employeeId || '').toLowerCase().includes(q) ||
+        (l.vehicleId || '').toLowerCase().includes(q) ||
+        (l.currency || '').toLowerCase().includes(q) ||
+        (l.debit !== undefined && l.debit.toString().includes(q)) ||
+        (l.credit !== undefined && l.credit.toString().includes(q)) ||
+        (l.debitBDT !== undefined && l.debitBDT.toString().includes(q)) ||
+        (l.creditBDT !== undefined && l.creditBDT.toString().includes(q))
       );
-      if (!matchNo && !matchNarration && !matchSource && !matchLines) {
+
+      if (
+        !matchNo &&
+        !matchName &&
+        !matchType &&
+        !matchStatus &&
+        !matchSource &&
+        !matchDate &&
+        !matchNarration &&
+        !matchAmount &&
+        !matchHeaderAcc &&
+        !matchHeaderCC &&
+        !matchVoided &&
+        !matchAttachments &&
+        !matchLines
+      ) {
         return false;
       }
     }
@@ -233,6 +277,24 @@ export function selectFilteredEntries(state: JournalEntryState): VoucherEntry[] 
     if (
       advancedFilters.types.length > 0 &&
       !advancedFilters.types.includes(item.voucherType)
+    ) {
+      return false;
+    }
+
+    // 3b. Advanced Filters: Voucher Names (#30 & #32)
+    if (
+      advancedFilters.voucherNames &&
+      advancedFilters.voucherNames.length > 0 &&
+      !advancedFilters.voucherNames.includes(item.voucherName || item.voucherType)
+    ) {
+      return false;
+    }
+
+    // 3c. Advanced Filters: Approval Status (#35)
+    if (
+      advancedFilters.approvalStatuses &&
+      advancedFilters.approvalStatuses.length > 0 &&
+      !advancedFilters.approvalStatuses.includes(item.approvalStatus || 'Approved')
     ) {
       return false;
     }

@@ -13,11 +13,15 @@ export const JournalEntryPage: React.FC = () => {
   const [loading, setLoading] = useState(Boolean(id));
   const [entry, setEntry] = useState<VoucherEntry | null>(null);
 
-  // Determine voucher type: from edit entry OR from ?type= query param (default Journal)
+  // Determine voucher type & voucher name
   const typeParam = searchParams.get('type') as VoucherType | null;
+  const nameParam = searchParams.get('voucherName');
+
   const voucherType: VoucherType =
     entry?.voucherType ||
     (typeParam && VOUCHER_TYPES.includes(typeParam) ? typeParam : 'Journal');
+
+  const initialVoucherName = entry?.voucherName || nameParam || undefined;
 
   useEffect(() => {
     if (id) {
@@ -48,6 +52,7 @@ export const JournalEntryPage: React.FC = () => {
     <div className="p-4 md:p-6 lg:p-8 w-full max-w-7xl mx-auto">
       <VoucherEntryForm
         voucherType={voucherType}
+        initialVoucherName={initialVoucherName}
         initialData={entry}
       />
     </div>
