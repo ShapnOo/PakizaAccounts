@@ -54,7 +54,7 @@ export const useVoucherTemplateStore = create<VoucherTemplateStoreState>()(
       loading: true,
       dirty: false,
       livePreviewEnabled: true,
-      zoom: 100,
+      zoom: 65,
 
       load: async () => {
         set({ loading: true });

@@ -111,8 +111,8 @@ export const nav: NavItem[] = [
     label: "Accounts Receivable Management (Sales)",
     icon: TrendingUp,
     subitems: [
-      { label: "Customer Master Setup", to: "/accounts-receivable/customer-master-setup" },
-      { label: "Customer Master List", to: "/accounts-receivable/customer-master-list" },
+      { label: "Customer Master Setup", to: "/customers" },
+      { label: "Customer Master List", to: "/customers" },
     ],
   },
   {

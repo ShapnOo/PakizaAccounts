@@ -10,7 +10,7 @@ import { ColorPicker } from './ColorPicker';
 interface FontSectionProps {
   family: string;
   theme: string;
-  pdfFont: string;
+  pdfFont?: string;
   color: string;
   size: number;
   background?: string;
@@ -30,7 +30,6 @@ interface FontSectionProps {
 export const FontSection: React.FC<FontSectionProps> = ({
   family,
   theme,
-  pdfFont,
   color,
   size,
   background = '',
@@ -39,6 +38,8 @@ export const FontSection: React.FC<FontSectionProps> = ({
   onChange,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+
+  const watermarkPresets = ['DRAFT', 'COPY', 'PAID', 'CONFIDENTIAL', 'VOID', 'PAKIZA GROUP'];
 
   return (
     <div className="bg-card rounded-xl border border-border/80 shadow-2xs overflow-hidden transition-all duration-200">
@@ -68,67 +69,44 @@ export const FontSection: React.FC<FontSectionProps> = ({
 
       {!isCollapsed && (
         <div className="p-3.5 pt-1 border-t border-border/40 space-y-3">
-        {/* Font Family & Color Theme */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
-              Font Family
-            </label>
-            <select
-              value={family}
-              onChange={(e) => onChange({ family: e.target.value })}
-              className="w-full h-8.5 px-3 rounded-lg border border-border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-2xs"
-            >
-              {FONT_FAMILIES.map((f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
+          {/* Font Family & Color Theme */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div className="space-y-1">
               <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
-                Color Themse{' '}
-                <span className="text-[10px] text-muted-foreground font-normal italic">
-                  (sic)
-                </span>
+                Font Family
               </label>
+              <select
+                value={family}
+                onChange={(e) => onChange({ family: e.target.value })}
+                className="w-full h-8.5 px-3 rounded-lg border border-border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-2xs"
+              >
+                {FONT_FAMILIES.map((f) => (
+                  <option key={f} value={f}>
+                    {f}
+                  </option>
+                ))}
+              </select>
             </div>
-            <select
-              value={theme}
-              onChange={(e) => onChange({ theme: e.target.value })}
-              className="w-full h-8.5 px-3 rounded-lg border border-border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-2xs"
-            >
-              {COLOR_THEMES.map((th) => (
-                <option key={th} value={th}>
-                  {th}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
 
-        {/* PDF Font & Font Size */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
-              PDF Font
-            </label>
-            <select
-              value={pdfFont}
-              onChange={(e) => onChange({ pdfFont: e.target.value })}
-              className="w-full h-8.5 px-3 rounded-lg border border-border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-2xs"
-            >
-              {PDF_FONTS.map((pf) => (
-                <option key={pf} value={pf}>
-                  {pf}
-                </option>
-              ))}
-            </select>
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
+                Color Theme
+              </label>
+              <select
+                value={theme}
+                onChange={(e) => onChange({ theme: e.target.value })}
+                className="w-full h-8.5 px-3 rounded-lg border border-border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-2xs"
+              >
+                {COLOR_THEMES.map((th) => (
+                  <option key={th} value={th}>
+                    {th}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
+          {/* Base Font Size */}
           <div className="space-y-1">
             <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
               Base Font Size (pt/px)
@@ -144,38 +122,54 @@ export const FontSection: React.FC<FontSectionProps> = ({
               className="w-full h-8.5 px-3 rounded-lg border border-border bg-background text-xs font-mono font-medium text-foreground outline-none focus:ring-1 focus:ring-indigo-500 shadow-2xs"
             />
           </div>
-        </div>
 
-        {/* Colors: Font Color & Background Color */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-          <ColorPicker
-            label="Font Color"
-            value={color}
-            onChange={(newColor) => onChange({ color: newColor })}
-          />
+          {/* Colors: Theme Accent Color & Background Color */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+            <ColorPicker
+              label="Theme Accent Color"
+              value={color}
+              onChange={(newColor) => onChange({ color: newColor })}
+            />
 
-          <ColorPicker
-            label="Background Color"
-            value={backgroundColor}
-            onChange={(newBgColor) => onChange({ backgroundColor: newBgColor })}
-          />
-        </div>
+            <ColorPicker
+              label="Paper Background Color"
+              value={backgroundColor}
+              onChange={(newBgColor) => onChange({ backgroundColor: newBgColor })}
+            />
+          </div>
 
-        {/* Background Image/Keyword */}
-        <div className="space-y-1 pt-1">
-          <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
-            Background Watermark / Image (Optional)
-          </label>
-          <input
-            type="text"
-            value={background}
-            onChange={(e) => onChange({ background: e.target.value })}
-            placeholder="URL or watermark keyword..."
-            className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground/60 outline-none focus:ring-1 focus:ring-indigo-500 shadow-2xs"
-          />
+          {/* Background Watermark / Image */}
+          <div className="space-y-1.5 pt-1">
+            <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
+              Background Watermark Text / Image URL
+            </label>
+            <input
+              type="text"
+              value={background}
+              onChange={(e) => onChange({ background: e.target.value })}
+              placeholder="Watermark text (e.g. DRAFT, PAID) or Image URL..."
+              className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground/60 outline-none focus:ring-1 focus:ring-indigo-500 shadow-2xs"
+            />
+            {/* Quick watermark presets */}
+            <div className="flex flex-wrap gap-1 pt-0.5">
+              {watermarkPresets.map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => onChange({ background: background === preset ? '' : preset })}
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors cursor-pointer ${
+                    background === preset
+                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted'
+                  }`}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-    )}
-  </div>
+      )}
+    </div>
   );
 };

@@ -19,9 +19,12 @@ export type CustomFieldDataType =
   | 'YesNo'
   | 'MultiSelect';
 
+export type CustomFieldScope = 'Master' | 'Details';
+
 export type CustomField = {
   id: string;
   context: CustomFieldContext;
+  scope?: CustomFieldScope;        // 'Master' | 'Details'
   label: string;                  // "Invoice"
   dataType: CustomFieldDataType;
   mandatory: boolean;             // Yes → true

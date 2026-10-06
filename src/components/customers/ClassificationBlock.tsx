@@ -3,14 +3,16 @@ import { CustomerGroup, CustomerType, PaymentType } from '../../types/customer';
 import { GroupPicker } from './GroupPicker';
 import { CustomerTypeSelect } from './CustomerTypeSelect';
 import { PaymentTypeSelect } from './PaymentTypeSelect';
+import { AccountsReceivablePicker } from './AccountsReceivablePicker';
 import { AdvanceReceiveAccountPicker } from './AdvanceReceiveAccountPicker';
-import { Layers } from 'lucide-react';
+import { Layers, Landmark } from 'lucide-react';
 
 interface ClassificationBlockProps {
   groups: CustomerGroup[];
   groupId: string;
   customerType: CustomerType;
   paymentType: PaymentType;
+  accountsReceivableId: string | null;
   advanceReceiveAccountId: string | null;
   activeStatus: 'Active' | 'Inactive';
   errors: Record<string, string | undefined>;
@@ -23,6 +25,7 @@ export const ClassificationBlock: React.FC<ClassificationBlockProps> = ({
   groupId,
   customerType,
   paymentType,
+  accountsReceivableId,
   advanceReceiveAccountId,
   activeStatus,
   errors,
@@ -54,12 +57,29 @@ export const ClassificationBlock: React.FC<ClassificationBlockProps> = ({
         error={errors.paymentType}
       />
 
-      {/* 15. Advance Receive Accounts (COA) */}
-      <AdvanceReceiveAccountPicker
-        value={advanceReceiveAccountId}
-        onChange={(val) => onChangeField('advanceReceiveAccountId', val)}
-        error={errors.advanceReceiveAccountId}
-      />
+      {/* Combined Accounts Receivable & Advance Accounts Section */}
+      <div className="p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-border/80 space-y-3">
+        <div className="flex items-center gap-1.5 pb-2 border-b border-border/60">
+          <Landmark className="size-3.5 text-indigo-600 dark:text-indigo-400" />
+          <span className="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider">
+            Accounts Receivable & Advance Accounts
+          </span>
+        </div>
+
+        <div className="space-y-3">
+          <AccountsReceivablePicker
+            value={accountsReceivableId}
+            onChange={(val) => onChangeField('accountsReceivableId', val)}
+            error={errors.accountsReceivableId}
+          />
+
+          <AdvanceReceiveAccountPicker
+            value={advanceReceiveAccountId}
+            onChange={(val) => onChangeField('advanceReceiveAccountId', val)}
+            error={errors.advanceReceiveAccountId}
+          />
+        </div>
+      </div>
 
       {/* Status Setting Block */}
       <div className="pt-2 border-t border-border/60 space-y-2">

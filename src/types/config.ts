@@ -5,12 +5,15 @@ export type Config = {
   costCenter: {
     mandatory: boolean;
     effectivePart: string[]; // multi: 'Balance sheet' | 'Income Statement'
-    partEffectiveCompany: string[];
+    applyToAllChanges: boolean;
   };
   voucherControlling: {
     enabled: boolean;
+    controlMode: 'voucher-wise' | 'user-wise';
+    selectedVouchers: string[];
+    selectedUsers: string[];
     maxDueDays: number;
-    effectivePart: { voucherType: string; user: string };
+    maxDelayDays: number;
     effectiveCompany: string[];
   };
   monthLock: {
@@ -19,11 +22,14 @@ export type Config = {
     effectiveCompany: string[];
   };
   voucher: {
-    dateFormat: string; // "DD/MM/YYYY"
-    idRenewal: IdRenewalOption | string;
+    dateFormat?: string;
+    idRenewal?: IdRenewalOption | string;
     fiscalYearly?: boolean;
   };
   accountsCode: {
+    autoGenerate: boolean;
+    prefix: string;
+    codeLength: number;
     mergeView: boolean;
     pathVisible: AccountsPathVisibleOption | string;
     effectiveCompany: string[];
@@ -35,7 +41,7 @@ export type Config = {
     advanceReceive: string | null;
   };
   bankCheque: {
-    defaultVoucherType: string; // "Bank Payment Voucher"
+    defaultVoucherName: string; // "Bank Payment Voucher"
     defaultAccount: string | null;
   };
   globalEffectiveCompany: string[];

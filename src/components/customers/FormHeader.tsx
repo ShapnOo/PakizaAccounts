@@ -6,14 +6,13 @@ interface FormHeaderProps {
   title: string;
   subtitle: string;
   dirty?: boolean;
-  onCancel: () => void;
+  onCancel?: () => void;
 }
 
 export const FormHeader: React.FC<FormHeaderProps> = ({
   title,
   subtitle,
   dirty = false,
-  onCancel,
 }) => {
   return (
     <div className="flex items-center justify-between pb-4 border-b border-border/80">
@@ -42,16 +41,6 @@ export const FormHeader: React.FC<FormHeaderProps> = ({
             {subtitle}
           </p>
         </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-3 py-1.5 rounded-lg border border-border text-xs font-bold text-muted-foreground hover:bg-muted cursor-pointer transition-colors"
-        >
-          Cancel
-        </button>
       </div>
     </div>
   );

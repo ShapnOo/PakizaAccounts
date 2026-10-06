@@ -12,6 +12,7 @@ import {
   CreditCard,
   ChevronDown,
   Calendar,
+  Plus,
 } from 'lucide-react';
 import { ChequePrepare, PrepareLine, SourceType, ChequeFor } from '../../types/chequePrepare';
 import { SourceTypeChip } from './SourceTypeChip';
@@ -234,6 +235,16 @@ export const RegisterTable: React.FC<RegisterTableProps> = ({
           >
             <Download className="size-3.5 text-muted-foreground" />
             <span>Export CSV</span>
+          </button>
+
+          {/* Prepare Cheque */}
+          <button
+            type="button"
+            onClick={() => navigate('/cheques/prepare/direct')}
+            className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-sm shadow-primary/20 transition-all cursor-pointer active:scale-95"
+          >
+            <Plus className="size-4" />
+            <span>Prepare Cheque</span>
           </button>
         </div>
       </div>

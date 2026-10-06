@@ -17,6 +17,7 @@ interface PreparedChequeState {
   addPrepared: (payload: Omit<ChequePrepare, 'id' | 'createdAt'>) => Promise<ChequePrepare>;
   getById: (id: string) => Promise<ChequePrepare | null>;
   voidCheque: (id: string) => Promise<void>;
+  update: (id: string, updates: Partial<ChequePrepare>) => Promise<ChequePrepare>;
 }
 
 export const usePreparedChequeStore = create<PreparedChequeState>((set, get) => ({
@@ -64,6 +65,15 @@ export const usePreparedChequeStore = create<PreparedChequeState>((set, get) => 
     set((state) => ({
       prepared: state.prepared.filter((p) => p.id !== id),
     }));
+  },
+
+  update: async (id, updates) => {
+    const { updatePreparedCheque } = await import('../services/preparedChequeService');
+    const updated = await updatePreparedCheque(id, updates);
+    set((state) => ({
+      prepared: state.prepared.map((p) => (p.id === id ? updated : p)),
+    }));
+    return updated;
   },
 }));
 

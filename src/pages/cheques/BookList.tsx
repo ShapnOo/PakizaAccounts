@@ -67,14 +67,24 @@ export const BookListPage: React.FC = () => {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigate('/cheque-setup/new')}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-sm shadow-primary/20 transition-all cursor-pointer active:scale-95"
-        >
-          <Plus className="size-4" />
-          <span>New Cheque Book</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate('/cheques/prepare/direct')}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-sm shadow-primary/20 transition-all cursor-pointer active:scale-95"
+          >
+            <Plus className="size-4" />
+            <span>Prepare Cheque</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/cheque-setup/new')}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-border bg-card hover:bg-muted text-xs font-bold text-foreground transition-all cursor-pointer shadow-2xs"
+          >
+            <Plus className="size-4 text-muted-foreground" />
+            <span>New Cheque Book</span>
+          </button>
+        </div>
       </div>
 
       {/* Toolbar */}

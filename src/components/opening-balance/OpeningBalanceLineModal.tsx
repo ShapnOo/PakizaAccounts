@@ -23,6 +23,7 @@ import { formatNumber } from '../../lib/format';
 import { round2 } from '../../lib/math/openingBalance';
 import { useCustomFields } from '../../hooks/useCustomFields';
 import { CustomFieldCell } from '../shared/CustomFieldCell';
+import { useOpeningMasterLookups } from '../../hooks/useOpeningMasterLookups';
 
 interface OpeningBalanceLineModalProps {
   isOpen: boolean;
@@ -53,6 +54,7 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
   const [customFieldsValues, setCustomFieldsValues] = useState<Record<string, any>>({});
 
   const { fields: customFields } = useCustomFields('opening-balance');
+  const { getAccount } = useOpeningMasterLookups();
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -116,6 +118,14 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  const selectedAccountInfo = getAccount(accountHeadId);
+  const isAP = selectedAccountInfo
+    ? (selectedAccountInfo.detailsType === 'Accounts Payable' || selectedAccountInfo.name.toLowerCase().includes('payable') || selectedAccountInfo.name.toLowerCase().includes('creditor'))
+    : false;
+  const isAR = selectedAccountInfo
+    ? (selectedAccountInfo.detailsType === 'Accounts Receivable' || selectedAccountInfo.name.toLowerCase().includes('receivable') || selectedAccountInfo.name.toLowerCase().includes('debtor'))
+    : false;
+
   if (!isOpen) return null;
 
   const numAmount = parseFloat(amount) || 0;
@@ -143,6 +153,14 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
 
     if (!accountHeadId.trim()) {
       newErrors.accountHeadId = 'Account head is required';
+    }
+
+    if (isAP && !subsidiaryId) {
+      newErrors.subsidiaryId = 'Vendor selection is required for Accounts Payable';
+    }
+
+    if (isAR && !subsidiaryId) {
+      newErrors.subsidiaryId = 'Customer selection is required for Accounts Receivable';
     }
 
     if (isNaN(numAmount) || numAmount <= 0) {
@@ -195,7 +213,7 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in-0 duration-150">
       <div
-        className="w-full max-w-2xl bg-white dark:bg-card rounded-2xl shadow-2xl border border-slate-200 dark:border-border overflow-hidden transform animate-in zoom-in-95 duration-150 flex flex-col max-h-[92vh]"
+        className="w-full max-w-4xl bg-white dark:bg-card rounded-2xl shadow-2xl border border-slate-200 dark:border-border overflow-hidden transform animate-in zoom-in-95 duration-150 flex flex-col max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -415,11 +433,20 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
 
               {/* Subsidiary */}
               <div className="space-y-1">
-                <label className="block text-[11px] font-bold text-slate-600 dark:text-muted-foreground flex items-center gap-1">
-                  <Users className="size-3 text-slate-400" />
-                  <span>Subsidiary (Vendor / Customer)</span>
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-muted-foreground flex items-center justify-between">
+                  <span className="flex items-center gap-1">
+                    <Users className="size-3 text-slate-400" />
+                    <span>Subsidiary (Vendor / Customer)</span>
+                  </span>
+                  {(isAP || isAR) && <span className="text-[10px] text-rose-500 font-bold">* Required for {isAP ? 'A/P' : 'A/R'}</span>}
                 </label>
-                <SubsidiaryPicker value={subsidiaryId} onChange={setSubsidiaryId} />
+                <SubsidiaryPicker value={subsidiaryId} onChange={(id) => {
+                  setSubsidiaryId(id);
+                  if (errors.subsidiaryId) setErrors((prev) => ({ ...prev, subsidiaryId: '' }));
+                }} />
+                {errors.subsidiaryId && (
+                  <p className="text-[10.5px] text-rose-600 font-semibold mt-0.5">{errors.subsidiaryId}</p>
+                )}
               </div>
 
               {/* Employee */}

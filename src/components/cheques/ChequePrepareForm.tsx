@@ -37,7 +37,7 @@ interface ChequePrepareFormProps {
 export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType }) => {
   const navigate = useNavigate();
   const { books, loadBooks } = useChequeBookStore();
-  const { add: addPreparedCheque } = useChequePrepareStore();
+  const { add: addPreparedCheque, update: updatePreparedCheque } = useChequePrepareStore();
   const { postVoucherEntry } = useVouchers();
 
   const [isSaving, setIsSaving] = useState(false);
@@ -232,6 +232,62 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
     setLastSavedChequeId(null);
     setLastVoucherId(null);
     setErrors({});
+  };
+
+  // Re-generate journal after saving
+  const handleRegenerateJournal = async () => {
+    if (!lastSavedChequeId) return;
+    setIsSaving(true);
+    try {
+      const totalAmount = lines.reduce((sum, l) => sum + (l.amount || 0), 0);
+      const posted = postVoucherEntry({
+        id: `vch-${Date.now()}`,
+        voucherNumber: `VCH-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+        voucherType:
+          voucherType === 'Contra'
+            ? 'Contra Voucher'
+            : voucherType === 'Journal'
+            ? 'Journal Voucher'
+            : 'Payment Voucher',
+        date: voucherDate,
+        headerAccountId: accountsBankId,
+        headerAccountName: bankName,
+        lines: lines.map((line, idx) => ({
+          id: `line-${idx + 1}`,
+          accountHeadId: line.glAccountId,
+          accountHeadName: line.name || line.payTo || 'Accounts Payable',
+          currency: 'BDT',
+          exchangeRate: 1,
+          debit: line.amount,
+          credit: 0,
+          debitBDT: line.amount,
+          creditBDT: 0,
+          description: `CQ No: ${line.chequeNo} | Pay to: ${line.payTo}`,
+        })),
+        narration: narration || `Cheque disbursement for ${sourceType} payment`,
+        totals: {
+          debit: totalAmount,
+          credit: totalAmount,
+          debitBDT: totalAmount,
+          creditBDT: totalAmount,
+        },
+        createdAt: new Date().toISOString(),
+      });
+
+      await updatePreparedCheque(lastSavedChequeId, {
+        voucherId: posted.id,
+        voucherNo: posted.voucherNumber,
+        voucherDate: voucherDate,
+        voucherType: voucherType,
+      });
+
+      setLastVoucherId(posted.id);
+      toast.success(`Journal entry re-generated! Posted voucher: ${posted.voucherNumber}`);
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to re-generate journal entry');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Save handler
@@ -466,6 +522,7 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
           isSaving={isSaving}
           onSave={() => executeSave(false)}
           onSaveAndJournal={() => executeSave(true)}
+          onRegenerateJournal={handleRegenerateJournal}
           hasJournal={Boolean(voucherType)}
           onReset={handleResetForm}
         />

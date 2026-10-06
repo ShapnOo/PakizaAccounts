@@ -564,10 +564,14 @@ export function saveStoredExtraDetailsTypes(types: string[]): void {
   } catch (e) {}
 }
 
-export const MOCK_ACCOUNTS = INITIAL_ACCOUNTS.map((a) => ({
-  id: a.id,
-  name: a.name,
-  code: a.manualCode || a.code,
-  path: a.path,
-}));
+export const MOCK_ACCOUNTS = INITIAL_ACCOUNTS
+  .filter((a) => !a.isParent)
+  .map((a) => ({
+    id: a.id,
+    name: a.name,
+    code: a.manualCode || a.code,
+    path: a.path,
+    isParent: false,
+    detailsType: a.detailsType,
+  }));
 

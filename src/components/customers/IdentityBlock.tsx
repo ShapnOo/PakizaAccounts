@@ -5,7 +5,6 @@ import { AddressList } from './AddressList';
 import { BinTinPair } from './BinTinPair';
 import { KeyPersonMobilePair } from './KeyPersonMobilePair';
 import { NoteField } from './NoteField';
-import { AccountsReceivablePicker } from './AccountsReceivablePicker';
 import { AttachmentDropzone } from './AttachmentDropzone';
 import { Address, Attachment } from '../../types/customer';
 import { Mail, Building } from 'lucide-react';
@@ -22,7 +21,6 @@ interface IdentityBlockProps {
   keyPerson: string;
   mobile: string;
   note: string;
-  accountsReceivableId: string | null;
   attachments: Attachment[];
   errors: Record<string, string | undefined>;
   onChangeField: (field: string, value: any) => void;
@@ -41,7 +39,6 @@ export const IdentityBlock: React.FC<IdentityBlockProps> = ({
   keyPerson,
   mobile,
   note,
-  accountsReceivableId,
   attachments,
   errors,
   onChangeField,
@@ -185,14 +182,7 @@ export const IdentityBlock: React.FC<IdentityBlockProps> = ({
         error={errors.note}
       />
 
-      {/* 10. Accounts Receivable (COA) */}
-      <AccountsReceivablePicker
-        value={accountsReceivableId}
-        onChange={(val) => onChangeField('accountsReceivableId', val)}
-        error={errors.accountsReceivableId}
-      />
-
-      {/* 11. Attachments */}
+      {/* 10. Attachments */}
       <AttachmentDropzone
         attachments={attachments}
         onChange={(val) => onChangeField('attachments', val)}

@@ -56,3 +56,26 @@ export function getPaperDimensions(
     heightMm,
   };
 }
+
+export function resolveThemeColor(theme?: string, color?: string): string {
+  if (color && color !== '#000000' && color !== '#0f172a' && color.trim() !== '') {
+    return color;
+  }
+  switch (theme) {
+    case 'Modern':
+      return '#2563eb';
+    case 'Corporate':
+      return '#0f766e';
+    case 'Minimal':
+      return '#475569';
+    case 'Bold':
+      return '#7c3aed';
+    case 'Crimson':
+      return '#b91c1c';
+    case 'Amber':
+      return '#c2410c';
+    case 'Classic':
+    default:
+      return '#1e293b';
+  }
+}

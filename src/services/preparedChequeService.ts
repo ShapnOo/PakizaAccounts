@@ -124,3 +124,20 @@ export async function voidPreparedCheque(id: string): Promise<void> {
   const remaining = all.filter((p) => p.id !== id);
   localStorage.setItem(LS_PREP, JSON.stringify(remaining));
 }
+
+export async function updatePreparedCheque(
+  id: string,
+  updates: Partial<ChequePrepare>
+): Promise<ChequePrepare> {
+  await delay(250);
+  const all = await listPreparedCheques();
+  const idx = all.findIndex((p) => p.id === id);
+  if (idx === -1) {
+    throw new Error('Prepared cheque record not found');
+  }
+  const updatedItem = { ...all[idx], ...updates };
+  all[idx] = updatedItem;
+  localStorage.setItem(LS_PREP, JSON.stringify(all));
+  return updatedItem;
+}
+

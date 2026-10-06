@@ -8,6 +8,7 @@ interface PrepareActionBarProps {
   isSaving: boolean;
   onSave: () => void;
   onSaveAndJournal: () => void;
+  onRegenerateJournal?: () => void;
   hasJournal?: boolean;
   onReset?: () => void;
 }
@@ -18,6 +19,7 @@ export const PrepareActionBar: React.FC<PrepareActionBarProps> = ({
   isSaving,
   onSave,
   onSaveAndJournal,
+  onRegenerateJournal,
   hasJournal = true,
   onReset,
 }) => {
@@ -39,7 +41,7 @@ export const PrepareActionBar: React.FC<PrepareActionBarProps> = ({
         )}
       </div>
 
-      {/* Right actions: Cheque Print | Voucher Print | Save | Save & Journal */}
+      {/* Right actions: Cheque Print | Voucher Print | Generate Journal Again | Save | Save & Journal */}
       <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
         {/* Reset button if available */}
         {onReset && (
@@ -92,7 +94,20 @@ export const PrepareActionBar: React.FC<PrepareActionBarProps> = ({
           <span>Voucher Print</span>
         </button>
 
-        {/* 3. Save */}
+        {/* 3. Re-Generate Journal (Available after saving) */}
+        {lastSavedChequeId && onRegenerateJournal && (
+          <button
+            type="button"
+            onClick={onRegenerateJournal}
+            disabled={isSaving}
+            className="inline-flex items-center gap-1.5 h-8.5 px-3.5 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50/80 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 hover:bg-amber-100/80 text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-2xs"
+          >
+            <RotateCcw className="size-3.5 text-amber-600 dark:text-amber-400" />
+            <span>Generate Journal Again</span>
+          </button>
+        )}
+
+        {/* 4. Save */}
         <button
           type="button"
           onClick={onSave}
@@ -103,7 +118,7 @@ export const PrepareActionBar: React.FC<PrepareActionBarProps> = ({
           <span>Save</span>
         </button>
 
-        {/* 4. Save & Journal */}
+        {/* 5. Save & Journal */}
         <button
           type="button"
           onClick={onSaveAndJournal}

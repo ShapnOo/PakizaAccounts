@@ -167,13 +167,13 @@ const searchableMenus: SearchMenuLink[] = [
   {
     label: "Customer Master Setup",
     parent: "Accounts Receivable Management",
-    to: "/accounts-receivable/customer-master-setup",
+    to: "/customers",
     description: "Customer onboarding, billing profiles, and credit policies",
   },
   {
     label: "Customer Master List",
     parent: "Accounts Receivable Management",
-    to: "/accounts-receivable/customer-master-list",
+    to: "/customers",
     description: "Complete list of accounts receivable debtors and customer balances",
   },
 

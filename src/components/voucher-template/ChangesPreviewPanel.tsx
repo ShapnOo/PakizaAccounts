@@ -226,9 +226,25 @@ export const ChangesPreviewPanel: React.FC<ChangesPreviewPanelProps> = ({
           <div className="flex items-center rounded-lg border border-border bg-muted/40 p-0.5">
             <button
               type="button"
+              onClick={() => {
+                handleSetViewMode('standard');
+                onZoomChange(65);
+              }}
+              className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                zoom <= 70 && viewMode === 'standard'
+                  ? 'bg-indigo-600 text-white shadow-2xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Maximize2 className="size-3" />
+              <span>Full View</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => handleSetViewMode('standard')}
               className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'standard'
+                viewMode === 'standard' && zoom > 70
                   ? 'bg-card text-foreground shadow-2xs border border-border/60'
                   : 'text-muted-foreground hover:text-foreground'
               }`}

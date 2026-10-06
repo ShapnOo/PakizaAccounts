@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { VoucherTemplate } from '../../types/voucherTemplate';
-import { getPaperDimensions, inchToPx } from '../../lib/paperMath';
+import { getPaperDimensions, inchToPx, resolveThemeColor } from '../../lib/paperMath';
 import { MarginGuides } from './MarginGuides';
 import { AlignmentOverlay } from './AlignmentOverlay';
 import { RulerBar, RulerUnit } from './RulerBar';
@@ -50,6 +50,8 @@ export const PaperCanvas: React.FC<PaperCanvasProps> = ({
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const scale = zoom / 100;
+  const themeColor = resolveThemeColor(template.font.theme, template.font.color);
+
   const dimensions = getPaperDimensions(
     template.paper.size,
     template.paper.orientation,
@@ -83,6 +85,12 @@ export const PaperCanvas: React.FC<PaperCanvasProps> = ({
   };
 
   const RULER_OFFSET = showRulers ? 22 : 0;
+  const watermarkText = template.font.background || '';
+  const isImageWatermark =
+    watermarkText.startsWith('http://') ||
+    watermarkText.startsWith('https://') ||
+    watermarkText.startsWith('data:') ||
+    watermarkText.startsWith('/');
 
   return (
     <div
@@ -117,7 +125,7 @@ export const PaperCanvas: React.FC<PaperCanvasProps> = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="relative transition-all duration-150 select-none shadow-xl rounded-xs ring-1 ring-black/5 dark:ring-white/10"
+        className="relative transition-all duration-150 select-none shadow-xl rounded-xs ring-1 ring-black/5 dark:ring-white/10 overflow-hidden"
         style={{
           width: `${dimensions.widthPx}px`,
           minHeight: `${dimensions.heightPx}px`,
@@ -126,6 +134,29 @@ export const PaperCanvas: React.FC<PaperCanvasProps> = ({
           fontFamily: template.font.family || 'Inter, sans-serif',
         }}
       >
+        {/* ── Background Watermark Layer ── */}
+        {watermarkText && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0">
+            {isImageWatermark ? (
+              <img
+                src={watermarkText}
+                alt="Watermark"
+                className="max-w-[75%] max-h-[75%] object-contain opacity-15"
+              />
+            ) : (
+              <div
+                className="transform -rotate-25 select-none font-black uppercase text-5xl sm:text-6xl md:text-7xl tracking-widest text-center px-4"
+                style={{
+                  color: themeColor || '#475569',
+                  opacity: 0.12,
+                }}
+              >
+                {watermarkText}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* ── Alignment Overlay (Grid, Center Crosshairs, Coordinates) ── */}
         <AlignmentOverlay
           widthPx={dimensions.widthPx}
@@ -190,6 +221,7 @@ export const PaperCanvas: React.FC<PaperCanvasProps> = ({
                 logoPosition={template.header.logoPosition ?? 'left'}
                 baseFontSize={template.font.size}
                 textColor={template.font.color}
+                themeColor={themeColor}
               />
             </div>
 
@@ -212,6 +244,7 @@ export const PaperCanvas: React.FC<PaperCanvasProps> = ({
                 showBorder={template.table.showBorder}
                 fontSize={template.table.fontSize || template.font.size}
                 textColor={template.font.color}
+                themeColor={themeColor}
                 previewLines={previewLines}
               />
             </div>
@@ -234,6 +267,7 @@ export const PaperCanvas: React.FC<PaperCanvasProps> = ({
                 totalCredit={15000}
                 fontSize={template.font.size}
                 textColor={template.font.color}
+                themeColor={themeColor}
               />
             </div>
 
@@ -253,6 +287,7 @@ export const PaperCanvas: React.FC<PaperCanvasProps> = ({
               <PreviewNarration
                 fontSize={template.font.size}
                 textColor={template.font.color}
+                themeColor={themeColor}
               />
             </div>
           </div>
@@ -276,6 +311,7 @@ export const PaperCanvas: React.FC<PaperCanvasProps> = ({
                 visible={template.table.showApprovalSignature}
                 fontSize={template.font.size}
                 textColor={template.font.color}
+                themeColor={themeColor}
               />
             </div>
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 import { useOpeningBalanceStore } from '../../stores/openingBalanceStore';
 import { calculateOpeningBalanceTotals } from '../../lib/math/openingBalance';
 import { OpeningHeader } from '../../components/opening-balance/OpeningHeader';
@@ -34,7 +35,7 @@ export const OpeningBalanceEntryPage: React.FC = () => {
     reset,
   } = useOpeningBalanceStore();
 
-  const { getAccount } = useOpeningMasterLookups();
+  const { getAccount, getCostCenter, getSubsidiary, getEmployee, getVehicle } = useOpeningMasterLookups();
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [shakeBadge, setShakeBadge] = useState(false);
@@ -50,6 +51,46 @@ export const OpeningBalanceEntryPage: React.FC = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Export Opening Balance Lines to Excel / CSV
+  const handleExportData = () => {
+    if (!lines || lines.length === 0) {
+      toast.error('No opening balance lines available to export');
+      return;
+    }
+
+    const exportRows = lines.map((l, index) => {
+      const acc = getAccount(l.accountHeadId);
+      const cc = getCostCenter(l.costCenterId);
+      const sub = getSubsidiary(l.subsidiaryId);
+      const emp = getEmployee(l.employeeId);
+      const veh = getVehicle(l.vehicleId);
+
+      return {
+        'SL #': index + 1,
+        'Account Head': acc ? acc.name : l.accountHeadId,
+        'Account Code': acc ? acc.code : '',
+        'Cost Center': cc ? cc.name : l.costCenterId || '',
+        'Subsidiary (Vendor/Customer)': sub ? sub.name : l.subsidiaryId || '',
+        Employee: emp ? emp.name : l.employeeId || '',
+        Vehicle: veh ? veh.name : l.vehicleId || '',
+        Reference: l.reference || '',
+        Description: l.description || '',
+        Currency: l.currency || 'BDT',
+        'Exchange Rate': l.exchangeRate || 1,
+        'Debit (Original)': l.debit || '',
+        'Credit (Original)': l.credit || '',
+        'Debit (BDT)': l.debitBDT || 0,
+        'Credit (BDT)': l.creditBDT || 0,
+      };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(exportRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Opening_Balances');
+    XLSX.writeFile(wb, `Opening_Balance_${openingDate || 'Export'}.xlsx`);
+    toast.success(`Exported ${lines.length} opening balance entries to Excel`);
+  };
 
   // Derived totals and reconciliation status (memoized on lines to ensure stable reference)
   const totals = useMemo(() => calculateOpeningBalanceTotals(lines), [lines]);
@@ -118,6 +159,7 @@ export const OpeningBalanceEntryPage: React.FC = () => {
         activeFiscalYear={activeFiscalYear}
         onDateChange={setOpeningDate}
         onOpenUpload={() => setIsUploadOpen(true)}
+        onExportData={handleExportData}
         onOpenAddModal={handleOpenAddModal}
       />
 

@@ -1,25 +1,26 @@
 import React from 'react';
-import { Calendar, Upload, Scale, Plus } from 'lucide-react';
+import { Calendar, Upload, Scale, Plus, Download } from 'lucide-react';
 
 interface OpeningHeaderProps {
   openingDate: string;
   activeFiscalYear: string;
   onDateChange: (date: string) => void;
   onOpenUpload: () => void;
+  onExportData?: () => void;
   onOpenAddModal: () => void;
 }
 
 export const OpeningHeader: React.FC<OpeningHeaderProps> = ({
   openingDate,
-  activeFiscalYear,
   onDateChange,
   onOpenUpload,
+  onExportData,
   onOpenAddModal,
 }) => {
   return (
     <div className="bg-card border border-border/80 rounded-xl p-4 sm:p-5 shadow-2xs">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Left: Module Title & Fiscal Context */}
+        {/* Left: Module Title */}
         <div className="flex items-start sm:items-center gap-3">
           <div className="size-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 grid place-items-center shrink-0 shadow-2xs">
             <Scale className="size-5" />
@@ -29,17 +30,14 @@ export const OpeningHeader: React.FC<OpeningHeaderProps> = ({
               <h1 className="text-xl font-black tracking-tight text-foreground">
                 Opening Balance
               </h1>
-              <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300">
-                FY {activeFiscalYear}
-              </span>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Set initial account balances and auxiliary dimensions for the start of the fiscal year.
+              Set initial GL account balances and auxiliary dimensions for the start of the financial period.
             </p>
           </div>
         </div>
 
-        {/* Right: DatePicker, Upload Action & Prominent Add Button */}
+        {/* Right: DatePicker, Export, Upload Action & Prominent Add Button */}
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
           {/* Opening Date Selector */}
           <div className="flex items-center gap-2 bg-muted/30 px-3 py-1.5 rounded-lg border border-border/80 shadow-2xs">
@@ -54,6 +52,19 @@ export const OpeningHeader: React.FC<OpeningHeaderProps> = ({
               className="bg-transparent text-xs font-semibold text-foreground outline-none cursor-pointer"
             />
           </div>
+
+          {/* Data Export Button */}
+          {onExportData && (
+            <button
+              type="button"
+              onClick={onExportData}
+              className="inline-flex items-center gap-1.5 h-8.5 px-3.5 rounded-lg border border-border bg-card hover:bg-muted text-xs font-bold text-foreground shadow-2xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
+              title="Export Opening Balances to CSV/Excel"
+            >
+              <Download className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Export</span>
+            </button>
+          )}
 
           {/* Upload Excel Button */}
           <button

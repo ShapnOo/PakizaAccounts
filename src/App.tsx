@@ -275,7 +275,7 @@ export default function App() {
                   <Route path="/customers" element={<CustomerListPage />} />
                   <Route path="/accounts-receivable/customer-master-list" element={<Navigate to="/customers" replace />} />
                   <Route path="/customers/new" element={<CustomerFormPage />} />
-                  <Route path="/accounts-receivable/customer-master-setup" element={<Navigate to="/customers/new" replace />} />
+                  <Route path="/accounts-receivable/customer-master-setup" element={<Navigate to="/customers" replace />} />
                   <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
 
                   {/* Bank & Branch Setup Routes */}

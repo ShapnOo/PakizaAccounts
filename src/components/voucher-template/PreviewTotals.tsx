@@ -6,6 +6,7 @@ interface PreviewTotalsProps {
   totalCredit: number;
   fontSize: number;
   textColor: string;
+  themeColor?: string;
 }
 
 export const PreviewTotals: React.FC<PreviewTotalsProps> = ({
@@ -13,9 +14,11 @@ export const PreviewTotals: React.FC<PreviewTotalsProps> = ({
   totalCredit = 15000,
   fontSize = 9,
   textColor,
+  themeColor,
 }) => {
   const difference = Math.abs(totalDebit - totalCredit);
   const isBalanced = difference === 0;
+  const activeLabelColor = themeColor || textColor;
 
   return (
     <div className="flex justify-end pt-1">
@@ -27,14 +30,14 @@ export const PreviewTotals: React.FC<PreviewTotalsProps> = ({
         }}
       >
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-border/60 pb-1">
-          <span className="font-bold uppercase tracking-wider">Total Debit (BDT):</span>
+          <span className="font-bold uppercase tracking-wider" style={{ color: activeLabelColor }}>Total Debit (BDT):</span>
           <span className="font-bold text-emerald-700 dark:text-emerald-400">
             ৳ {formatCurrency(totalDebit)}
           </span>
         </div>
 
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-border/60 pb-1">
-          <span className="font-bold uppercase tracking-wider">Total Credit (BDT):</span>
+          <span className="font-bold uppercase tracking-wider" style={{ color: activeLabelColor }}>Total Credit (BDT):</span>
           <span className="font-bold text-rose-700 dark:text-rose-400">
             ৳ {formatCurrency(totalCredit)}
           </span>

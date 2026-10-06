@@ -19,7 +19,7 @@ export const ZoomControl: React.FC<ZoomControlProps> = ({
   };
 
   const handleReset = () => {
-    onZoomChange(100);
+    onZoomChange(zoom === 65 ? 100 : 65);
   };
 
   return (
@@ -27,7 +27,7 @@ export const ZoomControl: React.FC<ZoomControlProps> = ({
       <button
         type="button"
         onClick={handleZoomOut}
-        disabled={zoom <= 60}
+        disabled={zoom <= 50}
         className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-40 cursor-pointer"
         title="Zoom Out"
       >
@@ -37,10 +37,15 @@ export const ZoomControl: React.FC<ZoomControlProps> = ({
       <button
         type="button"
         onClick={handleReset}
-        className="px-1.5 py-0.5 text-[11px] font-mono font-bold text-foreground hover:bg-muted rounded cursor-pointer"
-        title="Reset Zoom to 100%"
+        className="px-2 py-0.5 text-[11px] font-mono font-bold text-foreground hover:bg-muted rounded cursor-pointer flex items-center gap-1"
+        title="Toggle Full View (65%) / 100%"
       >
-        {zoom}%
+        <span>{zoom}%</span>
+        {zoom <= 70 && (
+          <span className="text-[9.5px] font-bold text-indigo-600 dark:text-indigo-400 font-sans uppercase">
+            Full View
+          </span>
+        )}
       </button>
 
       <button

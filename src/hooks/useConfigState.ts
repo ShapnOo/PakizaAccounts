@@ -5,13 +5,16 @@ import { toast } from 'sonner';
 export const DEFAULT_CONFIG: Config = {
   costCenter: {
     mandatory: true,
-    effectivePart: ['Balance sheet'],
-    partEffectiveCompany: ['Pakiza Software Ltd.'],
+    effectivePart: ['Balance sheet', 'Income Statement'],
+    applyToAllChanges: true,
   },
   voucherControlling: {
     enabled: true,
+    controlMode: 'voucher-wise',
+    selectedVouchers: ['Bank Payment Voucher', 'Bank Receipt Voucher', 'Journal Voucher'],
+    selectedUsers: ['Admin', 'Accountant', 'Finance Manager'],
     maxDueDays: 5,
-    effectivePart: { voucherType: 'Voucher Type', user: 'All' },
+    maxDelayDays: 3,
     effectiveCompany: ['Pakiza Software Ltd.'],
   },
   monthLock: {
@@ -37,6 +40,9 @@ export const DEFAULT_CONFIG: Config = {
     idRenewal: 'Fiscal Yearly',
   },
   accountsCode: {
+    autoGenerate: true,
+    prefix: 'ACC-',
+    codeLength: 6,
     mergeView: true,
     pathVisible: 'Before accounts',
     effectiveCompany: ['Pakiza Software Ltd.'],
@@ -48,7 +54,7 @@ export const DEFAULT_CONFIG: Config = {
     advanceReceive: '2021',
   },
   bankCheque: {
-    defaultVoucherType: 'Bank Payment Voucher',
+    defaultVoucherName: 'Bank Payment Voucher',
     defaultAccount: '1012',
   },
   globalEffectiveCompany: ['Pakiza Software Ltd.'],
@@ -60,7 +66,7 @@ export const COMPANY_LIST = [
   'Pakiza Apparels Ltd.',
 ];
 
-const STORAGE_KEY = 'pakiza_fa_master_config_v1';
+const STORAGE_KEY = 'pakiza_fa_master_config_v2';
 
 /** Converts legacy single-string values into arrays; "All" expands to every option. */
 function toArray(v: unknown, all: string[] = COMPANY_LIST): string[] {
@@ -78,26 +84,23 @@ function normalizeConfig(parsed: any): Config {
     monthLock: { ...DEFAULT_CONFIG.monthLock, ...parsed?.monthLock },
     voucher: { ...DEFAULT_CONFIG.voucher, ...parsed?.voucher },
     accountsCode: { ...DEFAULT_CONFIG.accountsCode, ...parsed?.accountsCode },
+    bankCheque: {
+      defaultVoucherName: parsed?.bankCheque?.defaultVoucherName || parsed?.bankCheque?.defaultVoucherType || DEFAULT_CONFIG.bankCheque.defaultVoucherName,
+      defaultAccount: parsed?.bankCheque?.defaultAccount || DEFAULT_CONFIG.bankCheque.defaultAccount,
+    },
   };
-
-  // Normalize idRenewal if boolean
-  if (typeof merged.voucher.idRenewal === 'boolean') {
-    merged.voucher.idRenewal = merged.voucher.idRenewal ? 'Fiscal Yearly' : 'Continuous';
-  }
-  delete merged.voucher.fiscalYearly;
-  delete merged.costCenter.effectiveCompany;
-
-  // Normalize pathVisible if boolean
-  if (typeof merged.accountsCode.pathVisible === 'boolean') {
-    merged.accountsCode.pathVisible = merged.accountsCode.pathVisible ? 'Before accounts' : 'Hide';
-  }
 
   // Multi-select migrations
   merged.costCenter.effectivePart = toArray(merged.costCenter.effectivePart, [
     'Balance sheet',
     'Income Statement',
   ]);
-  merged.costCenter.partEffectiveCompany = toArray(merged.costCenter.partEffectiveCompany);
+  merged.voucherControlling.selectedVouchers = Array.isArray(merged.voucherControlling.selectedVouchers)
+    ? merged.voucherControlling.selectedVouchers
+    : DEFAULT_CONFIG.voucherControlling.selectedVouchers;
+  merged.voucherControlling.selectedUsers = Array.isArray(merged.voucherControlling.selectedUsers)
+    ? merged.voucherControlling.selectedUsers
+    : DEFAULT_CONFIG.voucherControlling.selectedUsers;
   merged.voucherControlling.effectiveCompany = toArray(merged.voucherControlling.effectiveCompany);
   merged.monthLock.effectiveCompany = toArray(merged.monthLock.effectiveCompany);
   merged.accountsCode.effectiveCompany = toArray(merged.accountsCode.effectiveCompany);

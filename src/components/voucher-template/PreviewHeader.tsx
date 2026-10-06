@@ -19,6 +19,7 @@ interface PreviewHeaderProps {
   logoPosition?: 'left' | 'center' | 'right';
   baseFontSize: number;
   textColor: string;
+  themeColor?: string;
 }
 
 export const PreviewHeader: React.FC<PreviewHeaderProps> = ({
@@ -34,7 +35,10 @@ export const PreviewHeader: React.FC<PreviewHeaderProps> = ({
   logoPosition = 'left',
   baseFontSize,
   textColor,
+  themeColor,
 }) => {
+  const activeThemeColor = themeColor || textColor;
+
   const getAlignmentClass = (a: Align) => {
     switch (a) {
       case 'Left':
@@ -122,13 +126,16 @@ export const PreviewHeader: React.FC<PreviewHeaderProps> = ({
       )}
 
       {/* ── 2. Document Title & Voucher Meta ── */}
-      <div className="flex items-end justify-between border-b-2 border-slate-900/80 pb-2 pt-1">
+      <div
+        className="flex items-end justify-between border-b-2 pb-2 pt-1"
+        style={{ borderColor: activeThemeColor }}
+      >
         <div>
           <h2
             className="font-extrabold uppercase tracking-wide flex items-center gap-2"
             style={{
               fontSize: `${baseFontSize + 7}px`,
-              color: textColor,
+              color: activeThemeColor,
             }}
           >
             <span>{voucherType} Voucher</span>
@@ -142,13 +149,13 @@ export const PreviewHeader: React.FC<PreviewHeaderProps> = ({
 
         <div className="text-right space-y-0.5 text-slate-700 dark:text-slate-300 font-mono text-[11px]">
           <div>
-            <span>Voucher No: </span>
+            <span style={{ color: activeThemeColor }} className="font-semibold">Voucher No: </span>
             <span className="font-bold underline decoration-dotted underline-offset-4">
               {voucherType.slice(0, 2).toUpperCase()}-2026-0042
             </span>
           </div>
           <div>
-            <span>Voucher Date: </span>
+            <span style={{ color: activeThemeColor }} className="font-semibold">Voucher Date: </span>
             <span className="font-semibold underline decoration-dotted underline-offset-4">
               2026-10-01
             </span>

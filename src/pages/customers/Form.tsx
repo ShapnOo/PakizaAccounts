@@ -314,7 +314,6 @@ export const CustomerFormPage: React.FC = () => {
                   keyPerson={keyPerson}
                   mobile={mobile}
                   note={note}
-                  accountsReceivableId={accountsReceivableId}
                   attachments={attachments}
                   errors={errors}
                   onChangeField={handleFieldChange}
@@ -334,6 +333,7 @@ export const CustomerFormPage: React.FC = () => {
                   groupId={groupId}
                   customerType={customerType}
                   paymentType={paymentType}
+                  accountsReceivableId={accountsReceivableId}
                   advanceReceiveAccountId={advanceReceiveAccountId}
                   activeStatus={activeStatus}
                   errors={errors}

@@ -28,14 +28,9 @@ import { AccountPicker } from '../components/config/AccountPicker';
 
 const EFFECTIVE_PART_OPTIONS = ['Balance sheet', 'Income Statement'];
 
-const VOUCHER_TYPE_OPTIONS = ['Voucher Type', 'User', 'All'];
+const USER_OPTIONS = ['Admin', 'Accountant', 'Finance Manager', 'Maker', 'Checker', 'Super User'];
 
-const ID_RENEWAL_OPTIONS = [
-  'Fiscal Yearly',
-  'Calendar Yearly',
-  'Monthly',
-  'Continuous',
-];
+const FISCAL_YEAR_OPTIONS = ['2023-2024', '2024-2025', '2025-2026', '2026-2027'];
 
 const ACCOUNTS_PATH_OPTIONS = [
   'Hide',
@@ -58,7 +53,23 @@ export const MasterConfigPage: React.FC = () => {
   const { vouchers } = useVouchers();
   const voucherTypeOptions = vouchers.length > 0 
     ? vouchers.map((v) => v.name) 
-    : ['Bank Payment Voucher', 'Bank Receipt Voucher', 'Contra Voucher', 'Journal Voucher'];
+    : ['Bank Payment Voucher', 'Bank Receipt Voucher', 'Contra Voucher', 'Journal Voucher', 'Cash Payment Voucher', 'Cash Receive Voucher'];
+
+  const handleSelectAllVouchers = () => {
+    updateSection('voucherControlling', { selectedVouchers: [...voucherTypeOptions] });
+  };
+
+  const handleDeselectAllVouchers = () => {
+    updateSection('voucherControlling', { selectedVouchers: [] });
+  };
+
+  const handleSelectAllUsers = () => {
+    updateSection('voucherControlling', { selectedUsers: [...USER_OPTIONS] });
+  };
+
+  const handleDeselectAllUsers = () => {
+    updateSection('voucherControlling', { selectedUsers: [] });
+  };
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-5 md:py-6 space-y-4 pb-20">
@@ -107,7 +118,7 @@ export const MasterConfigPage: React.FC = () => {
       >
         <ConfigRow
           label="Cost Center"
-          hint="This part will visible when it's mandatory"
+          hint="This part will be visible when mandatory"
         >
           <ToggleYesNo
             label="Mandatory"
@@ -122,8 +133,8 @@ export const MasterConfigPage: React.FC = () => {
             config.costCenter.mandatory ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
           }`}
         >
-          <div className="pl-4 md:pl-6 my-1 border-l-2 border-primary/50 bg-muted/20 rounded-r-lg space-y-0.5 py-1">
-            <ConfigRow label="Effective Part">
+          <div className="pl-4 md:pl-6 my-1 border-l-2 border-primary/50 bg-muted/20 rounded-r-lg space-y-2 py-2">
+            <ConfigRow label="Effective Part" hint="Multi-select balance sheet and income statement">
               <MultiSelect
                 value={config.costCenter.effectivePart}
                 onChange={(val) => updateSection('costCenter', { effectivePart: val })}
@@ -131,11 +142,11 @@ export const MasterConfigPage: React.FC = () => {
               />
             </ConfigRow>
 
-            <ConfigRow label="Effective Company">
-              <MultiSelect
-                value={config.costCenter.partEffectiveCompany}
-                onChange={(val) => updateSection('costCenter', { partEffectiveCompany: val })}
-                options={COMPANY_LIST}
+            <ConfigRow label="Apply To All Changes" hint="Apply cost center policy across all detected change rules">
+              <ToggleYesNo
+                label="Apply to all"
+                value={config.costCenter.applyToAllChanges ?? true}
+                onChange={(val) => updateSection('costCenter', { applyToAllChanges: val })}
               />
             </ConfigRow>
           </div>
@@ -150,7 +161,7 @@ export const MasterConfigPage: React.FC = () => {
         onApply={() => saveSection('voucherControlling', 'Voucher Controlling')}
         isDirty={isSectionDirty('voucherControlling')}
       >
-        <ConfigRow label="Voucher Controll">
+        <ConfigRow label="Voucher Control">
           <ToggleYesNo
             value={config.voucherControlling.enabled}
             onChange={(val) => updateSection('voucherControlling', { enabled: val })}
@@ -160,59 +171,134 @@ export const MasterConfigPage: React.FC = () => {
         {/* CONDITIONAL (Enabled === true) */}
         <div
           className={`transition-all duration-300 overflow-hidden ${
-            config.voucherControlling.enabled ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+            config.voucherControlling.enabled ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
           }`}
         >
-          <div className="pl-4 md:pl-6 my-1 border-l-2 border-primary/50 bg-muted/20 rounded-r-lg space-y-0.5 py-1">
-            <ConfigRow label="Max Due Days">
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  max="365"
-                  value={config.voucherControlling.maxDueDays}
-                  onChange={(e) =>
-                    updateSection('voucherControlling', {
-                      maxDueDays: parseInt(e.target.value, 10) || 0,
-                    })
-                  }
-                  className="w-24 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
-                />
-                <span className="text-xs text-muted-foreground font-semibold">Days threshold</span>
+          <div className="pl-4 md:pl-6 my-1 border-l-2 border-primary/50 bg-muted/20 rounded-r-lg space-y-3 py-3">
+            {/* Control Mode: Voucher-wise vs User-wise */}
+            <ConfigRow label="Control Mode" hint="Configure control rules voucher-wise or user-wise">
+              <div className="inline-flex p-1 rounded-lg border border-border/80 bg-card shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => updateSection('voucherControlling', { controlMode: 'voucher-wise' })}
+                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                    config.voucherControlling.controlMode === 'voucher-wise'
+                      ? 'bg-primary text-primary-foreground shadow-2xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Voucher-wise
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateSection('voucherControlling', { controlMode: 'user-wise' })}
+                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                    config.voucherControlling.controlMode === 'user-wise'
+                      ? 'bg-primary text-primary-foreground shadow-2xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  User-wise
+                </button>
               </div>
             </ConfigRow>
 
-            <ConfigRow label="Effective Part">
-              <div className="flex items-center gap-1.5 w-full max-w-[280px]">
-                <Dropdown
-                  value={config.voucherControlling.effectivePart.voucherType}
-                  onChange={(val) =>
-                    updateSection('voucherControlling', {
-                      effectivePart: {
-                        ...config.voucherControlling.effectivePart,
-                        voucherType: val,
-                      },
-                    })
-                  }
-                  options={VOUCHER_TYPE_OPTIONS}
-                  className="flex-1 min-w-0 max-w-none"
-                />
-                <span className="text-xs text-muted-foreground/60 font-bold px-0.5">/</span>
-                <Dropdown
-                  value={config.voucherControlling.effectivePart.user}
-                  onChange={(val) =>
-                    updateSection('voucherControlling', {
-                      effectivePart: {
-                        ...config.voucherControlling.effectivePart,
-                        user: val,
-                      },
-                    })
-                  }
-                  options={['All', 'Specific Role', 'Maker Only']}
-                  className="flex-1 min-w-0 max-w-none"
-                />
-              </div>
-            </ConfigRow>
+            {/* Voucher-wise Selection */}
+            {config.voucherControlling.controlMode === 'voucher-wise' ? (
+              <ConfigRow label="Controlled Vouchers" hint="Multi-select vouchers with select-all option">
+                <div className="space-y-1.5 w-full max-w-md">
+                  <div className="flex items-center gap-2">
+                    <MultiSelect
+                      value={config.voucherControlling.selectedVouchers || []}
+                      onChange={(val) => updateSection('voucherControlling', { selectedVouchers: val })}
+                      options={voucherTypeOptions}
+                      className="flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSelectAllVouchers}
+                      className="px-2.5 py-1 text-[11px] font-bold text-primary hover:bg-primary/10 rounded-md border border-primary/30 transition-colors whitespace-nowrap cursor-pointer"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeselectAllVouchers}
+                      className="px-2 py-1 text-[11px] font-bold text-muted-foreground hover:bg-muted rounded-md border border-border transition-colors whitespace-nowrap cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              </ConfigRow>
+            ) : (
+              /* User-wise Selection */
+              <ConfigRow label="Controlled Users" hint="Multi-user selection with select-all option">
+                <div className="space-y-1.5 w-full max-w-md">
+                  <div className="flex items-center gap-2">
+                    <MultiSelect
+                      value={config.voucherControlling.selectedUsers || []}
+                      onChange={(val) => updateSection('voucherControlling', { selectedUsers: val })}
+                      options={USER_OPTIONS}
+                      className="flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSelectAllUsers}
+                      className="px-2.5 py-1 text-[11px] font-bold text-primary hover:bg-primary/10 rounded-md border border-primary/30 transition-colors whitespace-nowrap cursor-pointer"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeselectAllUsers}
+                      className="px-2 py-1 text-[11px] font-bold text-muted-foreground hover:bg-muted rounded-md border border-border transition-colors whitespace-nowrap cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              </ConfigRow>
+            )}
+
+            {/* Threshold Days: Max Due Days & Max Delay Days */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <ConfigRow label="Max Due Days">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    max="365"
+                    value={config.voucherControlling.maxDueDays}
+                    onChange={(e) =>
+                      updateSection('voucherControlling', {
+                        maxDueDays: parseInt(e.target.value, 10) || 0,
+                      })
+                    }
+                    className="w-24 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  />
+                  <span className="text-xs text-muted-foreground font-semibold">Days</span>
+                </div>
+              </ConfigRow>
+
+              <ConfigRow label="Max Delay Days">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    max="365"
+                    value={config.voucherControlling.maxDelayDays ?? 3}
+                    onChange={(e) =>
+                      updateSection('voucherControlling', {
+                        maxDelayDays: parseInt(e.target.value, 10) || 0,
+                      })
+                    }
+                    className="w-24 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  />
+                  <span className="text-xs text-muted-foreground font-semibold">Days</span>
+                </div>
+              </ConfigRow>
+            </div>
 
             <ConfigRow label="Effective Company">
               <MultiSelect
@@ -233,7 +319,21 @@ export const MasterConfigPage: React.FC = () => {
         onApply={() => saveSection('monthLock', 'Month Lock')}
         isDirty={isSectionDirty('monthLock')}
       >
-        <div className="py-1">
+        <ConfigRow label="Fiscal Year" hint="Selecting a year displays that year's 12 months for locking">
+          <Dropdown
+            value={config.monthLock.fiscalYear}
+            onChange={(val) => updateSection('monthLock', { fiscalYear: val })}
+            options={FISCAL_YEAR_OPTIONS}
+            className="w-48"
+          />
+        </ConfigRow>
+
+        <div className="py-2">
+          <div className="flex items-center justify-between pb-2">
+            <span className="text-xs font-bold text-foreground">
+              Period Locks for FY {config.monthLock.fiscalYear}:
+            </span>
+          </div>
           <MonthGrid
             fiscalYear={config.monthLock.fiscalYear}
             months={config.monthLock.months}
@@ -250,28 +350,42 @@ export const MasterConfigPage: React.FC = () => {
         </ConfigRow>
       </SectionCard>
 
-      {/* ── 3.4 VOUCHER & ACCOUNTS CODE (merged) ── */}
+      {/* ── 3.4 ACCOUNTS CODE SETUP ── */}
       <SectionCard
         sectionNo="3.4"
-        title="Voucher & Accounts Code"
+        title="Accounts Code Setup"
         icon={FileText}
-        onApply={() => {
-          saveSection('voucher', 'Voucher Settings');
-          saveSection('accountsCode', 'Accounts Code');
-        }}
-        isDirty={isSectionDirty('voucher') || isSectionDirty('accountsCode')}
+        onApply={() => saveSection('accountsCode', 'Accounts Code')}
+        isDirty={isSectionDirty('accountsCode')}
       >
-        <ConfigRow label="Voucher Date Format" hint="Standard system date pattern">
-          <DateFmtInput value={config.voucher.dateFormat} />
-        </ConfigRow>
-
-        <ConfigRow label="ID Renewal" hint="When voucher sequence resets">
-          <Dropdown
-            value={String(config.voucher.idRenewal)}
-            onChange={(val) => updateSection('voucher', { idRenewal: val })}
-            options={ID_RENEWAL_OPTIONS}
+        <ConfigRow label="Auto-Generate Account Code" hint="Automatically generate incremental GL code for new accounts">
+          <ToggleYesNo
+            value={config.accountsCode.autoGenerate}
+            onChange={(val) => updateSection('accountsCode', { autoGenerate: val })}
           />
         </ConfigRow>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <ConfigRow label="Account Code Prefix" hint="Default prefix applied to generated codes">
+            <input
+              type="text"
+              value={config.accountsCode.prefix}
+              onChange={(e) => updateSection('accountsCode', { prefix: e.target.value })}
+              className="w-32 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs"
+            />
+          </ConfigRow>
+
+          <ConfigRow label="Code Length" hint="Fixed digit length for chart account codes">
+            <input
+              type="number"
+              min="4"
+              max="12"
+              value={config.accountsCode.codeLength}
+              onChange={(e) => updateSection('accountsCode', { codeLength: parseInt(e.target.value, 10) || 6 })}
+              className="w-24 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs"
+            />
+          </ConfigRow>
+        </div>
 
         <ConfigRow
           label="Subsidiary & Accounts Merge View"
@@ -371,10 +485,10 @@ export const MasterConfigPage: React.FC = () => {
         onApply={() => saveSection('bankCheque', 'Bank & Cheque')}
         isDirty={isSectionDirty('bankCheque')}
       >
-        <ConfigRow label="Default Voucher Type">
+        <ConfigRow label="Default Voucher Name">
           <Dropdown
-            value={config.bankCheque.defaultVoucherType}
-            onChange={(val) => updateSection('bankCheque', { defaultVoucherType: val })}
+            value={config.bankCheque.defaultVoucherName}
+            onChange={(val) => updateSection('bankCheque', { defaultVoucherName: val })}
             options={voucherTypeOptions}
           />
         </ConfigRow>

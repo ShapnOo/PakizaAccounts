@@ -8,6 +8,7 @@ interface PreviewTableProps {
   showBorder: boolean;
   fontSize: number;
   textColor: string;
+  themeColor?: string;
   previewLines: any[];
 }
 
@@ -17,8 +18,11 @@ export const PreviewTable: React.FC<PreviewTableProps> = ({
   showBorder,
   fontSize,
   textColor,
+  themeColor,
   previewLines,
 }) => {
+  const activeHeaderColor = themeColor || textColor;
+
   // Filter visible columns in the specified order
   const visibleColKeys = columnOrder.filter((key) => columns[key]?.visible);
 
@@ -87,7 +91,7 @@ export const PreviewTable: React.FC<PreviewTableProps> = ({
           <tr className="bg-slate-100/90 dark:bg-muted font-bold">
             <th
               className={`py-1.5 px-2 text-center w-8 ${cellBorderClass}`}
-              style={{ fontSize: `${fontSize - 0.5}px` }}
+              style={{ fontSize: `${fontSize - 0.5}px`, color: activeHeaderColor }}
             >
               #
             </th>
@@ -108,7 +112,7 @@ export const PreviewTable: React.FC<PreviewTableProps> = ({
                 <th
                   key={key}
                   className={`py-1.5 px-2 font-bold uppercase tracking-tight whitespace-nowrap ${cellBorderClass} ${alignClass}`}
-                  style={{ fontSize: `${fontSize - 0.5}px` }}
+                  style={{ fontSize: `${fontSize - 0.5}px`, color: activeHeaderColor }}
                 >
                   {cfg.label}
                 </th>

@@ -37,46 +37,104 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 
   if (!isOpen) return null;
 
-  // 1. Download Client-Side Excel Template
+  // 1. Download Client-Side Excel Template (with Account Heads, Custom Fields, and separate Instructions sheet)
   const handleDownloadTemplate = () => {
     const templateData = [
       {
-        'Account Head Code': 'acc-01-01-adv',
-        'Cost Center': 'cc-1',
-        Subsidiary: 's1',
-        Employee: 'emp-101',
-        Vehicle: 'veh-1',
-        Reference: 'REF-001',
-        Description: 'Advance to vendor for raw materials',
+        'Account Head': 'Advance to Supplier',
+        'Cost Center': 'Main Plant Cost Center',
+        Subsidiary: 'Bismillah Motors',
+        Employee: 'Emp - John Doe',
+        Vehicle: 'V-102 Delivery Truck',
+        Reference: 'REF-2026-001',
+        Description: 'Advance to vendor for raw materials packaging',
         Currency: 'BDT',
         'Exchange Rate': 1,
-        Debit: '',
-        Credit: '',
+        Debit: 150000,
+        Credit: 0,
         'Debit (BDT)': 150000,
-        'Credit (BDT)': '',
+        'Credit (BDT)': 0,
+        'Project Code': 'PRJ-2026-A',
+        'Audit Note': 'Verified by Internal Audit',
       },
       {
-        'Account Head Code': 'acc-02-01-adv',
-        'Cost Center': 'cc-1',
-        Subsidiary: 's2',
-        Employee: '',
+        'Account Head': 'Petty Cash in Hand',
+        'Cost Center': 'Head Office Admin',
+        Subsidiary: '',
+        Employee: 'Emp - Jane Smith',
         Vehicle: '',
-        Reference: 'SO-901',
-        Description: 'Advance customer collection for export fabrics',
+        Reference: 'PC-2026-INIT',
+        Description: 'Initial petty cash floating balance',
         Currency: 'BDT',
         'Exchange Rate': 1,
-        Debit: '',
-        Credit: '',
-        'Debit (BDT)': '',
-        'Credit (BDT)': 150000,
+        Debit: 50000,
+        Credit: 0,
+        'Debit (BDT)': 50000,
+        'Credit (BDT)': 0,
+        'Project Code': 'PRJ-HO',
+        'Audit Note': 'Cash Count Sheet Approved',
+      },
+      {
+        'Account Head': 'Trade Creditors - Local Vendors',
+        'Cost Center': 'Factory Operating Unit',
+        Subsidiary: 'Bismillah Motors',
+        Employee: '',
+        Vehicle: '',
+        Reference: 'AP-2026-BAL',
+        Description: 'Opening accounts payable for supplier invoices',
+        Currency: 'BDT',
+        'Exchange Rate': 1,
+        Debit: 0,
+        Credit: 200000,
+        'Debit (BDT)': 0,
+        'Credit (BDT)': 200000,
+        'Project Code': 'PRJ-FACTORY',
+        'Audit Note': 'Vendor Balance Confirmation Attached',
       },
     ];
 
-    const ws = XLSX.utils.json_to_sheet(templateData);
+    const instructionData = [
+      {
+        'Step #': 1,
+        'Field Name': 'Account Head',
+        'Requirement': 'Mandatory',
+        'Description': 'Specify the exact Account Head name (e.g. "Advance to Supplier", "Petty Cash in Hand", "Cash at Bank DBBL", "Trade Creditors - Local Vendors"). Only General Ledger (GL) leaf accounts are allowed.',
+      },
+      {
+        'Step #': 2,
+        'Field Name': 'Debit / Credit',
+        'Requirement': 'Mandatory',
+        'Description': 'Provide either Debit or Credit amount. For foreign currencies (USD, EUR, GBP, INR), specify Currency and Exchange Rate.',
+      },
+      {
+        'Step #': 3,
+        'Field Name': 'Subsidiary (Vendor / Customer)',
+        'Requirement': 'Required for A/P & A/R',
+        'Description': 'Vendor name is mandatory when Account Head is Accounts Payable. Customer name is mandatory when Account Head is Accounts Receivable.',
+      },
+      {
+        'Step #': 4,
+        'Field Name': 'Custom Fields',
+        'Requirement': 'Optional / Mandatory as configured',
+        'Description': 'Add custom column headers matching active custom field labels (e.g., "Project Code", "Audit Note").',
+      },
+      {
+        'Step #': 5,
+        'Field Name': 'Data Validation',
+        'Requirement': 'Important',
+        'Description': 'Total Debit (BDT) must equal Total Credit (BDT) across all opening balance lines before final submission.',
+      },
+    ];
+
+    const wsData = XLSX.utils.json_to_sheet(templateData);
+    const wsInstructions = XLSX.utils.json_to_sheet(instructionData);
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'OpeningBalanceTemplate');
-    XLSX.writeFile(wb, 'Opening_Balance_Template.xlsx');
-    toast.success('Downloaded Opening Balance template');
+    XLSX.utils.book_append_sheet(wb, wsData, 'Opening_Balance_Data');
+    XLSX.utils.book_append_sheet(wb, wsInstructions, 'Excel Upload Instructions');
+
+    XLSX.writeFile(wb, 'Opening_Balance_Sample_Template.xlsx');
+    toast.success('Downloaded Opening Balance template with Account Heads and Excel Instructions sheet');
   };
 
   // 2. Parse uploaded file using SheetJS

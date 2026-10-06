@@ -122,7 +122,7 @@ export const CustomerListPage: React.FC = () => {
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
           >
             <Plus className="size-4" />
-            <span>+ New Customer</span>
+            <span>Add New</span>
           </Link>
         </div>
       </div>

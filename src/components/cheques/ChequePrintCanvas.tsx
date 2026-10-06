@@ -44,30 +44,11 @@ export const ChequePrintCanvas: React.FC<ChequePrintCanvasProps> = ({
   });
 
   return (
-    <div className="w-full max-w-[840px] mx-auto bg-amber-50/40 dark:bg-card border-2 border-slate-300 dark:border-border rounded-xl p-6 shadow-md print:shadow-none print:border-slate-800 print:bg-white print:text-black font-serif relative overflow-hidden select-none">
-      {/* Background Watermark */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] dark:opacity-[0.05] pointer-events-none text-5xl font-black uppercase tracking-widest text-foreground select-none">
-        {bankName || 'BANK CHEQUE'}
-      </div>
-
-      {/* Top Bar: AC Payee Stamp & Dates */}
-      <div className="flex items-start justify-between gap-4 pb-4 border-b border-dashed border-slate-300 dark:border-border/60">
-        {/* AC Payee / Crossed stamp */}
-        <div>
-          {line.chequeType === 'AC Payee' && (
-            <div className="border-y-2 border-slate-700 dark:border-slate-300 px-3 py-0.5 text-xs font-mono font-black uppercase tracking-widest text-slate-800 dark:text-slate-200 inline-block transform -rotate-3">
-              // A/C PAYEE ONLY //
-            </div>
-          )}
-          {line.chequeType === 'Crossed' && (
-            <div className="border-y-2 border-slate-700 dark:border-slate-300 px-3 py-0.5 text-xs font-mono font-black uppercase tracking-widest text-slate-800 dark:text-slate-200 inline-block transform -rotate-3">
-              // & CO. //
-            </div>
-          )}
-        </div>
-
+    <div className="w-full max-w-[840px] mx-auto bg-transparent p-6 font-serif relative overflow-hidden select-none">
+      {/* Top Bar: Bank Info on Left, AC Payee Stamp & Date on Right */}
+      <div className="flex items-start justify-between gap-4 pb-4">
         {/* Bank & Leaf Identity */}
-        <div className="text-center">
+        <div className="text-left">
           <div className="text-sm font-black uppercase tracking-wider text-foreground">
             {bankName || 'DUTCH BANGLA BANK LIMITED'}
           </div>
@@ -76,22 +57,37 @@ export const ChequePrintCanvas: React.FC<ChequePrintCanvasProps> = ({
           </div>
         </div>
 
-        {/* Date Box */}
-        <div className="flex items-center gap-1 bg-white dark:bg-muted/40 border border-slate-400 dark:border-border px-3 py-1 rounded shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mr-1">
-            Date:
-          </span>
-          <span className="font-mono font-black text-sm text-foreground tracking-widest">
-            {formattedDate || 'MM/DD/YYYY'}
-          </span>
+        {/* Right Section: Account Payee Stamp & Date Box */}
+        <div className="flex flex-col items-end gap-2 text-right">
+          {/* AC Payee / Crossed stamp on the right side */}
+          {line.chequeType === 'AC Payee' && (
+            <div className="border-y-2 border-slate-700 dark:border-slate-300 px-3 py-0.5 text-xs font-mono font-black uppercase tracking-widest text-slate-800 dark:text-slate-200 inline-block transform -rotate-2">
+              // A/C PAYEE ONLY //
+            </div>
+          )}
+          {line.chequeType === 'Crossed' && (
+            <div className="border-y-2 border-slate-700 dark:border-slate-300 px-3 py-0.5 text-xs font-mono font-black uppercase tracking-widest text-slate-800 dark:text-slate-200 inline-block transform -rotate-2">
+              // & CO. //
+            </div>
+          )}
+
+          {/* Date Line */}
+          <div className="flex items-center gap-1.5 px-1 py-0.5">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mr-1">
+              Date:
+            </span>
+            <span className="font-mono font-black text-sm text-foreground tracking-widest">
+              {formattedDate || 'MM/DD/YYYY'}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Main Cheque Body: 2-Column Physical Grid */}
-      <div className="grid grid-cols-12 gap-6 pt-5 min-h-[160px]">
+      <div className="grid grid-cols-12 gap-6 pt-4 min-h-[160px]">
         {/* Left Side (Counterfoil / Stub preview - 4 cols) */}
-        <div className="col-span-4 border-r border-dashed border-slate-300 dark:border-border/60 pr-4 space-y-3 text-xs">
-          <div className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground pb-1 border-b border-border/40">
+        <div className="col-span-4 pr-4 space-y-3 text-xs">
+          <div className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground pb-1">
             Cheque Counterfoil
           </div>
 
@@ -116,7 +112,7 @@ export const ChequePrintCanvas: React.FC<ChequePrintCanvasProps> = ({
         {/* Right Side (Main Paper Cheque Leaf - 8 cols) */}
         <div className="col-span-8 space-y-4 pl-2">
           {/* Row 1: Pay To Line */}
-          <div className="flex items-end gap-2 border-b border-slate-400 dark:border-border pb-1">
+          <div className="flex items-end gap-2 pb-1">
             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
               Pay To:
             </span>
@@ -127,7 +123,7 @@ export const ChequePrintCanvas: React.FC<ChequePrintCanvasProps> = ({
           </div>
 
           {/* Row 2: Taka in Words */}
-          <div className="flex items-start gap-2 border-b border-slate-400 dark:border-border pb-1">
+          <div className="flex items-start gap-2 pb-1">
             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap pt-0.5">
               Taka in Words:
             </span>
@@ -138,8 +134,8 @@ export const ChequePrintCanvas: React.FC<ChequePrintCanvasProps> = ({
 
           {/* Row 3: Total Amount Box & Signatory */}
           <div className="flex items-end justify-between gap-4 pt-2">
-            {/* Amount Box */}
-            <div className="flex items-center gap-1.5 border-2 border-slate-700 dark:border-slate-300 bg-white dark:bg-muted/40 px-3 py-1.5 rounded-md shadow-2xs">
+            {/* Amount */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5">
               <span className="font-mono font-extrabold text-base text-foreground">৳</span>
               <span className="font-mono font-black text-lg text-foreground tracking-wider">
                 {formattedAmount}
@@ -151,7 +147,7 @@ export const ChequePrintCanvas: React.FC<ChequePrintCanvasProps> = ({
               <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                 For {companyName}
               </div>
-              <div className="h-10 border-b border-slate-500 dark:border-border/80 w-44 inline-block"></div>
+              <div className="h-8 w-44 inline-block"></div>
               <div className="text-[11px] font-bold text-foreground">
                 {signatory || 'Managing Director'}
               </div>
@@ -161,7 +157,7 @@ export const ChequePrintCanvas: React.FC<ChequePrintCanvasProps> = ({
       </div>
 
       {/* Bottom MICR / Cheque Ribbon Strip */}
-      <div className="mt-5 pt-3 border-t border-slate-300 dark:border-border/60 flex items-center justify-between text-center font-mono text-[11px] text-muted-foreground tracking-widest">
+      <div className="mt-5 pt-3 flex items-center justify-between text-center font-mono text-[11px] text-muted-foreground tracking-widest">
         <span>⑈{line.chequeNo || 'CQ26000001'}⑈</span>
         <span>120272045⑆</span>
         <span>00123456789⑈ 10</span>

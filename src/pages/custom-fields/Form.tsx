@@ -27,6 +27,7 @@ export const CustomFieldFormPage: React.FC = () => {
 
   const urlCtx = (searchParams.get('ctx') as CustomFieldContext) || 'journal';
   const [context, setContext] = useState<CustomFieldContext>(urlCtx);
+  const [scope, setScope] = useState<'Master' | 'Details'>('Details');
   const [label, setLabel] = useState('');
   const [dataType, setDataType] = useState<CustomFieldDataType>('Text');
   const [mandatory, setMandatory] = useState<boolean>(false);
@@ -44,6 +45,7 @@ export const CustomFieldFormPage: React.FC = () => {
   useEffect(() => {
     if (targetField) {
       setContext(targetField.context);
+      setScope(targetField.scope || 'Details');
       setLabel(targetField.label);
       setDataType(targetField.dataType);
       setMandatory(targetField.mandatory);
@@ -106,6 +108,7 @@ export const CustomFieldFormPage: React.FC = () => {
         'id' | 'createdAt' | 'updatedAt' | 'order'
       > = {
         context,
+        scope,
         label: trimmedLabel,
         dataType,
         mandatory,
@@ -162,33 +165,66 @@ export const CustomFieldFormPage: React.FC = () => {
               : `New Custom Field — ${contextLabel}`}
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Define dynamic column behavior for {contextLabel} entry screens.
+            Define dynamic field behavior for {contextLabel} entry screens.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          {/* 1. Context Selector */}
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-foreground">
-              Module Scope / Context
-            </label>
-            {isEdit ? (
-              <div className="h-8.5 px-3 rounded-lg border border-border bg-muted/40 text-xs font-semibold text-muted-foreground flex items-center">
-                {contextLabel}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* 1. Context Selector */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-foreground">
+                Module Scope / Context
+              </label>
+              {isEdit ? (
+                <div className="h-8.5 px-3 rounded-lg border border-border bg-muted/40 text-xs font-semibold text-muted-foreground flex items-center">
+                  {contextLabel}
+                </div>
+              ) : (
+                <select
+                  value={context}
+                  onChange={(e) => setContext(e.target.value as CustomFieldContext)}
+                  className="w-full h-8.5 px-3 rounded-lg border border-border bg-card text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-2xs"
+                >
+                  {Object.entries(CONTEXT_CONFIG).map(([k, cfg]) => (
+                    <option key={k} value={k}>
+                      {cfg.label}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            {/* Master or Details Selection */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-foreground block">
+                Target Scope Level <span className="text-rose-500">*</span>
+              </label>
+              <div className="inline-flex p-1 bg-muted/40 rounded-lg border border-border/80 w-full h-8.5 items-center">
+                <button
+                  type="button"
+                  onClick={() => setScope('Master')}
+                  className={`flex-1 h-7 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                    scope === 'Master'
+                      ? 'bg-card text-indigo-600 dark:text-indigo-400 shadow-2xs border border-border/60'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Master Level (Header)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setScope('Details')}
+                  className={`flex-1 h-7 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                    scope === 'Details'
+                      ? 'bg-card text-indigo-600 dark:text-indigo-400 shadow-2xs border border-border/60'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Details Level (Line Item)
+                </button>
               </div>
-            ) : (
-              <select
-                value={context}
-                onChange={(e) => setContext(e.target.value as CustomFieldContext)}
-                className="w-full h-8.5 px-3 rounded-lg border border-border bg-card text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-2xs"
-              >
-                {Object.entries(CONTEXT_CONFIG).map(([k, cfg]) => (
-                  <option key={k} value={k}>
-                    {cfg.label}
-                  </option>
-                ))}
-              </select>
-            )}
+            </div>
           </div>
 
           {/* 2. Label Name */}
