@@ -3,6 +3,7 @@ import { Customer, CustomerGroup } from '../../types/customer';
 import { ActiveStatusPill } from './ActiveStatusPill';
 import { MoreVertical, Edit2, Power, Trash2, Truck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface CustomerRowProps {
   customer: Customer;
@@ -20,6 +21,11 @@ export const CustomerRow: React.FC<CustomerRowProps> = ({
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { openUpward } = useDropdownPosition({
+    triggerRef: menuRef,
+    isOpen: menuOpen,
+    minMenuHeight: 160,
+  });
 
   const groupName = groups.find((g) => g.id === customer.groupId)?.name || customer.groupId;
 
@@ -109,7 +115,13 @@ export const CustomerRow: React.FC<CustomerRowProps> = ({
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 z-30 mt-1 w-36 bg-card rounded-xl border border-border shadow-xl py-1 text-xs animate-in fade-in zoom-in-95 duration-100">
+            <div
+              className={`absolute right-0 z-30 w-36 bg-card rounded-xl border border-border shadow-xl py-1 text-xs ${
+                openUpward
+                  ? 'bottom-full mb-1 origin-bottom animate-in fade-in zoom-in-95 duration-100'
+                  : 'top-full mt-1 origin-top animate-in fade-in zoom-in-95 duration-100'
+              }`}
+            >
               <button
                 type="button"
                 onClick={() => {

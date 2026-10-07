@@ -3,6 +3,7 @@ import { useCoa } from '../../context/CoaContext';
 import { INITIAL_ACCOUNTS } from '../../mock/accounts';
 import { filterForAdvanceReceive } from '../../lib/coa/filterForAdvanceReceive';
 import { Wallet, ChevronDown, Check, Search, X } from 'lucide-react';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface AdvanceReceiveAccountPickerProps {
   value: string | null;
@@ -18,6 +19,12 @@ export const AdvanceReceiveAccountPicker: React.FC<AdvanceReceiveAccountPickerPr
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const { openUpward, maxHeight } = useDropdownPosition({
+    triggerRef: containerRef,
+    isOpen: open,
+    minMenuHeight: 220,
+  });
 
   // Safely access COA context or fallback
   let allAccounts = INITIAL_ACCOUNTS;
@@ -99,7 +106,14 @@ export const AdvanceReceiveAccountPicker: React.FC<AdvanceReceiveAccountPickerPr
       )}
 
       {open && (
-        <div className="absolute top-full left-0 right-0 z-30 mt-1 bg-card rounded-xl border border-border shadow-xl p-2 space-y-2 animate-in fade-in zoom-in-95 duration-100 max-h-64 overflow-hidden flex flex-col">
+        <div
+          style={{ maxHeight }}
+          className={`absolute left-0 right-0 z-50 bg-card rounded-xl border border-border shadow-2xl p-2 space-y-2 overflow-hidden flex flex-col transition-all ${
+            openUpward
+              ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in zoom-in-95'
+              : 'top-full mt-1.5 origin-top animate-in fade-in zoom-in-95'
+          }`}
+        >
           <div className="relative">
             <Search className="size-3.5 text-muted-foreground absolute left-2.5 top-2.5" />
             <input

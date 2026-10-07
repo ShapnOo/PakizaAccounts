@@ -27,9 +27,10 @@ export type Config = {
     fiscalYearly?: boolean;
   };
   accountsCode: {
-    autoGenerate: boolean;
-    prefix: string;
-    codeLength: number;
+    autoGenerate?: boolean;
+    showCode?: boolean;
+    prefix?: string;
+    codeLength?: number;
     mergeView: boolean;
     pathVisible: AccountsPathVisibleOption | string;
     effectiveCompany: string[];
@@ -43,6 +44,7 @@ export type Config = {
   bankCheque: {
     defaultVoucherName: string; // "Bank Payment Voucher"
     defaultAccount: string | null;
+    effectiveCompany?: string[];
   };
   globalEffectiveCompany: string[];
 };

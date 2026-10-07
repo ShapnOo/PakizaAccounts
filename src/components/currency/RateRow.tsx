@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CurrencySetup, ExchangeRate } from '../../types/currency';
 import { BaseCurrencyToggle } from './BaseCurrencyToggle';
 import { formatNumber, formatWithCommaStyle } from '../../lib/format/currency';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 import {
   Lock,
   Pencil,
@@ -43,6 +44,13 @@ export const RateRow: React.FC<RateRowProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const menuRef = useRef<HTMLDivElement>(null);
+  const { openUpward } = useDropdownPosition({
+    triggerRef: menuRef,
+    isOpen: menuOpen,
+    minMenuHeight: 180,
+  });
 
   useEffect(() => {
     setLocalRate(rate?.rate?.toString() || (isBase ? '1' : '0'));
@@ -177,7 +185,7 @@ export const RateRow: React.FC<RateRowProps> = ({
 
       {/* ── 6. Row Actions (⋮) ── */}
       <td className={`px-4 ${rowPadding} text-right`}>
-        <div className="relative inline-block">
+        <div ref={menuRef} className="relative inline-block">
           <button
             type="button"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -189,7 +197,11 @@ export const RateRow: React.FC<RateRowProps> = ({
           {menuOpen && (
             <div
               onMouseLeave={() => setMenuOpen(false)}
-              className="absolute right-0 top-full mt-1 z-30 w-36 bg-popover rounded-xl border border-border shadow-xl p-1 animate-in fade-in-50 zoom-in-95 duration-100"
+              className={`absolute right-0 z-30 w-36 bg-popover rounded-xl border border-border shadow-xl p-1 ${
+                openUpward
+                  ? 'bottom-full mb-1 origin-bottom animate-in fade-in-50 zoom-in-95 duration-100'
+                  : 'top-full mt-1 origin-top animate-in fade-in-50 zoom-in-95 duration-100'
+              }`}
             >
               <button
                 type="button"

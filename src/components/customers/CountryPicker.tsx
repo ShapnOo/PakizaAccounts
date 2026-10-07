@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { CURRENCY_MASTER } from '../../mock/currencyMaster';
 import { Globe, ChevronDown, Check, Search } from 'lucide-react';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface CountryPickerProps {
   value: string;
@@ -16,6 +17,12 @@ export const CountryPicker: React.FC<CountryPickerProps> = ({
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const { openUpward, maxHeight } = useDropdownPosition({
+    triggerRef: containerRef,
+    isOpen: open,
+    minMenuHeight: 220,
+  });
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -64,7 +71,14 @@ export const CountryPicker: React.FC<CountryPickerProps> = ({
       )}
 
       {open && (
-        <div className="absolute top-full left-0 right-0 z-30 mt-1 bg-card rounded-xl border border-border shadow-xl p-2 space-y-2 animate-in fade-in zoom-in-95 duration-100 max-h-64 overflow-hidden flex flex-col">
+        <div
+          style={{ maxHeight }}
+          className={`absolute left-0 right-0 z-50 bg-card rounded-xl border border-border shadow-2xl p-2 space-y-2 overflow-hidden flex flex-col transition-all ${
+            openUpward
+              ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in zoom-in-95'
+              : 'top-full mt-1.5 origin-top animate-in fade-in zoom-in-95'
+          }`}
+        >
           <div className="relative">
             <Search className="size-3.5 text-muted-foreground absolute left-2.5 top-2.5" />
             <input

@@ -16,6 +16,7 @@ import {
 import { COMPANY } from '../../constants/accountsTypeTree';
 import { Account } from '../../types/coa';
 import { exportCoaToExcel, exportCoaToPdf } from '../../services/coaExportService';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface CoaHeaderProps {
   onOpenUpload: () => void;
@@ -34,6 +35,11 @@ export const CoaHeader: React.FC<CoaHeaderProps> = ({
   const currentView = searchParams.get('view') === 'tree' ? 'tree' : 'list';
   const [isExportOpen, setIsExportOpen] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
+  const { openUpward: exportOpenUpward } = useDropdownPosition({
+    triggerRef: exportRef,
+    isOpen: isExportOpen,
+    minMenuHeight: 180,
+  });
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -103,7 +109,13 @@ export const CoaHeader: React.FC<CoaHeaderProps> = ({
             </button>
 
             {isExportOpen && (
-              <div className="absolute right-0 top-full mt-1.5 z-50 w-52 bg-popover border border-border rounded-xl shadow-xl p-1.5 space-y-1 text-xs animate-in fade-in-50 zoom-in-95 duration-100">
+              <div
+                className={`absolute right-0 z-50 w-52 bg-popover border border-border rounded-xl shadow-xl p-1.5 space-y-1 text-xs ${
+                  exportOpenUpward
+                    ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-50 zoom-in-95 duration-100'
+                    : 'top-full mt-1.5 origin-top animate-in fade-in-50 zoom-in-95 duration-100'
+                }`}
+              >
                 <button
                   type="button"
                   onClick={() => {

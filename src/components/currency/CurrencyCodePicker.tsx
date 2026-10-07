@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CurrencyMaster } from '../../types/currency';
 import { listCurrencyMaster } from '../../services/currencyMasterService';
 import { Search, ChevronDown, Check, Globe, X } from 'lucide-react';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface CurrencyCodePickerProps {
   value: string;
@@ -21,6 +22,12 @@ export const CurrencyCodePicker: React.FC<CurrencyCodePickerProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const { openUpward, maxHeight } = useDropdownPosition({
+    triggerRef: containerRef,
+    isOpen,
+    minMenuHeight: 280,
+  });
 
   useEffect(() => {
     let active = true;
@@ -99,7 +106,13 @@ export const CurrencyCodePicker: React.FC<CurrencyCodePickerProps> = ({
 
       {/* Searchable Combobox with 200+ currencies */}
       {isOpen && (
-        <div className="absolute z-50 top-full left-0 mt-1 w-full min-w-[320px] bg-popover rounded-xl border border-border shadow-xl p-2 animate-in fade-in-50 zoom-in-95 duration-100">
+        <div
+          className={`absolute z-50 left-0 w-full min-w-[320px] bg-popover rounded-xl border border-border shadow-xl p-2 ${
+            openUpward
+              ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-50 zoom-in-95 duration-100'
+              : 'top-full mt-1.5 origin-top animate-in fade-in-50 zoom-in-95 duration-100'
+          }`}
+        >
           <div className="relative mb-2">
             <Search className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -112,7 +125,10 @@ export const CurrencyCodePicker: React.FC<CurrencyCodePickerProps> = ({
             />
           </div>
 
-          <div className="max-h-60 overflow-y-auto sidebar-scroll space-y-0.5">
+          <div
+            className="overflow-y-auto sidebar-scroll space-y-0.5"
+            style={{ maxHeight: `${Math.max(160, maxHeight - 60)}px` }}
+          >
             {loading ? (
               <div className="py-4 text-center text-xs text-muted-foreground">Loading master list…</div>
             ) : filtered.length === 0 ? (

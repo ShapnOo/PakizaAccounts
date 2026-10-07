@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Palette, Check } from 'lucide-react';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface ColorPickerProps {
   label: string;
@@ -30,13 +31,19 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   disabled = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const { openUpward } = useDropdownPosition({
+    triggerRef,
+    isOpen,
+    minMenuHeight: 180,
+  });
 
   return (
     <div className="space-y-1">
       <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
         {label}
       </label>
-      <div className="relative">
+      <div className="relative" ref={triggerRef}>
         <div className="flex items-center gap-2">
           {/* Swatch Button */}
           <button
@@ -63,7 +70,13 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
 
         {/* Quick Popover Palette */}
         {isOpen && (
-          <div className="absolute top-10 left-0 z-30 p-2.5 bg-card border border-border rounded-xl shadow-xl space-y-2 animate-in fade-in-50 zoom-in-95 w-48">
+          <div
+            className={`absolute left-0 z-30 p-2.5 bg-card border border-border rounded-xl shadow-xl space-y-2 w-48 ${
+              openUpward
+                ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-50 zoom-in-95'
+                : 'top-full mt-1.5 origin-top animate-in fade-in-50 zoom-in-95'
+            }`}
+          >
             <div className="flex items-center justify-between pb-1 border-b border-border/60">
               <span className="text-[10.5px] font-bold text-muted-foreground uppercase tracking-wider">
                 Preset Palette

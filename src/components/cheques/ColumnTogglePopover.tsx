@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Columns3, Check } from 'lucide-react';
 import { SourceType } from '../../types/chequePrepare';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 export interface ColumnVisibilityState {
   chequeType: boolean;
@@ -76,6 +77,11 @@ export const ColumnTogglePopover: React.FC<ColumnTogglePopoverProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { openUpward } = useDropdownPosition({
+    triggerRef: ref,
+    isOpen: open,
+    minMenuHeight: 240,
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -128,7 +134,13 @@ export const ColumnTogglePopover: React.FC<ColumnTogglePopoverProps> = ({
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-1.5 w-52 rounded-xl bg-card border border-border shadow-xl py-1.5 animate-in fade-in-50 zoom-in-95">
+        <div
+          className={`absolute right-0 z-50 w-52 rounded-xl bg-card border border-border shadow-xl py-1.5 ${
+            openUpward
+              ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-50 zoom-in-95'
+              : 'top-full mt-1.5 origin-top animate-in fade-in-50 zoom-in-95'
+          }`}
+        >
           <div className="px-3 py-1.5 border-b border-border/60 flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               Toggle Columns

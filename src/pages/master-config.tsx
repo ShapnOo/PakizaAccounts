@@ -32,12 +32,6 @@ const USER_OPTIONS = ['Admin', 'Accountant', 'Finance Manager', 'Maker', 'Checke
 
 const FISCAL_YEAR_OPTIONS = ['2023-2024', '2024-2025', '2025-2026', '2026-2027'];
 
-const ACCOUNTS_PATH_OPTIONS = [
-  'Hide',
-  'Before accounts',
-  'After accounts',
-] as const;
-
 export const MasterConfigPage: React.FC = () => {
   const {
     config,
@@ -49,8 +43,8 @@ export const MasterConfigPage: React.FC = () => {
   } = useConfigState();
 
   const { vouchers } = useVouchers();
-  const voucherTypeOptions = vouchers.length > 0 
-    ? vouchers.map((v) => v.name) 
+  const voucherTypeOptions = vouchers.length > 0
+    ? vouchers.map((v) => v.name)
     : ['Bank Payment Voucher', 'Bank Receipt Voucher', 'Contra Voucher', 'Journal Voucher', 'Cash Payment Voucher', 'Cash Receive Voucher'];
 
   const handleSelectAllVouchers = () => {
@@ -114,9 +108,8 @@ export const MasterConfigPage: React.FC = () => {
 
         {/* CONDITIONAL (Mandatory === true) */}
         <div
-          className={`transition-all duration-300 ${
-            config.costCenter.mandatory ? 'max-h-96 opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
-          }`}
+          className={`transition-all duration-300 ${config.costCenter.mandatory ? 'max-h-96 opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
+            }`}
         >
           <div className="pl-4 md:pl-6 my-1 border-l-2 border-primary/50 bg-muted/20 rounded-r-lg space-y-2 py-2">
             <ConfigRow
@@ -151,9 +144,8 @@ export const MasterConfigPage: React.FC = () => {
 
         {/* CONDITIONAL (Enabled === true) */}
         <div
-          className={`transition-all duration-300 ${
-            config.voucherControlling.enabled ? 'max-h-[700px] opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
-          }`}
+          className={`transition-all duration-300 ${config.voucherControlling.enabled ? 'max-h-[700px] opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
+            }`}
         >
           <div className="pl-4 md:pl-6 my-1 border-l-2 border-primary/50 bg-muted/20 rounded-r-lg space-y-3 py-3">
             {/* Control Mode: Voucher-wise vs User-wise */}
@@ -162,22 +154,20 @@ export const MasterConfigPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => updateSection('voucherControlling', { controlMode: 'voucher-wise' })}
-                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
-                    config.voucherControlling.controlMode === 'voucher-wise'
-                      ? 'bg-primary text-primary-foreground shadow-2xs'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
+                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${config.voucherControlling.controlMode === 'voucher-wise'
+                    ? 'bg-primary text-primary-foreground shadow-2xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                    }`}
                 >
                   Voucher-wise
                 </button>
                 <button
                   type="button"
                   onClick={() => updateSection('voucherControlling', { controlMode: 'user-wise' })}
-                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
-                    config.voucherControlling.controlMode === 'user-wise'
-                      ? 'bg-primary text-primary-foreground shadow-2xs'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
+                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${config.voucherControlling.controlMode === 'user-wise'
+                    ? 'bg-primary text-primary-foreground shadow-2xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                    }`}
                 >
                   User-wise
                 </button>
@@ -306,12 +296,7 @@ export const MasterConfigPage: React.FC = () => {
           />
         </ConfigRow>
 
-        <div className="py-2">
-          <div className="flex items-center justify-between pb-2">
-            <span className="text-xs font-bold text-foreground">
-              Period Locks for FY {config.monthLock.fiscalYear}:
-            </span>
-          </div>
+        <div className="py-1">
           <MonthGrid
             fiscalYear={config.monthLock.fiscalYear}
             months={config.monthLock.months}
@@ -333,41 +318,21 @@ export const MasterConfigPage: React.FC = () => {
         </ConfigRow>
       </SectionCard>
 
-      {/* ── 3.4 ACCOUNTS CODE SETUP ── */}
+      {/* ── 3.4 VOUCHER CONFIG ── */}
       <SectionCard
         sectionNo="3.4"
-        title="Accounts Code Setup"
+        title="Voucher Config."
         icon={FileText}
         isDirty={isSectionDirty('accountsCode')}
       >
-        <ConfigRow label="Auto-Generate Account Code" hint="Automatically generate incremental GL code for new accounts">
+        <ConfigRow label="Accounts Code" hint="Control whether account codes are shown or hidden across voucher screens">
           <ToggleYesNo
-            value={config.accountsCode.autoGenerate}
-            onChange={(val) => updateSection('accountsCode', { autoGenerate: val })}
+            value={config.accountsCode.showCode !== false && config.accountsCode.autoGenerate !== false}
+            onChange={(val) => updateSection('accountsCode', { showCode: val, autoGenerate: val })}
+            yesLabel="Show"
+            noLabel="Hide"
           />
         </ConfigRow>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <ConfigRow label="Account Code Prefix" hint="Default prefix applied to generated codes">
-            <input
-              type="text"
-              value={config.accountsCode.prefix}
-              onChange={(e) => updateSection('accountsCode', { prefix: e.target.value })}
-              className="w-32 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs"
-            />
-          </ConfigRow>
-
-          <ConfigRow label="Code Length" hint="Fixed digit length for chart account codes">
-            <input
-              type="number"
-              min="4"
-              max="12"
-              value={config.accountsCode.codeLength}
-              onChange={(e) => updateSection('accountsCode', { codeLength: parseInt(e.target.value, 10) || 6 })}
-              className="w-24 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs"
-            />
-          </ConfigRow>
-        </div>
 
         <ConfigRow
           label="Subsidiary & Accounts Merge View"
@@ -379,17 +344,18 @@ export const MasterConfigPage: React.FC = () => {
           />
         </ConfigRow>
 
-        <ConfigRow label="Accounts Path Visible" hint="Where the account path is shown">
-          <Dropdown
-            value={String(config.accountsCode.pathVisible)}
-            onChange={(val) => updateSection('accountsCode', { pathVisible: val })}
-            options={[...ACCOUNTS_PATH_OPTIONS]}
+        <ConfigRow label="Accounts Path" hint="Control whether the full account hierarchy path is shown or hidden">
+          <ToggleYesNo
+            value={Boolean(config.accountsCode.pathVisible && config.accountsCode.pathVisible !== 'Hide')}
+            onChange={(val) => updateSection('accountsCode', { pathVisible: val ? 'Show' : 'Hide' })}
+            yesLabel="Show"
+            noLabel="Hide"
           />
         </ConfigRow>
 
         <ConfigRow
           label="Effective Company"
-          hint="Select company scope for auto-generated GL codes"
+          hint="Select company scope for voucher account configuration"
           controlClassName="w-full md:w-96 shrink-0"
         >
           <MultiSelect
@@ -487,6 +453,19 @@ export const MasterConfigPage: React.FC = () => {
             />
           </div>
         </ConfigRow>
+
+        <ConfigRow
+          label="Effective Company"
+          hint="Select company scope for bank and cheque settings"
+          controlClassName="w-full md:w-96 shrink-0"
+        >
+          <MultiSelect
+            value={config.bankCheque.effectiveCompany || ['Pakiza Software Ltd.']}
+            onChange={(val) => updateSection('bankCheque', { effectiveCompany: val })}
+            options={COMPANY_LIST}
+            className="w-full max-w-none"
+          />
+        </ConfigRow>
       </SectionCard>
 
       {/* ── 4. STICKY GLOBAL BOTTOM BAR ── */}
@@ -496,11 +475,10 @@ export const MasterConfigPage: React.FC = () => {
             type="button"
             onClick={resetAll}
             disabled={!isGlobalDirty}
-            className={`inline-flex items-center gap-1.5 h-8.5 px-4 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
-              isGlobalDirty
-                ? 'text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95'
-                : 'text-muted-foreground/40 cursor-not-allowed'
-            }`}
+            className={`inline-flex items-center gap-1.5 h-8.5 px-4 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${isGlobalDirty
+              ? 'text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95'
+              : 'text-muted-foreground/40 cursor-not-allowed'
+              }`}
           >
             <RotateCcw className="size-3.5 shrink-0" />
             <span className="whitespace-nowrap">Reset</span>
@@ -510,11 +488,10 @@ export const MasterConfigPage: React.FC = () => {
             type="button"
             onClick={saveAll}
             disabled={!isGlobalDirty}
-            className={`inline-flex items-center gap-2 h-8.5 px-5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all shadow-sm cursor-pointer ${
-              isGlobalDirty
-                ? 'bg-primary text-primary-foreground hover:bg-primary/95 shadow-primary/20 active:scale-95'
-                : 'bg-muted/60 text-muted-foreground/50 border border-border/40 cursor-not-allowed shadow-none'
-            }`}
+            className={`inline-flex items-center gap-2 h-8.5 px-5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all shadow-sm cursor-pointer ${isGlobalDirty
+              ? 'bg-primary text-primary-foreground hover:bg-primary/95 shadow-primary/20 active:scale-95'
+              : 'bg-muted/60 text-muted-foreground/50 border border-border/40 cursor-not-allowed shadow-none'
+              }`}
           >
             <Check className="size-3.5 stroke-[2.5] shrink-0" />
             <span className="whitespace-nowrap">Apply All Changes</span>

@@ -111,7 +111,14 @@ export const SubsidiaryPicker: React.FC<SubsidiaryPickerProps> = ({ value, onCha
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 top-full left-0 mt-1 w-full min-w-[240px] max-w-[320px] bg-popover rounded-xl border border-border shadow-xl p-1.5 animate-in fade-in-50 zoom-in-95 duration-100">
+        <div
+          style={{ maxHeight }}
+          className={`absolute z-50 left-0 w-full min-w-[240px] max-w-[320px] bg-popover rounded-xl border border-border shadow-2xl p-1.5 overflow-hidden transition-all ${
+            openUpward
+              ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-50 zoom-in-95'
+              : 'top-full mt-1.5 origin-top animate-in fade-in-50 zoom-in-95'
+          }`}
+        >
           <div className="relative mb-1.5">
             <Search className="size-3 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input

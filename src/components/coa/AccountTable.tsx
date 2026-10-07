@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Account, HierarchyLevel } from '../../types/coa';
 import { formatAccountCode } from '../../lib/accountCode';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 import {
   Search,
   MoreVertical,
@@ -390,95 +391,18 @@ export const AccountTable: React.FC<AccountTableProps> = ({
                         onClick={(e) => e.stopPropagation()}
                       >
                         {acc.level <= 2 ? null : (
-                          <div className="relative inline-block">
-                            <button
-                              type="button"
-                              onClick={() => setActiveMenuId(isMenuOpen ? null : acc.id)}
-                              className="size-7 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground grid place-items-center transition-colors cursor-pointer"
-                            >
-                              <MoreVertical className="size-4" />
-                            </button>
-
-                          {isMenuOpen && (
-                            <>
-                              <div
-                                className="fixed inset-0 z-40"
-                                onClick={() => setActiveMenuId(null)}
-                              />
-                              <div className="absolute right-0 top-full mt-1 z-50 w-44 bg-popover rounded-xl border border-border shadow-xl p-1 text-left animate-in fade-in-50 zoom-in-95 duration-100">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setActiveMenuId(null);
-                                    if (onOpenEdit) {
-                                      onOpenEdit(acc);
-                                    } else {
-                                      navigate(`/chart-of-accounts/${acc.id}/edit`);
-                                    }
-                                  }}
-                                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-                                >
-                                  <Edit2 className="size-3.5 text-primary" />
-                                  <span>Edit Account</span>
-                                </button>
-
-                                {acc.level < 6 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setActiveMenuId(null);
-                                      if (onOpenCreate) {
-                                        onOpenCreate(acc.id);
-                                      } else {
-                                        navigate(`/chart-of-accounts/new?parentId=${acc.id}`);
-                                      }
-                                    }}
-                                    className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-                                  >
-                                    <PlusCircle className="size-3.5 text-emerald-600" />
-                                    <span>Add Child (L{acc.level + 1})</span>
-                                  </button>
-                                )}
-
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setActiveMenuId(null);
-                                    onToggleActive(acc.id);
-                                  }}
-                                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-                                >
-                                  <Power
-                                    className={`size-3.5 ${
-                                      acc.activeStatus === 'Active'
-                                        ? 'text-amber-500'
-                                        : 'text-emerald-500'
-                                    }`}
-                                  />
-                                  <span>
-                                    {acc.activeStatus === 'Active' ? 'Mark Inactive' : 'Mark Active'}
-                                  </span>
-                                </button>
-
-                                <div className="my-1 border-t border-border/50" />
-
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setActiveMenuId(null);
-                                    onDelete(acc.id);
-                                  }}
-                                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                                >
-                                  <Trash2 className="size-3.5" />
-                                  <span>Delete</span>
-                                </button>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </td>
+                          <AccountRowMenu
+                            account={acc}
+                            isOpen={isMenuOpen}
+                            onToggle={() => setActiveMenuId(isMenuOpen ? null : acc.id)}
+                            onClose={() => setActiveMenuId(null)}
+                            onOpenEdit={onOpenEdit}
+                            onOpenCreate={onOpenCreate}
+                            onToggleActive={onToggleActive}
+                            onDelete={onDelete}
+                          />
+                        )}
+                      </td>
                     </tr>
                   );
                 })
@@ -566,6 +490,127 @@ export const AccountTable: React.FC<AccountTableProps> = ({
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+const AccountRowMenu: React.FC<{
+  account: Account;
+  isOpen: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  onOpenEdit?: (account: Account) => void;
+  onOpenCreate?: (parentId?: string | null) => void;
+  onToggleActive: (id: string) => void;
+  onDelete: (id: string) => void;
+}> = ({
+  account,
+  isOpen,
+  onToggle,
+  onClose,
+  onOpenEdit,
+  onOpenCreate,
+  onToggleActive,
+  onDelete,
+}) => {
+  const navigate = useNavigate();
+  const menuRef = useRef<HTMLDivElement>(null);
+  const { openUpward } = useDropdownPosition({
+    triggerRef: menuRef,
+    isOpen,
+    minMenuHeight: 220,
+  });
+
+  return (
+    <div className="relative inline-block" ref={menuRef}>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="size-7 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground grid place-items-center transition-colors cursor-pointer"
+      >
+        <MoreVertical className="size-4" />
+      </button>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={onClose} />
+          <div
+            className={`absolute right-0 z-50 w-44 bg-popover rounded-xl border border-border shadow-xl p-1 text-left ${
+              openUpward
+                ? 'bottom-full mb-1 origin-bottom animate-in fade-in-50 zoom-in-95 duration-100'
+                : 'top-full mt-1 origin-top animate-in fade-in-50 zoom-in-95 duration-100'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                if (onOpenEdit) {
+                  onOpenEdit(account);
+                } else {
+                  navigate(`/chart-of-accounts/${account.id}/edit`);
+                }
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
+            >
+              <Edit2 className="size-3.5 text-primary" />
+              <span>Edit Account</span>
+            </button>
+
+            {account.level < 6 && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  if (onOpenCreate) {
+                    onOpenCreate(account.id);
+                  } else {
+                    navigate(`/chart-of-accounts/new?parentId=${account.id}`);
+                  }
+                }}
+                className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
+              >
+                <PlusCircle className="size-3.5 text-emerald-600" />
+                <span>Add Child (L{account.level + 1})</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onToggleActive(account.id);
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
+            >
+              <Power
+                className={`size-3.5 ${
+                  account.activeStatus === 'Active'
+                    ? 'text-amber-500'
+                    : 'text-emerald-500'
+                }`}
+              />
+              <span>
+                {account.activeStatus === 'Active' ? 'Mark Inactive' : 'Mark Active'}
+              </span>
+            </button>
+
+            <div className="my-1 border-t border-border/50" />
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onDelete(account.id);
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+            >
+              <Trash2 className="size-3.5" />
+              <span>Delete</span>
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

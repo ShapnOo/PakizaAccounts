@@ -5,6 +5,8 @@ interface ToggleYesNoProps {
   onChange: (val: boolean) => void;
   label?: string;
   disabled?: boolean;
+  yesLabel?: string;
+  noLabel?: string;
 }
 
 export const ToggleYesNo: React.FC<ToggleYesNoProps> = ({
@@ -12,6 +14,8 @@ export const ToggleYesNo: React.FC<ToggleYesNoProps> = ({
   onChange,
   label,
   disabled = false,
+  yesLabel = 'Yes',
+  noLabel = 'No',
 }) => {
   return (
     <div className="inline-flex items-center gap-2 select-none">
@@ -35,7 +39,7 @@ export const ToggleYesNo: React.FC<ToggleYesNoProps> = ({
               : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
           }`}
         >
-          Yes
+          {yesLabel}
         </button>
         <button
           type="button"
@@ -47,7 +51,7 @@ export const ToggleYesNo: React.FC<ToggleYesNoProps> = ({
               : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
           }`}
         >
-          No
+          {noLabel}
         </button>
       </div>
     </div>

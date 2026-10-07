@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useVouchers } from '../../context/VoucherContext';
 import { VoucherTypeChip } from '../../components/vouchers/VoucherTypeChip';
 import { VoucherDefinition, VoucherType } from '../../types/voucher';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 import {
   Receipt,
   Plus,
@@ -317,96 +318,15 @@ export const VoucherListPage: React.FC = () => {
                       className={`px-4 ${rowPadding} text-right`}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="relative inline-block">
-                        <button
-                          type="button"
-                          onClick={() => setActiveMenuId(isMenuOpen ? null : v.id)}
-                          className="size-7 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground grid place-items-center transition-colors cursor-pointer"
-                        >
-                          <MoreVertical className="size-4" />
-                        </button>
-
-                        {isMenuOpen && (
-                          <>
-                            <div
-                              className="fixed inset-0 z-40"
-                              onClick={() => setActiveMenuId(null)}
-                            />
-                            <div className="absolute right-0 top-full mt-1 z-50 w-44 bg-popover rounded-xl border border-border shadow-xl p-1 text-left animate-in fade-in-50 zoom-in-95 duration-100">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setActiveMenuId(null);
-                                  navigate(`/vouchers/${v.id}/setup`);
-                                }}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-                              >
-                                <Edit2 className="size-3.5 text-primary" />
-                                <span>Edit Setup</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setActiveMenuId(null);
-                                  const typeSlug = v.voucherType.replace(' Voucher', '');
-                                  navigate(`/accounts-report/journal?type=${typeSlug}`);
-                                }}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-                              >
-                                <Printer className="size-3.5 text-indigo-600" />
-                                <span>Print Template</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setActiveMenuId(null);
-                                  handleDuplicate(v);
-                                }}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-                              >
-                                <Copy className="size-3.5 text-sky-600" />
-                                <span>Duplicate</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setActiveMenuId(null);
-                                  toggleVoucherActive(v.id);
-                                }}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-                              >
-                                <Power
-                                  className={`size-3.5 ${
-                                    v.activeStatus === 'Active'
-                                      ? 'text-amber-500'
-                                      : 'text-emerald-500'
-                                  }`}
-                                />
-                                <span>
-                                  {v.activeStatus === 'Active' ? 'Deactivate' : 'Activate'}
-                                </span>
-                              </button>
-
-                              <div className="my-1 border-t border-border/50" />
-
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setActiveMenuId(null);
-                                  deleteVoucherDefinition(v.id);
-                                }}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                              >
-                                <Trash2 className="size-3.5" />
-                                <span>Delete</span>
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
+                      <VoucherRowMenu
+                        voucher={v}
+                        isOpen={isMenuOpen}
+                        onToggle={() => setActiveMenuId(isMenuOpen ? null : v.id)}
+                        onClose={() => setActiveMenuId(null)}
+                        onDuplicate={handleDuplicate}
+                        onToggleActive={toggleVoucherActive}
+                        onDelete={deleteVoucherDefinition}
+                      />
                     </td>
                   </tr>
                 );
@@ -415,6 +335,120 @@ export const VoucherListPage: React.FC = () => {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+};
+
+const VoucherRowMenu: React.FC<{
+  voucher: VoucherDefinition;
+  isOpen: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  onDuplicate: (v: VoucherDefinition) => void;
+  onToggleActive: (id: string) => void;
+  onDelete: (id: string) => void;
+}> = ({ voucher, isOpen, onToggle, onClose, onDuplicate, onToggleActive, onDelete }) => {
+  const navigate = useNavigate();
+  const menuRef = useRef<HTMLDivElement>(null);
+  const { openUpward } = useDropdownPosition({
+    triggerRef: menuRef,
+    isOpen,
+    minMenuHeight: 220,
+  });
+
+  return (
+    <div className="relative inline-block text-left" ref={menuRef}>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="size-7 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground grid place-items-center transition-colors cursor-pointer"
+      >
+        <MoreVertical className="size-4" />
+      </button>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={onClose} />
+          <div
+            className={`absolute right-0 z-50 w-44 bg-popover rounded-xl border border-border shadow-xl p-1 text-left ${
+              openUpward
+                ? 'bottom-full mb-1 origin-bottom animate-in fade-in-50 zoom-in-95 duration-100'
+                : 'top-full mt-1 origin-top animate-in fade-in-50 zoom-in-95 duration-100'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                navigate(`/vouchers/${voucher.id}/setup`);
+              }}
+              className="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
+            >
+              <Edit2 className="size-3.5 text-primary" />
+              <span>Edit Setup</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                const typeSlug = voucher.voucherType.replace(' Voucher', '');
+                navigate(`/accounts-report/journal?type=${typeSlug}`);
+              }}
+              className="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
+            >
+              <Printer className="size-3.5 text-indigo-600" />
+              <span>Print Template</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onDuplicate(voucher);
+              }}
+              className="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
+            >
+              <Copy className="size-3.5 text-sky-600" />
+              <span>Duplicate</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onToggleActive(voucher.id);
+              }}
+              className="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
+            >
+              <Power
+                className={`size-3.5 ${
+                  voucher.activeStatus === 'Active'
+                    ? 'text-amber-500'
+                    : 'text-emerald-500'
+                }`}
+              />
+              <span>
+                {voucher.activeStatus === 'Active' ? 'Deactivate' : 'Activate'}
+              </span>
+            </button>
+
+            <div className="my-1 border-t border-border/50" />
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onDelete(voucher.id);
+              }}
+              className="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+            >
+              <Trash2 className="size-3.5" />
+              <span>Delete</span>
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

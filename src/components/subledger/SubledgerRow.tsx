@@ -11,6 +11,7 @@ import {
 import { SubledgerEntry, SubledgerType } from '../../types/subledger';
 import { ActiveStatusPill } from './ActiveStatusPill';
 import { CompanyChips } from './CompanyChips';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface SubledgerRowProps {
   entry: SubledgerEntry;
@@ -35,6 +36,11 @@ export const SubledgerRow: React.FC<SubledgerRowProps> = ({
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { openUpward } = useDropdownPosition({
+    triggerRef: menuRef,
+    isOpen: menuOpen,
+    minMenuHeight: 160,
+  });
   const Icon = TYPE_ICONS[entry.type] || Building2;
 
   useEffect(() => {
@@ -130,7 +136,13 @@ export const SubledgerRow: React.FC<SubledgerRowProps> = ({
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 mt-1 w-40 rounded-xl bg-white shadow-xl border border-slate-200 py-1 z-30 animate-in fade-in-0 zoom-in-95 duration-100">
+              <div
+                className={`absolute right-0 w-40 rounded-xl bg-white dark:bg-card shadow-xl border border-slate-200 dark:border-border py-1 z-30 ${
+                  openUpward
+                    ? 'bottom-full mb-1 origin-bottom animate-in fade-in-0 zoom-in-95 duration-100'
+                    : 'top-full mt-1 origin-top animate-in fade-in-0 zoom-in-95 duration-100'
+                }`}
+              >
                 <button
                   type="button"
                   onClick={() => {

@@ -41,6 +41,7 @@ export const DEFAULT_CONFIG: Config = {
   },
   accountsCode: {
     autoGenerate: true,
+    showCode: true,
     prefix: 'ACC-',
     codeLength: 6,
     mergeView: true,
@@ -56,6 +57,7 @@ export const DEFAULT_CONFIG: Config = {
   bankCheque: {
     defaultVoucherName: 'Bank Payment Voucher',
     defaultAccount: '1012',
+    effectiveCompany: ['Pakiza Software Ltd.'],
   },
   globalEffectiveCompany: ['Pakiza Software Ltd.'],
 };
@@ -87,6 +89,7 @@ function normalizeConfig(parsed: any): Config {
     bankCheque: {
       defaultVoucherName: parsed?.bankCheque?.defaultVoucherName || parsed?.bankCheque?.defaultVoucherType || DEFAULT_CONFIG.bankCheque.defaultVoucherName,
       defaultAccount: parsed?.bankCheque?.defaultAccount || DEFAULT_CONFIG.bankCheque.defaultAccount,
+      effectiveCompany: parsed?.bankCheque?.effectiveCompany || DEFAULT_CONFIG.bankCheque.effectiveCompany,
     },
   };
 
@@ -104,6 +107,7 @@ function normalizeConfig(parsed: any): Config {
   merged.voucherControlling.effectiveCompany = toArray(merged.voucherControlling.effectiveCompany);
   merged.monthLock.effectiveCompany = toArray(merged.monthLock.effectiveCompany);
   merged.accountsCode.effectiveCompany = toArray(merged.accountsCode.effectiveCompany);
+  merged.bankCheque.effectiveCompany = toArray(merged.bankCheque.effectiveCompany);
   merged.globalEffectiveCompany = toArray(merged.globalEffectiveCompany);
 
   return merged as Config;

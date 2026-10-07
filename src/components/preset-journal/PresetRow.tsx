@@ -13,6 +13,7 @@ import { JournalPreset } from '../../types/presetJournal';
 import { VoucherTypeChip } from './VoucherTypeChip';
 import { LineCountChip } from './LineCountChip';
 import { UsageCounter } from './UsageCounter';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface PresetRowProps {
   preset: JournalPreset;
@@ -32,6 +33,11 @@ export function PresetRow({
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const { openUpward } = useDropdownPosition({
+    triggerRef: menuRef,
+    isOpen: menuOpen,
+    minMenuHeight: 160,
+  });
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -130,7 +136,13 @@ export function PresetRow({
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 top-8 z-30 w-40 overflow-hidden rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-xl animate-in fade-in-50 zoom-in-95">
+              <div
+                className={`absolute right-0 z-30 w-40 overflow-hidden rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-xl ${
+                  openUpward
+                    ? 'bottom-full mb-1 origin-bottom animate-in fade-in-50 zoom-in-95'
+                    : 'top-full mt-1 origin-top animate-in fade-in-50 zoom-in-95'
+                }`}
+              >
                 <button
                   type="button"
                   onClick={() => {

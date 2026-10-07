@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Pencil,
@@ -15,6 +15,7 @@ import { CadenceChip } from './CadenceChip';
 import { VoucherTypeChip } from './VoucherTypeChip';
 import { ActivePill } from './ActivePill';
 import { formatRelativeTime } from '../../lib/recurrence';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface ProfileTableProps {
   profiles: RecurringProfile[];
@@ -146,78 +147,15 @@ export const ProfileTable: React.FC<ProfileTableProps> = ({
                       </button>
 
                       {/* Dropdown Menu Toggle */}
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenMenuId(isMenuOpen ? null : p.id);
-                          }}
-                          className="p-1.5 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                        >
-                          <MoreVertical className="size-3.5" />
-                        </button>
-
-                        {isMenuOpen && (
-                          <>
-                            <div
-                              className="fixed inset-0 z-40"
-                              onClick={() => setOpenMenuId(null)}
-                            />
-                            <div className="absolute right-0 top-full mt-1.5 w-44 rounded-xl border border-border bg-card p-1 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-150">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setOpenMenuId(null);
-                                  navigate(`/recurring-journal/${p.id}/edit`);
-                                }}
-                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer text-left"
-                              >
-                                <Pencil className="size-3.5 text-primary" />
-                                <span>Edit Profile</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setOpenMenuId(null);
-                                  onDuplicate(p.id);
-                                }}
-                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer text-left"
-                              >
-                                <Copy className="size-3.5 text-indigo-500" />
-                                <span>Duplicate</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setOpenMenuId(null);
-                                  onRunNow(p.id);
-                                }}
-                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer text-left"
-                              >
-                                <PlayCircle className="size-3.5 text-emerald-500" />
-                                <span>Run Now</span>
-                              </button>
-
-                              <div className="h-px bg-border my-1" />
-
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setOpenMenuId(null);
-                                  onDelete(p);
-                                }}
-                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer text-left"
-                              >
-                                <Trash2 className="size-3.5" />
-                                <span>Delete Profile</span>
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
+                      <ProfileRowMenu
+                        profile={p}
+                        isOpen={isMenuOpen}
+                        onToggle={() => setOpenMenuId(isMenuOpen ? null : p.id)}
+                        onClose={() => setOpenMenuId(null)}
+                        onDuplicate={onDuplicate}
+                        onRunNow={onRunNow}
+                        onDelete={onDelete}
+                      />
                     </div>
                   </td>
                 </tr>
@@ -226,6 +164,102 @@ export const ProfileTable: React.FC<ProfileTableProps> = ({
           </tbody>
         </table>
       </div>
+    </div>
+  );
+};
+
+const ProfileRowMenu: React.FC<{
+  profile: RecurringProfile;
+  isOpen: boolean;
+  onClose: () => void;
+  onToggle: () => void;
+  onDuplicate: (id: string) => void;
+  onRunNow: (id: string) => void;
+  onDelete: (profile: RecurringProfile) => void;
+}> = ({ profile, isOpen, onClose, onToggle, onDuplicate, onRunNow, onDelete }) => {
+  const navigate = useNavigate();
+  const menuRef = useRef<HTMLDivElement>(null);
+  const { openUpward } = useDropdownPosition({
+    triggerRef: menuRef,
+    isOpen,
+    minMenuHeight: 180,
+  });
+
+  return (
+    <div className="relative inline-block text-left" ref={menuRef}>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
+        className="p-1.5 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+      >
+        <MoreVertical className="size-3.5" />
+      </button>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={onClose} />
+          <div
+            className={`absolute right-0 w-44 rounded-xl border border-border bg-card p-1 shadow-xl z-50 ${
+              openUpward
+                ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in zoom-in-95 duration-150'
+                : 'top-full mt-1.5 origin-top animate-in fade-in zoom-in-95 duration-150'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                navigate(`/recurring-journal/${profile.id}/edit`);
+              }}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer text-left"
+            >
+              <Pencil className="size-3.5 text-primary" />
+              <span>Edit Profile</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onDuplicate(profile.id);
+              }}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer text-left"
+            >
+              <Copy className="size-3.5 text-indigo-500" />
+              <span>Duplicate</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onRunNow(profile.id);
+              }}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer text-left"
+            >
+              <PlayCircle className="size-3.5 text-emerald-500" />
+              <span>Run Now</span>
+            </button>
+
+            <div className="h-px bg-border my-1" />
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onDelete(profile);
+              }}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer text-left"
+            >
+              <Trash2 className="size-3.5" />
+              <span>Delete Profile</span>
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

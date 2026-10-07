@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { VoucherTemplate } from '../../types/voucherTemplate';
 import { PaperCanvas } from './PaperCanvas';
 import { ZoomControl } from './ZoomControl';
 import { RulerUnit } from './RulerBar';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 import {
   Ruler,
   Sparkles,
@@ -50,6 +51,13 @@ export const ChangesPreviewPanel: React.FC<ChangesPreviewPanelProps> = ({
   const [showSectionOutlines, setShowSectionOutlines] = useState(true);
   const [sampleDatasetKey, setSampleDatasetKey] = useState<'standard' | 'multicurrency' | 'payment' | 'receive'>('standard');
   const [guidesDropdownOpen, setGuidesDropdownOpen] = useState(false);
+
+  const guidesRef = useRef<HTMLDivElement>(null);
+  const { openUpward: guidesOpenUpward } = useDropdownPosition({
+    triggerRef: guidesRef,
+    isOpen: guidesDropdownOpen,
+    minMenuHeight: 220,
+  });
 
   // Switch view mode presets
   const handleSetViewMode = (mode: ViewMode) => {
@@ -299,7 +307,7 @@ export const ChangesPreviewPanel: React.FC<ChangesPreviewPanelProps> = ({
         {/* Right: Alignment Toggles, Zoom & Print */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Detailed Guidelines Dropdown */}
-          <div className="relative">
+          <div className="relative" ref={guidesRef}>
             <button
               type="button"
               onClick={() => setGuidesDropdownOpen(!guidesDropdownOpen)}
@@ -316,7 +324,13 @@ export const ChangesPreviewPanel: React.FC<ChangesPreviewPanelProps> = ({
                   className="fixed inset-0 z-40"
                   onClick={() => setGuidesDropdownOpen(false)}
                 />
-                <div className="absolute right-0 top-full mt-1.5 w-56 p-2 rounded-xl bg-card border border-border shadow-lg z-50 space-y-1 text-xs">
+                <div
+                  className={`absolute right-0 w-56 p-2 rounded-xl bg-card border border-border shadow-lg z-50 space-y-1 text-xs ${
+                    guidesOpenUpward
+                      ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-50 zoom-in-95'
+                      : 'top-full mt-1.5 origin-top animate-in fade-in-50 zoom-in-95'
+                  }`}
+                >
                   <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-border/40">
                     Alignment Guidelines
                   </div>

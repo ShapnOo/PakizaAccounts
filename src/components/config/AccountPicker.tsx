@@ -1,8 +1,17 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Search, ChevronDown, Check, X, FolderTree, Building } from 'lucide-react';
+import { Search, ChevronDown, Check, X, FolderTree } from 'lucide-react';
+import { useCoa } from '../../context/CoaContext';
+import { INITIAL_ACCOUNTS } from '../../mock/accounts';
 import { mockAccountTree, findAccountById } from '../../data/mockAccountTree';
 import { AccountNode } from '../../types/config';
 import { useDropdownPosition } from '../../hooks/useDropdownPosition';
+
+export interface PickerAccountItem {
+  id: string;
+  code: string;
+  name: string;
+  pathText: string;
+}
 
 interface AccountPickerProps {
   label?: string;
@@ -29,10 +38,79 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
   const { openUpward, maxHeight } = useDropdownPosition({
     triggerRef: containerRef,
     isOpen,
-    minMenuHeight: 240,
+    minMenuHeight: 250,
   });
 
-  const selectedNode = useMemo(() => findAccountById(value), [value]);
+  // Get rich accounts from CoaContext
+  let coaAccounts = INITIAL_ACCOUNTS;
+  try {
+    const coa = useCoa();
+    if (coa?.accounts && coa.accounts.length > 0) {
+      coaAccounts = coa.accounts;
+    }
+  } catch {
+    // fallback to INITIAL_ACCOUNTS
+  }
+
+  // Build unified list of accounts with full hierarchy paths
+  const allAccounts = useMemo<PickerAccountItem[]>(() => {
+    const list: PickerAccountItem[] = [];
+    const seenIds = new Set<string>();
+
+    // 1. Add COA accounts (with real paths e.g. Assets > Current Assets > ...)
+    for (const acc of coaAccounts) {
+      if (!seenIds.has(acc.id)) {
+        seenIds.add(acc.id);
+        const rawCode = acc.manualCode || acc.code.replace(/^0+/, '') || acc.code;
+        const dedupedPath = (acc.path || []).filter(
+          (seg, idx, arr) => idx === 0 || seg !== arr[idx - 1]
+        );
+        list.push({
+          id: acc.id,
+          code: rawCode,
+          name: acc.name,
+          pathText: dedupedPath.join(' › '),
+        });
+      }
+    }
+
+    // 2. Add mockAccountTree items if not already present
+    function traverseTree(nodes: AccountNode[], path: string[]) {
+      for (const node of nodes) {
+        const cleanName = node.name.replace(/^[0-9]+\s*-\s*/, '');
+        const currentPath = [...path, cleanName];
+        if (node.isSelectable && !seenIds.has(node.id)) {
+          seenIds.add(node.id);
+          list.push({
+            id: node.id,
+            code: node.code,
+            name: cleanName,
+            pathText: path.join(' › '),
+          });
+        }
+        if (node.children) {
+          traverseTree(node.children, currentPath);
+        }
+      }
+    }
+
+    traverseTree(mockAccountTree, ['Chart of Accounts']);
+    return list;
+  }, [coaAccounts]);
+
+  // Find currently selected account
+  const selectedItem = useMemo(() => {
+    if (!value) return null;
+    return (
+      allAccounts.find(
+        (a) =>
+          a.id === value ||
+          a.code === value ||
+          a.code.replace(/^0+/, '') === value ||
+          a.id.endsWith(value)
+      ) || null
+    );
+  }, [allAccounts, value]);
 
   // Close on outside click
   useEffect(() => {
@@ -56,28 +134,18 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
     }
   }, [isOpen]);
 
-  // Flattened selectable accounts matching search query
+  // Filtered accounts based on search query
   const filteredAccounts = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    const result: { group: string; node: AccountNode }[] = [];
+    if (!q) return allAccounts;
 
-    function traverse(nodes: AccountNode[], groupName: string) {
-      for (const node of nodes) {
-        const currentGroup = node.children ? node.name : groupName;
-        if (node.isSelectable) {
-          if (!q || node.name.toLowerCase().includes(q) || node.code.includes(q)) {
-            result.push({ group: groupName, node });
-          }
-        }
-        if (node.children) {
-          traverse(node.children, currentGroup);
-        }
-      }
-    }
-
-    traverse(mockAccountTree, 'General Accounts');
-    return result;
-  }, [searchQuery]);
+    return allAccounts.filter(
+      (item) =>
+        item.name.toLowerCase().includes(q) ||
+        item.code.toLowerCase().includes(q) ||
+        item.pathText.toLowerCase().includes(q)
+    );
+  }, [allAccounts, searchQuery]);
 
   return (
     <div className="w-full space-y-1.5" ref={containerRef}>
@@ -103,19 +171,19 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           className={`w-full h-8.5 px-3 flex items-center justify-between gap-2 rounded-lg border text-left text-xs transition-all duration-150 cursor-pointer ${
-            selectedNode
+            selectedItem
               ? 'bg-card border-border/90 text-foreground shadow-2xs hover:border-border'
               : 'bg-muted/20 border-border/60 text-muted-foreground hover:border-border'
           } ${isOpen ? 'ring-2 ring-primary/20 border-primary' : ''}`}
         >
           <div className="flex items-center gap-2 truncate flex-1 min-w-0">
-            {selectedNode ? (
+            {selectedItem ? (
               <>
                 <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0 border border-primary/20">
-                  {selectedNode.code}
+                  {selectedItem.code}
                 </span>
                 <span className="truncate font-semibold text-foreground text-[12px]">
-                  {selectedNode.name.replace(/^[0-9]+\s*-\s*/, '')}
+                  {selectedItem.name}
                 </span>
               </>
             ) : (
@@ -129,7 +197,7 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
           </div>
 
           <div className="flex items-center gap-1 shrink-0">
-            {selectedNode && (
+            {selectedItem && (
               <span
                 role="button"
                 onClick={(e) => {
@@ -150,7 +218,7 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
         {isOpen && (
           <div
             style={{ maxHeight }}
-            className={`absolute left-0 right-0 z-50 bg-card border border-border/80 rounded-xl shadow-2xl overflow-hidden transition-all ${
+            className={`absolute left-0 right-0 z-50 min-w-[320px] bg-card border border-border/80 rounded-xl shadow-2xl overflow-hidden transition-all ${
               openUpward
                 ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-50 zoom-in-95'
                 : 'top-full mt-1.5 origin-top animate-in fade-in-50 zoom-in-95'
@@ -163,7 +231,7 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
                 ref={searchInputRef}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search account code or name..."
+                placeholder="Search account code, name, or path..."
                 className="w-full bg-transparent text-xs outline-none text-foreground font-semibold placeholder:text-muted-foreground/60 placeholder:font-normal"
               />
               {searchQuery && (
@@ -177,31 +245,45 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
               )}
             </div>
 
-            {/* List of Accounts */}
-            <div className="max-h-56 overflow-y-auto p-1.5 space-y-0.5 sidebar-scroll">
-              {filteredAccounts.map(({ group, node }) => {
-                const isSelected = node.id === value;
+            {/* List of Accounts with path and code badge */}
+            <div className="max-h-60 overflow-y-auto p-1.5 space-y-1 sidebar-scroll">
+              {filteredAccounts.map((item) => {
+                const isSelected = item.id === value || item.code === value;
                 return (
                   <button
-                    key={node.id}
+                    key={item.id}
                     type="button"
                     onClick={() => {
-                      onChange(node.id);
+                      onChange(item.id);
                       setIsOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-left transition-colors cursor-pointer ${
+                    className={`w-full flex items-start justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
                       isSelected
                         ? 'bg-primary/10 text-primary font-bold shadow-2xs'
-                        : 'hover:bg-muted/60 text-foreground/85'
+                        : 'hover:bg-muted/60 text-foreground'
                     }`}
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-mono text-[10px] font-bold text-muted-foreground/80 shrink-0">
-                        {node.code}
-                      </span>
-                      <span className="truncate">{node.name.replace(/^[0-9]+\s*-\s*/, '')}</span>
+                    <div className="min-w-0 flex-1 pr-2">
+                      {/* Line 1: Code Badge + Account Name */}
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded bg-muted/80 text-foreground/85 shrink-0 border border-border/70 shadow-2xs">
+                          {item.code}
+                        </span>
+                        <span className="font-bold text-xs text-foreground truncate">
+                          {item.name}
+                        </span>
+                      </div>
+
+                      {/* Line 2: FolderTree Icon + Breadcrumb Path */}
+                      {item.pathText && (
+                        <div className="text-[10.5px] text-muted-foreground truncate mt-1 flex items-center gap-1.5">
+                          <FolderTree className="size-3 text-muted-foreground/60 shrink-0" />
+                          <span className="truncate">{item.pathText}</span>
+                        </div>
+                      )}
                     </div>
-                    {isSelected && <Check className="size-3.5 text-primary shrink-0 ml-2" />}
+
+                    {isSelected && <Check className="size-4 text-primary shrink-0 mt-1" />}
                   </button>
                 );
               })}
