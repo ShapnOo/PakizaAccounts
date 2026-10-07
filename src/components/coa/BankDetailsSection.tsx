@@ -1,8 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Landmark, CreditCard, Building, Info, UserCheck, Calculator } from 'lucide-react';
+import { Landmark, CreditCard, Building, Info, UserCheck, Calculator, Plus, Check } from 'lucide-react';
 import { BankDetails } from '../../types/coa';
 import { BANK_ACCOUNT_TYPES } from '../../constants/accountsTypeTree';
+
+const DEFAULT_MASTER_BANKS = [
+  'Dutch Bangla Bank Lt.',
+  'Mutual Trust Bank Ltd.',
+  'BRAC Bank Ltd.',
+  'Eastern Bank Ltd.',
+  'Islami Bank Bangladesh Ltd.',
+  'City Bank Ltd.',
+  'Standard Chartered Bank',
+  'Prime Bank Ltd.',
+  'HSBC Bangladesh',
+];
 
 interface BankDetailsSectionProps {
   detailsType?: string;
@@ -21,11 +33,39 @@ export const BankDetailsSection: React.FC<BankDetailsSectionProps> = ({
   onChange,
   errors = {},
 }) => {
+  const [bankOptions, setBankOptions] = useState<string[]>(() => {
+    const initial = [...DEFAULT_MASTER_BANKS];
+    if (bankDetails.bankName && !initial.includes(bankDetails.bankName)) {
+      initial.unshift(bankDetails.bankName);
+    }
+    return initial;
+  });
+
+  const [isAddingBank, setIsAddingBank] = useState(false);
+  const [newBankInput, setNewBankInput] = useState('');
+
+  useEffect(() => {
+    if (bankDetails.bankName && !bankOptions.includes(bankDetails.bankName)) {
+      setBankOptions((prev) => [bankDetails.bankName!, ...prev]);
+    }
+  }, [bankDetails.bankName, bankOptions]);
+
   const updateField = (field: keyof BankDetails, val: string) => {
     onChange({
       ...bankDetails,
       [field]: val,
     });
+  };
+
+  const handleSaveNewBank = () => {
+    const trimmed = newBankInput.trim();
+    if (!trimmed) return;
+    if (!bankOptions.includes(trimmed)) {
+      setBankOptions((prev) => [trimmed, ...prev]);
+    }
+    updateField('bankName', trimmed);
+    setNewBankInput('');
+    setIsAddingBank(false);
   };
 
   const isBank = detailsType === 'Bank';
@@ -61,31 +101,83 @@ export const BankDetailsSection: React.FC<BankDetailsSectionProps> = ({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Bank Name */}
+              {/* Bank Name Dropdown + Add Button */}
               <div className="space-y-1 sm:col-span-2">
                 <label className="text-[11px] font-bold text-foreground/80 flex items-center justify-between">
                   <span>
                     Bank Name <span className="text-rose-500">*</span>
                   </span>
                   <span className="text-[10px] text-muted-foreground font-normal">
-                    e.g. Dutch Bangla Bank Lt.
+                    Master Data Options
                   </span>
                 </label>
-                <div className="relative">
-                  <Building className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter official bank title..."
-                    value={bankDetails.bankName || ''}
-                    onChange={(e) => updateField('bankName', e.target.value)}
-                    className={`w-full h-8.5 pl-8 pr-3 rounded-lg bg-card border text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs ${
-                      errors.bankName ? 'border-rose-500 ring-2 ring-rose-500/10' : 'border-border/80'
-                    }`}
-                  />
+
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Building className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground z-10" />
+                    <select
+                      value={bankDetails.bankName || ''}
+                      onChange={(e) => updateField('bankName', e.target.value)}
+                      className={`w-full h-8.5 pl-8 pr-8 rounded-lg bg-card border text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer ${
+                        errors.bankName ? 'border-rose-500 ring-2 ring-rose-500/10' : 'border-border/80'
+                      }`}
+                    >
+                      <option value="">-- Select Master Bank Name --</option>
+                      {bankOptions.map((b) => (
+                        <option key={b} value={b}>
+                          {b}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingBank(!isAddingBank)}
+                    className="h-8.5 px-3 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold shadow-2xs transition-all cursor-pointer whitespace-nowrap active:scale-95 flex items-center gap-1"
+                  >
+                    <Plus className="size-3.5 stroke-[2.5]" />
+                    <span>Add+</span>
+                  </button>
                 </div>
+
                 {errors.bankName && (
                   <p className="text-[10.5px] font-medium text-rose-500">{errors.bankName}</p>
+                )}
+
+                {/* Inline New Bank Name Creator */}
+                {isAddingBank && (
+                  <div className="mt-2 p-2 rounded-lg bg-card border border-primary/30 flex items-center gap-2 animate-in fade-in-50 zoom-in-95 duration-150">
+                    <input
+                      type="text"
+                      autoFocus
+                      placeholder="Enter new Bank Name..."
+                      value={newBankInput}
+                      onChange={(e) => setNewBankInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSaveNewBank();
+                        }
+                      }}
+                      className="flex-1 h-8 px-2.5 rounded-md bg-background border border-border/80 text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveNewBank}
+                      className="h-8 px-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold flex items-center gap-1 shadow-2xs"
+                    >
+                      <Check className="size-3.5 stroke-[2.5]" />
+                      <span>Save</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingBank(false)}
+                      className="h-8 px-2.5 rounded-md border border-border hover:bg-muted text-xs text-muted-foreground"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -271,3 +363,5 @@ export const BankDetailsSection: React.FC<BankDetailsSectionProps> = ({
     </AnimatePresence>
   );
 };
+
+export default BankDetailsSection;

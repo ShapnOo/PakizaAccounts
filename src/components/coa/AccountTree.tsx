@@ -22,6 +22,8 @@ interface AccountTreeProps {
   accounts: Account[];
   onToggleActive: (id: string) => void;
   onDelete: (id: string) => void;
+  onOpenCreate?: (parentId?: string | null) => void;
+  onOpenEdit?: (account: Account) => void;
 }
 
 interface LevelConfig {
@@ -104,6 +106,8 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
   accounts,
   onToggleActive,
   onDelete,
+  onOpenCreate,
+  onOpenEdit,
 }) => {
   const navigate = useNavigate();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
@@ -203,13 +207,17 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
 
           <button
             type="button"
-            onClick={() =>
-              navigate(
-                parentAccount
-                  ? `/chart-of-accounts/new?parentId=${parentAccount.id}`
-                  : `/chart-of-accounts/new`
-              )
-            }
+            onClick={() => {
+              if (onOpenCreate) {
+                onOpenCreate(parentAccount?.id || null);
+              } else {
+                navigate(
+                  parentAccount
+                    ? `/chart-of-accounts/new?parentId=${parentAccount.id}`
+                    : `/chart-of-accounts/new`
+                );
+              }
+            }}
             className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg border ${config.btnBorderColor} bg-card/80 text-[11px] font-bold ${config.btnTextColor} ${config.btnHoverBg} shadow-2xs transition-all cursor-pointer whitespace-nowrap active:scale-95`}
           >
             <Plus className="size-3 stroke-[2.5]" />
@@ -266,7 +274,13 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
                       <td className="py-2.5 px-4 text-right">
                         <button
                           type="button"
-                          onClick={() => navigate(`/chart-of-accounts/${leaf.id}/edit`)}
+                          onClick={() => {
+                            if (onOpenEdit) {
+                              onOpenEdit(leaf);
+                            } else {
+                              navigate(`/chart-of-accounts/${leaf.id}/edit`);
+                            }
+                          }}
                           className="size-7 rounded-lg border border-border/80 hover:bg-muted text-muted-foreground hover:text-foreground inline-grid place-items-center transition-colors cursor-pointer"
                           title="Edit Account"
                         >
@@ -352,7 +366,13 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
 
                       <button
                         type="button"
-                        onClick={() => navigate(`/chart-of-accounts/${node.id}/edit`)}
+                        onClick={() => {
+                          if (onOpenEdit) {
+                            onOpenEdit(node);
+                          } else {
+                            navigate(`/chart-of-accounts/${node.id}/edit`);
+                          }
+                        }}
                         className="size-7 rounded-lg border border-border/80 hover:bg-muted text-muted-foreground hover:text-foreground grid place-items-center transition-colors cursor-pointer shadow-2xs"
                         title="Edit Account"
                       >
@@ -481,7 +501,13 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
                 {accounts.map((acc) => (
                   <tr
                     key={acc.id}
-                    onClick={() => navigate(`/chart-of-accounts/${acc.id}/edit`)}
+                    onClick={() => {
+                      if (onOpenEdit) {
+                        onOpenEdit(acc);
+                      } else {
+                        navigate(`/chart-of-accounts/${acc.id}/edit`);
+                      }
+                    }}
                     className="hover:bg-muted/30 transition-colors cursor-pointer"
                   >
                     <td className="px-4 py-2 font-mono font-bold text-foreground">
@@ -507,7 +533,11 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigate(`/chart-of-accounts/${acc.id}/edit`);
+                          if (onOpenEdit) {
+                            onOpenEdit(acc);
+                          } else {
+                            navigate(`/chart-of-accounts/${acc.id}/edit`);
+                          }
                         }}
                         className="size-6 rounded border border-border/70 hover:bg-muted text-muted-foreground hover:text-foreground inline-grid place-items-center transition-colors cursor-pointer"
                       >

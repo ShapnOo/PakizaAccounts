@@ -2,12 +2,18 @@ import { Nature } from '../constants/accountsTypeTree';
 
 export type HierarchyLevel = 1 | 2 | 3 | 4 | 5 | 6;
 
+export interface AuxiliaryDimensionItem {
+  value?: string;
+  isMandatory?: boolean;
+  isFixed?: boolean;
+}
+
 export interface AuxiliaryDimensions {
-  supplier?: string;
-  customer?: string;
-  employee?: string;
-  reference?: string;
-  vehicle?: string;
+  supplier?: string | AuxiliaryDimensionItem;
+  customer?: string | AuxiliaryDimensionItem;
+  employee?: string | AuxiliaryDimensionItem;
+  reference?: string | AuxiliaryDimensionItem;
+  vehicle?: string | AuxiliaryDimensionItem;
 }
 
 export interface BankDetails {
@@ -31,7 +37,7 @@ export interface Account {
   activeStatus: 'Active' | 'Inactive';
   companyName: string; // "Pakiza Software Ltd."
   isParent: boolean; // "Make This Parent"
-  defaultCurrency: 'BDT';
+  defaultCurrency?: string;
   isMandatory?: boolean;
   aux?: AuxiliaryDimensions;
   detailsType?: string; // "Bank", "Cash", etc.
@@ -58,7 +64,7 @@ export interface AccountFormData {
   activeStatus: 'Active' | 'Inactive';
   companyName: string;
   isParent: boolean;
-  defaultCurrency: 'BDT';
+  defaultCurrency?: string;
   isMandatory?: boolean;
   aux?: AuxiliaryDimensions;
   detailsType?: string;

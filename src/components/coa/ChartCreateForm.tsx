@@ -16,6 +16,7 @@ import { ParentAccountPicker } from './ParentAccountPicker';
 import { DetailsTypeSelect } from './DetailsTypeSelect';
 import { BankDetailsSection } from './BankDetailsSection';
 import { AuxiliaryDimensions } from './AuxiliaryDimensions';
+import { CompanyMultiSelectPicker } from './CompanyMultiSelectPicker';
 import {
   Info,
   Check,
@@ -32,27 +33,34 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface ChartCreateFormProps {
   initialAccount?: Account;
+  defaultParentId?: string | null;
   allAccounts: Account[];
   extraDetailsTypes: string[];
   onAddDetailsType: (type: string) => void;
   onSubmit: (data: AccountFormData) => void;
+  onCancel?: () => void;
   isEditMode?: boolean;
 }
 
 export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
   initialAccount,
+  defaultParentId,
   allAccounts,
   extraDetailsTypes,
   onAddDetailsType,
   onSubmit,
+  onCancel,
   isEditMode = false,
 }) => {
   const navigate = useNavigate();
 
+  const effectiveParentId = initialAccount?.parentId ?? defaultParentId ?? null;
+  const parentAcc = effectiveParentId ? allAccounts.find((a) => a.id === effectiveParentId) : null;
+
   const defaultValues: AccountFormValues = {
     name: initialAccount?.name || '',
-    accountsType: initialAccount?.accountsType || 'Cash & Cash Equivalent',
-    parentId: initialAccount?.parentId || null,
+    accountsType: initialAccount?.accountsType || parentAcc?.accountsType || 'Cash & Cash Equivalent',
+    parentId: effectiveParentId,
     manualCode: initialAccount?.manualCode || '',
     description: initialAccount?.description || '',
     activeStatus: initialAccount?.activeStatus || 'Active',
@@ -86,6 +94,7 @@ export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
   const accountsType = watch('accountsType');
   const detailsType = watch('detailsType');
   const watchedName = watch('name');
+  const defaultCurrency = watch('defaultCurrency');
 
   // Selected taxonomy node
   const currentTaxonomyNode = useMemo(() => {
@@ -150,35 +159,7 @@ export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
-      {/* ── Top Bar: Mode Indicator & Quick Summary ── */}
-      <div className="bg-card border border-border/70 rounded-xl p-3 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="size-8 rounded-lg bg-primary/10 text-primary grid place-items-center">
-            <FilePlus2 className="size-4" />
-          </div>
-          <div>
-            <h2 className="text-sm font-black text-foreground">
-              {isEditMode ? `Edit Account: ${initialAccount?.name}` : 'Create New Account'}
-            </h2>
-            <p className="text-[11px] text-muted-foreground">
-              {isEditMode
-                ? `Update hierarchy placement, GL metadata, and auxiliary dimensions.`
-                : `Enter account attributes to integrate into the 6-level taxonomy tree.`}
-            </p>
-          </div>
-        </div>
 
-        {/* Live Code Preview Badge */}
-        <div className="flex items-center gap-2 bg-muted/40 px-3 py-1.5 rounded-lg border border-border/80 shadow-2xs">
-          <span className="text-[11px] font-bold text-muted-foreground">Auto Code:</span>
-          <span className="font-mono text-xs font-black text-primary tracking-wide">
-            {formatAccountCode(isEditMode && initialAccount ? initialAccount.code : codePreview.code)}
-          </span>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary font-bold">
-            Level {isEditMode && initialAccount ? initialAccount.level : codePreview.level}
-          </span>
-        </div>
-      </div>
 
       {/* ── Form Body: Two-column Layout + Right Rail Hints ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -202,7 +183,7 @@ export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
           </div>
 
           <div className="p-4 space-y-3.5 flex-1">
-            {/* Accounts Name (Required) */}
+            {/* 1. Accounts Name (Required) */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-foreground/85 flex items-center justify-between">
                 <span>
@@ -225,7 +206,7 @@ export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
               )}
             </div>
 
-            {/* Accounts Type (Select from Taxonomy) */}
+            {/* 2. Accounts Type (Select from Taxonomy) */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-foreground/85 flex items-center justify-between">
                 <span>
@@ -260,7 +241,7 @@ export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
               )}
             </div>
 
-            {/* Parent Accounts (Tree Picker) */}
+            {/* 3. Parent Accounts (Tree Picker) */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-foreground/85 flex items-center justify-between">
                 <span>Parent Accounts</span>
@@ -283,22 +264,102 @@ export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
               />
             </div>
 
-            {/* Company Name */}
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-foreground/85">
-                Company Name <span className="text-rose-500">*</span>
-              </label>
-              <select
-                {...register('companyName')}
-                className="w-full h-9 px-3 rounded-lg bg-card border border-border/80 text-xs font-semibold text-foreground outline-none cursor-pointer"
+            {/* 4. Manual Code & 5. Description (Shown when not in Parent Account Mode) */}
+            {!isParent && (
+              <>
+                {/* 4. Manual Code */}
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-foreground/85 flex items-center justify-between">
+                    <span>Manual Code</span>
+                    <span className="text-[10.5px] text-muted-foreground font-normal">
+                      Optional numeric code (e.g. 111000)
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="111000"
+                    {...register('manualCode')}
+                    className="w-full h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono text-foreground outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-2xs"
+                  />
+                  {errors.manualCode && (
+                    <p className="text-[10.5px] font-medium text-rose-500">
+                      {errors.manualCode.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* 5. Description */}
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-foreground/85">Description</label>
+                  <textarea
+                    rows={2}
+                    placeholder="Optional notes or account guidelines..."
+                    {...register('description')}
+                    className="w-full p-2.5 rounded-lg bg-card border border-border/80 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-2xs resize-none"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* 6. Make This Parent Account */}
+            <div className="pt-2 border-t border-border/50">
+              <button
+                type="button"
+                onClick={handleToggleMakeParent}
+                className={`w-full py-2 px-3 rounded-xl border flex items-center justify-between text-xs font-bold transition-all cursor-pointer shadow-2xs ${
+                  isParent
+                    ? 'bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-400'
+                    : 'bg-muted/40 border-border hover:bg-muted text-foreground'
+                }`}
               >
-                <option value={COMPANY}>{COMPANY}</option>
-                <option value="Pakiza Knit Composite Ltd.">Pakiza Knit Composite Ltd.</option>
-                <option value="Pakiza Apparels Ltd.">Pakiza Apparels Ltd.</option>
-              </select>
+                <div className="flex items-center gap-2">
+                  <FolderTree className="size-4 text-primary" />
+                  <span>Make This Parent Account</span>
+                </div>
+                <div
+                  className={`size-4 rounded-full border grid place-items-center ${
+                    isParent ? 'bg-amber-500 border-amber-500 text-white' : 'border-border'
+                  }`}
+                >
+                  {isParent && <Check className="size-3 stroke-[3]" />}
+                </div>
+              </button>
+
+              {isParent && (
+                <div className="mt-2.5 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 flex items-start gap-2 text-[11px] text-amber-700 dark:text-amber-400">
+                  <Info className="size-4 shrink-0 mt-0.5" />
+                  <p>
+                    <strong>Parent Account Notice:</strong> Parent accounts do not hold leaf-level
+                    GL info (Manual Code, Description, Details Type, or Bank Details).
+                  </p>
+                </div>
+              )}
             </div>
 
-            {/* Active Status Segmented */}
+            {/* 7. Company Name (Multi-select) */}
+            <div className="space-y-1 pt-1">
+              <label className="text-xs font-bold text-foreground/85 flex items-center justify-between">
+                <span>
+                  Company Name <span className="text-rose-500">*</span>
+                </span>
+                <span className="text-[10px] text-muted-foreground font-normal">
+                  Multi-selection enabled
+                </span>
+              </label>
+              <Controller
+                control={control}
+                name="companyName"
+                render={({ field }) => (
+                  <CompanyMultiSelectPicker
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={errors.companyName?.message}
+                  />
+                )}
+              />
+            </div>
+
+            {/* 8. Active Status */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-foreground/85">Active status</label>
               <Controller
@@ -332,74 +393,6 @@ export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
                 )}
               />
             </div>
-
-            {/* ── RULE R6: "Make This Parent" Banner / Conditional Block ── */}
-            <div className="pt-2 border-t border-border/50">
-              <button
-                type="button"
-                onClick={handleToggleMakeParent}
-                className={`w-full py-2 px-3 rounded-xl border flex items-center justify-between text-xs font-bold transition-all cursor-pointer shadow-2xs ${
-                  isParent
-                    ? 'bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-400'
-                    : 'bg-muted/40 border-border hover:bg-muted text-foreground'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <FolderTree className="size-4 text-primary" />
-                  <span>Make This Parent Account</span>
-                </div>
-                <div
-                  className={`size-4 rounded-full border grid place-items-center ${
-                    isParent ? 'bg-amber-500 border-amber-500 text-white' : 'border-border'
-                  }`}
-                >
-                  {isParent && <Check className="size-3 stroke-[3]" />}
-                </div>
-              </button>
-
-              {isParent ? (
-                <div className="mt-2.5 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 flex items-start gap-2 text-[11px] text-amber-700 dark:text-amber-400">
-                  <Info className="size-4 shrink-0 mt-0.5" />
-                  <p>
-                    <strong>Parent Account Notice:</strong> Parent accounts do not hold leaf-level
-                    GL info (Manual Code, Description, Details Type, or Bank Details).
-                  </p>
-                </div>
-              ) : (
-                /* Non-parent GL extra fields */
-                <div className="mt-3 space-y-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-foreground/85 flex items-center justify-between">
-                      <span>Manual Code</span>
-                      <span className="text-[10px] text-muted-foreground font-normal">
-                        Optional numeric code (e.g. 111000)
-                      </span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="111000"
-                      {...register('manualCode')}
-                      className="w-full h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono text-foreground outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-2xs"
-                    />
-                    {errors.manualCode && (
-                      <p className="text-[10.5px] font-medium text-rose-500">
-                        {errors.manualCode.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-foreground/85">Description</label>
-                    <textarea
-                      rows={2}
-                      placeholder="Optional notes or account guidelines..."
-                      {...register('description')}
-                      className="w-full p-2.5 rounded-lg bg-card border border-border/80 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-2xs resize-none"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </div>
 
@@ -413,7 +406,7 @@ export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
               Details
             </h3>
             <span className="text-[11px] text-muted-foreground font-medium">
-              Currency: <strong className="text-foreground">{DEFAULT_CURRENCY}</strong>
+              Currency: <strong className="text-foreground">{defaultCurrency || 'BDT'}</strong>
             </span>
           </div>
 
@@ -432,12 +425,34 @@ export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
                 {/* Default Currency & Mandatory flag */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-foreground/85">Default Currency</label>
-                    <input
-                      type="text"
-                      readOnly
-                      value={DEFAULT_CURRENCY}
-                      className="w-full h-8.5 px-3 rounded-lg bg-muted/50 border border-border/60 text-xs font-mono font-bold text-muted-foreground outline-none cursor-not-allowed select-none"
+                    <label className="text-xs font-bold text-foreground/85 flex items-center justify-between">
+                      <span>Default Currency</span>
+                      <span className="text-[10px] text-muted-foreground font-normal">Optional</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="defaultCurrency"
+                      render={({ field }) => (
+                        <select
+                          value={field.value || ''}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          className="w-full h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-2xs cursor-pointer"
+                        >
+                          <option value="">-- Select Currency (Optional) --</option>
+                          <option value="BDT">BDT (Bangladeshi Taka)</option>
+                          <option value="USD">USD (US Dollar)</option>
+                          <option value="EUR">EUR (Euro)</option>
+                          <option value="GBP">GBP (British Pound)</option>
+                          <option value="INR">INR (Indian Rupee)</option>
+                          <option value="CAD">CAD (Canadian Dollar)</option>
+                          <option value="AUD">AUD (Australian Dollar)</option>
+                          <option value="SAR">SAR (Saudi Riyal)</option>
+                          <option value="AED">AED (UAE Dirham)</option>
+                          <option value="SGD">SGD (Singapore Dollar)</option>
+                          <option value="CNY">CNY (Chinese Yuan)</option>
+                          <option value="JPY">JPY (Japanese Yen)</option>
+                        </select>
+                      )}
                     />
                   </div>
 
@@ -532,7 +547,7 @@ export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
       <div className="bg-card border border-border/80 rounded-xl p-3 shadow-2xs flex items-center justify-between gap-3">
         <button
           type="button"
-          onClick={() => navigate('/chart-of-accounts')}
+          onClick={() => (onCancel ? onCancel() : navigate('/chart-of-accounts'))}
           className="px-4 py-2 rounded-lg border border-border hover:bg-muted text-xs font-bold text-muted-foreground hover:text-foreground transition-all cursor-pointer"
         >
           Cancel

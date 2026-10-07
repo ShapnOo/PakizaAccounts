@@ -1,6 +1,6 @@
 import React from 'react';
 import { Truck, Users, User, Bookmark, Car } from 'lucide-react';
-import { AuxiliaryDimensions as AuxType } from '../../types/coa';
+import { AuxiliaryDimensions as AuxType, AuxiliaryDimensionItem } from '../../types/coa';
 
 interface AuxiliaryDimensionsProps {
   values?: AuxType;
@@ -13,35 +13,35 @@ const AUX_DIMENSIONS = [
     key: 'supplier' as const,
     label: 'Supplier',
     icon: Truck,
-    placeholder: 'e.g. Bismillah Motors',
+    placeholder: 'Select fixed supplier...',
     samples: ['Bismillah Motors', 'Bengal Chemicals', 'Padma Textile Supplies'],
   },
   {
     key: 'customer' as const,
     label: 'Customer',
     icon: Users,
-    placeholder: 'Select or enter customer...',
+    placeholder: 'Select fixed customer...',
     samples: ['H&M Global', 'Zara Retail', 'Apex Footwear Ltd.'],
   },
   {
     key: 'employee' as const,
     label: 'Employee',
     icon: User,
-    placeholder: 'Select employee...',
+    placeholder: 'Select fixed employee...',
     samples: ['EMP-001 (Tahmid Afsar)', 'EMP-002 (Rahim Ullah)'],
   },
   {
     key: 'reference' as const,
     label: 'Reference',
     icon: Bookmark,
-    placeholder: 'Select reference tag...',
+    placeholder: 'Select fixed reference tag...',
     samples: ['Project Green Alpha', 'Export LC-9921', 'Local Tender 2026'],
   },
   {
     key: 'vehicle' as const,
     label: 'Vehicle',
     icon: Car,
-    placeholder: 'Select vehicle...',
+    placeholder: 'Select fixed vehicle...',
     samples: ['DM-TA-11-2099 (Covered Van)', 'DM-GA-34-1100 (Pickup)'],
   },
 ];
@@ -51,64 +51,131 @@ export const AuxiliaryDimensions: React.FC<AuxiliaryDimensionsProps> = ({
   onChange,
   disabled = false,
 }) => {
-  const updateDimension = (key: keyof AuxType, val: string) => {
+  const getParsedDimension = (key: keyof AuxType): { value: string; isMandatory: boolean; isFixed: boolean } => {
+    const raw = values[key];
+    if (!raw) return { value: '', isMandatory: false, isFixed: false };
+    if (typeof raw === 'string') {
+      return { value: raw, isMandatory: false, isFixed: false };
+    }
+    return {
+      value: raw.value || '',
+      isMandatory: !!raw.isMandatory,
+      isFixed: !!raw.isFixed,
+    };
+  };
+
+  const updateDimension = (
+    key: keyof AuxType,
+    patch: Partial<{ value: string; isMandatory: boolean; isFixed: boolean }>
+  ) => {
+    const current = getParsedDimension(key);
+    const nextIsFixed = patch.isFixed !== undefined ? patch.isFixed : current.isFixed;
+    const updated: AuxiliaryDimensionItem = {
+      // If fixed is being unchecked, reset the fixed dropdown value
+      value: !nextIsFixed ? '' : patch.value !== undefined ? patch.value : current.value,
+      isMandatory: patch.isMandatory !== undefined ? patch.isMandatory : current.isMandatory,
+      isFixed: nextIsFixed,
+    };
+
     onChange({
       ...values,
-      [key]: val,
+      [key]: updated,
     });
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center justify-between border-b border-border/50 pb-1.5">
         <span>Auxiliary Dimensions</span>
         <span className="text-[10px] font-normal lowercase italic text-muted-foreground/70">
-          5 fixed dimension slots
+          Set Mandatory / Fixed options per dimension
         </span>
       </div>
 
-      <div className="space-y-2 pt-0.5">
+      <div className="space-y-2.5 pt-0.5">
         {AUX_DIMENSIONS.map((dim) => {
           const Icon = dim.icon;
-          const currentVal = values[dim.key] || '';
+          const { value: currentVal, isMandatory, isFixed } = getParsedDimension(dim.key);
 
           return (
             <div
               key={dim.key}
-              className="flex items-center gap-2 text-xs bg-muted/15 p-1.5 rounded-lg border border-border/40 hover:border-border/80 transition-colors"
+              className="bg-card/90 border border-border/70 rounded-xl p-2.5 space-y-2 shadow-2xs transition-all hover:border-border"
             >
-              {/* Fixed indicator badge */}
-              <div className="w-20 shrink-0 flex items-center gap-1.5">
-                <span className="text-[9.5px] font-black uppercase px-1.5 py-0.5 rounded bg-muted text-muted-foreground/80 border border-border/50">
-                  Fixed
-                </span>
-                <span className="font-semibold text-foreground/85 truncate" title={dim.label}>
-                  {dim.label}
-                </span>
+              {/* Row Header: Icon + Label + Badges + Option Checkboxes */}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="size-6 rounded-md bg-muted/60 text-muted-foreground grid place-items-center shrink-0">
+                    <Icon className="size-3.5" />
+                  </div>
+                  <span className="text-xs font-bold text-foreground">{dim.label}</span>
+
+                  {/* Active Badges */}
+                  <div className="flex items-center gap-1">
+                    {isMandatory && (
+                      <span className="text-[9.5px] font-black uppercase px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                        Mandatory *
+                      </span>
+                    )}
+                    {isFixed && (
+                      <span className="text-[9.5px] font-black uppercase px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-600 border border-indigo-500/20">
+                        Fixed
+                      </span>
+                    )}
+                    {!isMandatory && !isFixed && (
+                      <span className="text-[9.5px] font-medium text-muted-foreground/60 px-1">
+                        Optional
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Option Toggles: Is Mandatory & Is Fixed */}
+                <div className="flex items-center gap-3 text-xs">
+                  <label className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground/85 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      disabled={disabled}
+                      checked={isMandatory}
+                      onChange={(e) => updateDimension(dim.key, { isMandatory: e.target.checked })}
+                      className="size-3.5 rounded border-border text-primary focus:ring-primary/20 accent-primary cursor-pointer"
+                    />
+                    <span>Is Mandatory</span>
+                  </label>
+
+                  <label className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground/85 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      disabled={disabled}
+                      checked={isFixed}
+                      onChange={(e) => updateDimension(dim.key, { isFixed: e.target.checked })}
+                      className="size-3.5 rounded border-border text-primary focus:ring-primary/20 accent-primary cursor-pointer"
+                    />
+                    <span>Is Fixed</span>
+                  </label>
+                </div>
               </div>
 
-              {/* Arrow */}
-              <span className="text-muted-foreground/40 text-[11px] font-bold">→</span>
-
-              {/* Control input / lookup */}
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  list={`aux-list-${dim.key}`}
-                  disabled={disabled}
-                  placeholder={dim.placeholder}
-                  value={currentVal}
-                  onChange={(e) => updateDimension(dim.key, e.target.value)}
-                  className={`w-full h-8 px-2.5 rounded-md bg-card border border-border/80 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-2xs transition-all ${
-                    disabled ? 'bg-muted/40 text-muted-foreground cursor-not-allowed' : ''
-                  }`}
-                />
-                <datalist id={`aux-list-${dim.key}`}>
-                  {dim.samples.map((s) => (
-                    <option key={s} value={s} />
-                  ))}
-                </datalist>
-              </div>
+              {/* Fixed Dropdown Select (Only shown when Is Fixed is checked!) */}
+              {isFixed && (
+                <div className="relative pt-1 animate-in fade-in-50 zoom-in-95 duration-150">
+                  <select
+                    disabled={disabled}
+                    value={currentVal}
+                    onChange={(e) => updateDimension(dim.key, { value: e.target.value })}
+                    className={`w-full h-8.5 px-3 rounded-lg bg-background border text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-2xs cursor-pointer ${
+                      disabled ? 'bg-muted/40 text-muted-foreground cursor-not-allowed' : 'border-border/80'
+                    }`}
+                  >
+                    <option value="">-- Select Fixed {dim.label} --</option>
+                    {dim.samples.map((sample) => (
+                      <option key={sample} value={sample}>
+                        {sample}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           );
         })}
@@ -116,3 +183,5 @@ export const AuxiliaryDimensions: React.FC<AuxiliaryDimensionsProps> = ({
     </div>
   );
 };
+
+export default AuxiliaryDimensions;

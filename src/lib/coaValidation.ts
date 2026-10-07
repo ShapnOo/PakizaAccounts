@@ -20,15 +20,15 @@ export const accountFormSchema = z
     activeStatus: z.enum(['Active', 'Inactive']),
     companyName: z.string().min(1, 'Company Name is required'),
     isParent: z.boolean(),
-    defaultCurrency: z.literal('BDT'),
+    defaultCurrency: z.string().optional(),
     isMandatory: z.boolean().optional(),
     aux: z
       .object({
-        supplier: z.string().optional(),
-        customer: z.string().optional(),
-        employee: z.string().optional(),
-        reference: z.string().optional(),
-        vehicle: z.string().optional(),
+        supplier: z.any().optional(),
+        customer: z.any().optional(),
+        employee: z.any().optional(),
+        reference: z.any().optional(),
+        vehicle: z.any().optional(),
       })
       .optional(),
     detailsType: z.string().optional(),

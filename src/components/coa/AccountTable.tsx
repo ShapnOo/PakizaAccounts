@@ -22,6 +22,8 @@ interface AccountTableProps {
   accounts: Account[];
   onToggleActive: (id: string) => void;
   onDelete: (id: string) => void;
+  onOpenCreate?: (parentId?: string | null) => void;
+  onOpenEdit?: (account: Account) => void;
 }
 
 type SortField = 'code' | 'name' | 'level';
@@ -31,9 +33,12 @@ export const AccountTable: React.FC<AccountTableProps> = ({
   accounts,
   onToggleActive,
   onDelete,
+  onOpenCreate,
+  onOpenEdit,
 }) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [glFilter, setGlFilter] = useState<'non_empty' | 'all' | 'empty'>('non_empty');
   const [accountsTypeFilter, setAccountsTypeFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
   const [sortField, setSortField] = useState<SortField>('code');
@@ -46,6 +51,13 @@ export const AccountTable: React.FC<AccountTableProps> = ({
   // 1. Filter Data
   const filteredData = useMemo(() => {
     return accounts.filter((acc) => {
+      // Filter out empty GLs / parent group heads if glFilter is 'non_empty'
+      if (glFilter === 'non_empty') {
+        if (acc.isParent || !acc.code || !acc.name) return false;
+      } else if (glFilter === 'empty') {
+        if (!acc.isParent && acc.code && acc.name) return false;
+      }
+
       if (accountsTypeFilter !== 'All' && acc.accountsType !== accountsTypeFilter) {
         return false;
       }
@@ -62,7 +74,7 @@ export const AccountTable: React.FC<AccountTableProps> = ({
       }
       return true;
     });
-  }, [accounts, accountsTypeFilter, statusFilter, searchQuery]);
+  }, [accounts, glFilter, accountsTypeFilter, statusFilter, searchQuery]);
 
   // 2. Sort Data
   const sortedData = useMemo(() => {
@@ -164,6 +176,23 @@ export const AccountTable: React.FC<AccountTableProps> = ({
 
         {/* Right: Filters & Controls */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* GL Account Filter */}
+          <div className="flex items-center gap-1.5 bg-background border border-border/80 px-2.5 py-1 rounded-lg shadow-2xs">
+            <Filter className="size-3 text-muted-foreground" />
+            <select
+              value={glFilter}
+              onChange={(e: any) => {
+                setGlFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="text-xs font-semibold bg-transparent text-foreground outline-none cursor-pointer"
+            >
+              <option value="non_empty">Hide Empty GLs (Posting GLs Only)</option>
+              <option value="all">Show All Accounts (Incl. Groups)</option>
+              <option value="empty">Show Empty / Group GLs Only</option>
+            </select>
+          </div>
+
           {/* Accounts Type Filter */}
           <div className="flex items-center gap-1.5 bg-background border border-border/80 px-2.5 py-1 rounded-lg shadow-2xs">
             <Filter className="size-3 text-muted-foreground" />
@@ -270,7 +299,9 @@ export const AccountTable: React.FC<AccountTableProps> = ({
                   return (
                     <tr
                       key={acc.id}
-                      onClick={() => navigate(`/chart-of-accounts/${acc.id}/edit`)}
+                      onClick={() =>
+                        onOpenEdit ? onOpenEdit(acc) : navigate(`/chart-of-accounts/${acc.id}/edit`)
+                      }
                       className="hover:bg-muted/30 transition-colors cursor-pointer group"
                     >
                       {/* 1. Level No */}
@@ -280,56 +311,38 @@ export const AccountTable: React.FC<AccountTableProps> = ({
 
                       {/* 2. Level-1 */}
                       <td className={`px-3.5 ${rowPadding} whitespace-nowrap`}>
-                        {acc.path[0] ? (
-                          getLevelBadge(1, acc.path[0], acc.level === 1 ? acc.nameRaw : undefined)
-                        ) : (
-                          <span className="text-muted-foreground/30">—</span>
-                        )}
+                        {acc.path[0] &&
+                          getLevelBadge(1, acc.path[0], acc.level === 1 ? acc.nameRaw : undefined)}
                       </td>
 
                       {/* 3. Level-2 */}
                       <td className={`px-3.5 ${rowPadding} whitespace-nowrap`}>
-                        {acc.path[1] ? (
-                          getLevelBadge(2, acc.path[1], acc.level === 2 ? acc.nameRaw : undefined)
-                        ) : (
-                          <span className="text-muted-foreground/30">—</span>
-                        )}
+                        {acc.path[1] &&
+                          getLevelBadge(2, acc.path[1], acc.level === 2 ? acc.nameRaw : undefined)}
                       </td>
 
                       {/* 4. Level-3 */}
                       <td className={`px-3.5 ${rowPadding} whitespace-nowrap`}>
-                        {acc.path[2] ? (
-                          getLevelBadge(3, acc.path[2], acc.level === 3 ? acc.nameRaw : undefined)
-                        ) : (
-                          <span className="text-muted-foreground/30">—</span>
-                        )}
+                        {acc.path[2] &&
+                          getLevelBadge(3, acc.path[2], acc.level === 3 ? acc.nameRaw : undefined)}
                       </td>
 
                       {/* 5. Level-4 */}
                       <td className={`px-3.5 ${rowPadding} whitespace-nowrap`}>
-                        {acc.path[3] ? (
-                          getLevelBadge(4, acc.path[3], acc.level === 4 ? acc.nameRaw : undefined)
-                        ) : (
-                          <span className="text-muted-foreground/30">—</span>
-                        )}
+                        {acc.path[3] &&
+                          getLevelBadge(4, acc.path[3], acc.level === 4 ? acc.nameRaw : undefined)}
                       </td>
 
                       {/* 6. Level-5 */}
                       <td className={`px-3.5 ${rowPadding} whitespace-nowrap`}>
-                        {acc.path[4] ? (
-                          getLevelBadge(5, acc.path[4], acc.level === 5 ? acc.nameRaw : undefined)
-                        ) : (
-                          <span className="text-muted-foreground/30">—</span>
-                        )}
+                        {acc.path[4] &&
+                          getLevelBadge(5, acc.path[4], acc.level === 5 ? acc.nameRaw : undefined)}
                       </td>
 
                       {/* 7. Level-6 */}
                       <td className={`px-3.5 ${rowPadding} whitespace-nowrap`}>
-                        {acc.path[5] ? (
-                          getLevelBadge(6, acc.path[5], acc.level === 6 ? acc.nameRaw : undefined)
-                        ) : (
-                          <span className="text-muted-foreground/30">—</span>
-                        )}
+                        {acc.path[5] &&
+                          getLevelBadge(6, acc.path[5], acc.level === 6 ? acc.nameRaw : undefined)}
                       </td>
 
                       {/* 8. Kebab Actions */}
@@ -357,7 +370,11 @@ export const AccountTable: React.FC<AccountTableProps> = ({
                                   type="button"
                                   onClick={() => {
                                     setActiveMenuId(null);
-                                    navigate(`/chart-of-accounts/${acc.id}/edit`);
+                                    if (onOpenEdit) {
+                                      onOpenEdit(acc);
+                                    } else {
+                                      navigate(`/chart-of-accounts/${acc.id}/edit`);
+                                    }
                                   }}
                                   className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
                                 >
@@ -370,7 +387,11 @@ export const AccountTable: React.FC<AccountTableProps> = ({
                                     type="button"
                                     onClick={() => {
                                       setActiveMenuId(null);
-                                      navigate(`/chart-of-accounts/new?parentId=${acc.id}`);
+                                      if (onOpenCreate) {
+                                        onOpenCreate(acc.id);
+                                      } else {
+                                        navigate(`/chart-of-accounts/new?parentId=${acc.id}`);
+                                      }
                                     }}
                                     className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
                                   >

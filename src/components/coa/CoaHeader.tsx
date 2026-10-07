@@ -13,10 +13,15 @@ import { COMPANY } from '../../constants/accountsTypeTree';
 
 interface CoaHeaderProps {
   onOpenUpload: () => void;
+  onOpenCreate?: () => void;
   totalAccounts?: number;
 }
 
-export const CoaHeader: React.FC<CoaHeaderProps> = ({ onOpenUpload, totalAccounts = 0 }) => {
+export const CoaHeader: React.FC<CoaHeaderProps> = ({
+  onOpenUpload,
+  onOpenCreate,
+  totalAccounts = 0,
+}) => {
   const [searchParams] = useSearchParams();
   const currentView = searchParams.get('view') === 'tree' ? 'tree' : 'list';
 
@@ -69,13 +74,24 @@ export const CoaHeader: React.FC<CoaHeaderProps> = ({ onOpenUpload, totalAccount
             <span>Chart Upload</span>
           </button>
 
-          <Link
-            to="/chart-of-accounts/new"
-            className="inline-flex items-center gap-1.5 h-8.5 px-3.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-bold shadow-sm shadow-primary/20 transition-all cursor-pointer whitespace-nowrap active:scale-95"
-          >
-            <Plus className="size-4 stroke-[2.5]" />
-            <span>Create New</span>
-          </Link>
+          {onOpenCreate ? (
+            <button
+              type="button"
+              onClick={onOpenCreate}
+              className="inline-flex items-center gap-1.5 h-8.5 px-3.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-bold shadow-sm shadow-primary/20 transition-all cursor-pointer whitespace-nowrap active:scale-95"
+            >
+              <Plus className="size-4 stroke-[2.5]" />
+              <span>Create New</span>
+            </button>
+          ) : (
+            <Link
+              to="/chart-of-accounts/new"
+              className="inline-flex items-center gap-1.5 h-8.5 px-3.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-bold shadow-sm shadow-primary/20 transition-all cursor-pointer whitespace-nowrap active:scale-95"
+            >
+              <Plus className="size-4 stroke-[2.5]" />
+              <span>Create New</span>
+            </Link>
+          )}
         </div>
       </div>
 
