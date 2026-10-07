@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown, X } from 'lucide-react';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface MultiSelectProps {
   value: string[];
@@ -23,6 +24,12 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
   const ref = useRef<HTMLDivElement>(null);
   const selected = Array.isArray(value) ? value : [];
 
+  const { openUpward, maxHeight } = useDropdownPosition({
+    triggerRef: ref,
+    isOpen: open,
+    minMenuHeight: 200,
+  });
+
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
@@ -40,8 +47,10 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
 
   const allSelected = options.length > 0 && options.every((o) => selected.includes(o));
 
+  const hasCustomMaxW = className.includes('max-w-');
+
   return (
-    <div ref={ref} className={`relative w-full max-w-[340px] ${className}`}>
+    <div ref={ref} className={`relative w-full ${hasCustomMaxW ? '' : 'max-w-[340px]'} ${className}`}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -84,7 +93,14 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
       </button>
 
       {open && (
-        <div className="absolute z-40 mt-1 w-full bg-card border border-border rounded-lg shadow-lg py-1 animate-in fade-in-50 zoom-in-95">
+        <div
+          style={{ maxHeight }}
+          className={`absolute z-50 w-full bg-card border border-border rounded-xl shadow-xl py-1 overflow-y-auto sidebar-scroll transition-all ${
+            openUpward
+              ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-50 zoom-in-95'
+              : 'top-full mt-1.5 origin-top animate-in fade-in-50 zoom-in-95'
+          }`}
+        >
           <button
             type="button"
             onClick={() => onChange(allSelected ? [] : [...options])}

@@ -11,6 +11,7 @@ interface ConfigRowProps {
   onApply?: () => void;
   isDirty?: boolean;
   className?: string;
+  controlClassName?: string;
 }
 
 export const ConfigRow: React.FC<ConfigRowProps> = ({
@@ -23,6 +24,7 @@ export const ConfigRow: React.FC<ConfigRowProps> = ({
   onApply,
   isDirty = false,
   className = '',
+  controlClassName,
 }) => {
   return (
     <div
@@ -40,8 +42,8 @@ export const ConfigRow: React.FC<ConfigRowProps> = ({
         )}
       </div>
 
-      {/* 2. Control Area Column (Fixed width for aligned inputs) */}
-      <div className="w-full md:w-72 shrink-0 flex items-center">
+      {/* 2. Control Area Column */}
+      <div className={`w-full ${controlClassName || 'md:w-80 shrink-0'} flex items-center`}>
         {children}
       </div>
 

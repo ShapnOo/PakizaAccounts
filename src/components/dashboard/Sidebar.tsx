@@ -13,7 +13,6 @@ import {
   FileSpreadsheet,
   Layers,
   CreditCard,
-  TrendingUp,
   Landmark,
   BookOpen,
   Coins,
@@ -105,14 +104,6 @@ export const nav: NavItem[] = [
     subitems: [
       { label: "Supplier Master Setup", to: "/accounts-payable/supplier-master-setup" },
       { label: "Supplier Master List", to: "/accounts-payable/supplier-master-list" },
-    ],
-  },
-  {
-    label: "Accounts Receivable Management (Sales)",
-    icon: TrendingUp,
-    subitems: [
-      { label: "Customer Master Setup", to: "/customers" },
-      { label: "Customer Master List", to: "/customers" },
     ],
   },
   {

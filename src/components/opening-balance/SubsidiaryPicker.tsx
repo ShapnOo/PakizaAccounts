@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { SubsidiaryOption, SubsidiaryPartyType } from '../../types/openingBalance';
 import { listSubsidiaries } from '../../services/subsidiariesService';
 import { ChevronDown, Check, X, Search } from 'lucide-react';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface SubsidiaryPickerProps {
   value: string;
@@ -13,6 +14,12 @@ export const SubsidiaryPicker: React.FC<SubsidiaryPickerProps> = ({ value, onCha
   const [subsidiaries, setSubsidiaries] = useState<SubsidiaryOption[]>([]);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const { openUpward, maxHeight } = useDropdownPosition({
+    triggerRef: containerRef,
+    isOpen,
+    minMenuHeight: 220,
+  });
 
   useEffect(() => {
     let active = true;

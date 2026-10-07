@@ -22,6 +22,7 @@ interface RateRowProps {
   onSetBase: (currencyId: string) => Promise<void>;
   onDelete: (currencyId: string) => Promise<void>;
   onOpenHistory: (setup: CurrencySetup) => void;
+  onEdit?: (setup: CurrencySetup) => void;
   density?: 'comfortable' | 'compact';
 }
 
@@ -32,6 +33,7 @@ export const RateRow: React.FC<RateRowProps> = ({
   onSetBase,
   onDelete,
   onOpenHistory,
+  onEdit,
   density = 'comfortable',
 }) => {
   const navigate = useNavigate();
@@ -163,12 +165,14 @@ export const RateRow: React.FC<RateRowProps> = ({
       </td>
 
       {/* ── 5. Base Currency Toggle ── */}
-      <td className={`px-4 ${rowPadding} text-center`}>
-        <BaseCurrencyToggle
-          isBase={isBase}
-          currencyCode={setup.code}
-          onSetBase={() => onSetBase(setup.id)}
-        />
+      <td className={`px-4 ${rowPadding} text-center whitespace-nowrap min-w-[140px]`}>
+        <div className="flex items-center justify-center">
+          <BaseCurrencyToggle
+            isBase={isBase}
+            currencyCode={setup.code}
+            onSetBase={() => onSetBase(setup.id)}
+          />
+        </div>
       </td>
 
       {/* ── 6. Row Actions (⋮) ── */}
@@ -191,7 +195,11 @@ export const RateRow: React.FC<RateRowProps> = ({
                 type="button"
                 onClick={() => {
                   setMenuOpen(false);
-                  navigate(`/currency-setup/${setup.id}/edit`);
+                  if (onEdit) {
+                    onEdit(setup);
+                  } else {
+                    navigate(`/currency-setup/${setup.id}/edit`);
+                  }
                 }}
                 className="w-full px-2.5 py-1.5 text-left text-xs font-semibold rounded-lg hover:bg-muted text-foreground flex items-center gap-2 cursor-pointer"
               >

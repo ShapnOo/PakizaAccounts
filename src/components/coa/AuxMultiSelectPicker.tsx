@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check, CheckSquare, Square, X } from 'lucide-react';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface AuxMultiSelectPickerProps {
   label: string;
@@ -18,6 +19,12 @@ export const AuxMultiSelectPicker: React.FC<AuxMultiSelectPickerProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const { openUpward, maxHeight } = useDropdownPosition({
+    triggerRef: containerRef,
+    isOpen,
+    minMenuHeight: 200,
+  });
 
   // Parse value into array
   const selectedArray: string[] = React.useMemo(() => {
@@ -108,7 +115,14 @@ export const AuxMultiSelectPicker: React.FC<AuxMultiSelectPickerProps> = ({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-popover border border-border rounded-xl shadow-xl p-1.5 space-y-1 text-xs animate-in fade-in-50 zoom-in-95 duration-100 max-h-56 overflow-y-auto">
+        <div
+          style={{ maxHeight }}
+          className={`absolute left-0 right-0 z-50 bg-popover border border-border rounded-xl shadow-2xl p-1.5 space-y-1 text-xs overflow-y-auto sidebar-scroll transition-all ${
+            openUpward
+              ? 'bottom-full mb-1 origin-bottom animate-in fade-in-50 zoom-in-95'
+              : 'top-full mt-1 origin-top animate-in fade-in-50 zoom-in-95'
+          }`}
+        >
           {/* Select All */}
           <div
             onClick={handleSelectAll}

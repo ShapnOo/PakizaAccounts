@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Building2, ChevronDown, Check, CheckSquare, Square, X } from 'lucide-react';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 export const COMPANY_OPTIONS = [
   'Pakiza Software Ltd.',
@@ -24,6 +25,12 @@ export const CompanyMultiSelectPicker: React.FC<CompanyMultiSelectPickerProps> =
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const { openUpward, maxHeight } = useDropdownPosition({
+    triggerRef: containerRef,
+    isOpen,
+    minMenuHeight: 220,
+  });
 
   // Parse string value into array of selected company names
   const selectedArray = value
@@ -115,7 +122,14 @@ export const CompanyMultiSelectPicker: React.FC<CompanyMultiSelectPickerProps> =
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-popover border border-border rounded-xl shadow-xl p-1.5 space-y-1 text-xs animate-in fade-in-50 zoom-in-95 duration-100">
+        <div
+          style={{ maxHeight }}
+          className={`absolute left-0 right-0 z-50 bg-popover border border-border rounded-xl shadow-2xl p-1.5 space-y-1 text-xs overflow-y-auto sidebar-scroll transition-all ${
+            openUpward
+              ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-50 zoom-in-95'
+              : 'top-full mt-1.5 origin-top animate-in fade-in-50 zoom-in-95'
+          }`}
+        >
           {/* Select All Row */}
           <div
             onClick={handleSelectAll}

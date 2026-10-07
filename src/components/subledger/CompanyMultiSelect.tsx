@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Check, ChevronDown, Search, X, Building2 } from 'lucide-react';
 import { Company } from '../../types/subledger';
 import { listCompanies } from '../../services/companyService';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface CompanyMultiSelectProps {
   value: string[];
@@ -22,6 +23,12 @@ export const CompanyMultiSelect: React.FC<CompanyMultiSelectProps> = ({
   const [loading, setLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const { openUpward, maxHeight } = useDropdownPosition({
+    triggerRef: containerRef,
+    isOpen,
+    minMenuHeight: 250,
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -177,7 +184,14 @@ export const CompanyMultiSelect: React.FC<CompanyMultiSelectProps> = ({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150">
+        <div
+          style={{ maxHeight }}
+          className={`absolute z-50 left-0 right-0 bg-card rounded-xl border border-border shadow-2xl overflow-hidden transition-all ${
+            openUpward
+              ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-0 zoom-in-95'
+              : 'top-full mt-1.5 origin-top animate-in fade-in-0 zoom-in-95'
+          }`}
+        >
           {/* Search Header */}
           <div className="p-2 border-b border-slate-100 bg-slate-50/70 flex items-center gap-2">
             <Search className="size-3.5 text-slate-400 shrink-0 ml-1" />

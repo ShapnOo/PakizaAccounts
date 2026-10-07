@@ -163,18 +163,11 @@ const searchableMenus: SearchMenuLink[] = [
     description: "Directory of registered corporate suppliers and trade payables",
   },
 
-  // Accounts Receivable Management (Sales)
   {
     label: "Customer Master Setup",
-    parent: "Accounts Receivable Management",
+    parent: "Master Configuration & Setup (F&A)",
     to: "/customers",
     description: "Customer onboarding, billing profiles, and credit policies",
-  },
-  {
-    label: "Customer Master List",
-    parent: "Accounts Receivable Management",
-    to: "/customers",
-    description: "Complete list of accounts receivable debtors and customer balances",
   },
 
   // Bank Management

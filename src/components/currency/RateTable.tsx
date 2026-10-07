@@ -13,6 +13,7 @@ interface RateTableProps {
   onSetBase: (currencyId: string) => Promise<void>;
   onDelete: (currencyId: string) => Promise<void>;
   onOpenHistory: (setup: CurrencySetup) => void;
+  onEdit?: (setup: CurrencySetup) => void;
 }
 
 export const RateTable: React.FC<RateTableProps> = ({
@@ -23,6 +24,7 @@ export const RateTable: React.FC<RateTableProps> = ({
   onSetBase,
   onDelete,
   onOpenHistory,
+  onEdit,
 }) => {
   const [search, setSearch] = useState('');
   const [baseFilter, setBaseFilter] = useState<'All' | 'Base' | 'NonBase'>('All');
@@ -125,7 +127,7 @@ export const RateTable: React.FC<RateTableProps> = ({
                 <th className="py-2.5 px-4 font-black text-right w-44">Exchange Rate</th>
                 <th className="py-2.5 px-4 font-bold w-36">Effective Date</th>
                 <th className="py-2.5 px-4 font-bold w-20 text-center">History</th>
-                <th className="py-2.5 px-4 font-bold w-32 text-center">Base Currency</th>
+                <th className="py-2.5 px-4 font-bold min-w-[140px] text-center whitespace-nowrap">Base Currency</th>
                 <th className="py-2.5 px-4 font-bold w-14 text-right"></th>
               </tr>
             </thead>
@@ -152,6 +154,7 @@ export const RateTable: React.FC<RateTableProps> = ({
                     onSetBase={onSetBase}
                     onDelete={onDelete}
                     onOpenHistory={onOpenHistory}
+                    onEdit={onEdit}
                     density={density}
                   />
                 ))

@@ -5,7 +5,7 @@ export type Config = {
   costCenter: {
     mandatory: boolean;
     effectivePart: string[]; // multi: 'Balance sheet' | 'Income Statement'
-    applyToAllChanges: boolean;
+    applyToAllChanges?: boolean;
   };
   voucherControlling: {
     enabled: boolean;
@@ -13,7 +13,7 @@ export type Config = {
     selectedVouchers: string[];
     selectedUsers: string[];
     maxDueDays: number;
-    maxDelayDays: number;
+    maxDelayDays?: number;
     effectiveCompany: string[];
   };
   monthLock: {

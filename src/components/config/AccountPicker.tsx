@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Search, ChevronDown, Check, X, FolderTree, Building } from 'lucide-react';
 import { mockAccountTree, findAccountById } from '../../data/mockAccountTree';
 import { AccountNode } from '../../types/config';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface AccountPickerProps {
   label?: string;
@@ -24,6 +25,12 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const { openUpward, maxHeight } = useDropdownPosition({
+    triggerRef: containerRef,
+    isOpen,
+    minMenuHeight: 240,
+  });
 
   const selectedNode = useMemo(() => findAccountById(value), [value]);
 
@@ -141,7 +148,14 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
 
         {/* Dropdown Popover */}
         {isOpen && (
-          <div className="absolute left-0 right-0 top-10 z-50 bg-card border border-border/80 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <div
+            style={{ maxHeight }}
+            className={`absolute left-0 right-0 z-50 bg-card border border-border/80 rounded-xl shadow-2xl overflow-hidden transition-all ${
+              openUpward
+                ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-50 zoom-in-95'
+                : 'top-full mt-1.5 origin-top animate-in fade-in-50 zoom-in-95'
+            }`}
+          >
             {/* Search Input */}
             <div className="p-2 border-b border-border/40 flex items-center gap-2 bg-muted/30">
               <Search className="size-3.5 text-muted-foreground shrink-0" />

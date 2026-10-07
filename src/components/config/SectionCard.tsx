@@ -20,12 +20,12 @@ export const SectionCard: React.FC<SectionCardProps> = ({
   onApply,
   isDirty = false,
   applyLabel = 'Apply Change',
-  showApplyFooter = true,
+  showApplyFooter = false,
 }) => {
   return (
-    <section className="bg-card border border-border/60 rounded-xl shadow-2xs overflow-hidden transition-all duration-200">
+    <section className="bg-card border border-border/60 rounded-xl shadow-2xs overflow-visible transition-all duration-200">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-border/40 bg-muted/20 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-border/40 bg-muted/20 rounded-t-xl flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           {Icon && (
             <div className="size-7 rounded-lg bg-primary/10 text-primary grid place-items-center shadow-2xs shrink-0">

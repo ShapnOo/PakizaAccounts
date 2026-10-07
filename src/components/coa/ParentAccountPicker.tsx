@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Account, HierarchyLevel } from '../../types/coa';
 import { formatAccountCode } from '../../lib/accountCode';
 import { Search, ChevronDown, Check, FolderTree, AlertCircle, X } from 'lucide-react';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface ParentAccountPickerProps {
   accounts: Account[];
@@ -23,6 +24,12 @@ export const ParentAccountPicker: React.FC<ParentAccountPickerProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const popoverRef = useRef<HTMLDivElement>(null);
+
+  const { openUpward, maxHeight } = useDropdownPosition({
+    triggerRef: popoverRef,
+    isOpen,
+    minMenuHeight: 250,
+  });
 
   // Close on outside click
   useEffect(() => {
@@ -137,7 +144,14 @@ export const ParentAccountPicker: React.FC<ParentAccountPickerProps> = ({
 
       {/* Popover Dropdown */}
       {isOpen && (
-        <div className="absolute z-50 top-full left-0 mt-1 w-full min-w-[320px] max-w-[500px] bg-popover rounded-xl border border-border shadow-xl overflow-hidden animate-in fade-in-50 zoom-in-95 duration-150">
+        <div
+          style={{ maxHeight }}
+          className={`absolute z-50 left-0 w-full min-w-[320px] max-w-[500px] bg-popover rounded-xl border border-border shadow-2xl overflow-hidden transition-all ${
+            openUpward
+              ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-50 zoom-in-95'
+              : 'top-full mt-1.5 origin-top animate-in fade-in-50 zoom-in-95'
+          }`}
+        >
           {/* Search Bar */}
           <div className="p-2 border-b border-border/60 bg-muted/20">
             <div className="relative">

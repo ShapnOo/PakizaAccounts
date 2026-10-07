@@ -42,10 +42,8 @@ export const MasterConfigPage: React.FC = () => {
   const {
     config,
     updateSection,
-    updateGlobalEffectiveCompany,
     isSectionDirty,
     isGlobalDirty,
-    saveSection,
     saveAll,
     resetAll,
   } = useConfigState();
@@ -93,18 +91,6 @@ export const MasterConfigPage: React.FC = () => {
               General ledger policies, period locking, cost centers, and automated voucher rules.
             </p>
           </div>
-
-          {/* Quick Scope Badge */}
-          <div className="flex items-center gap-2 bg-card px-3 py-1.5 rounded-lg border border-border/70 shadow-2xs shrink-0">
-            <Building2 className="size-3.5 text-primary" />
-            <span className="text-[11px] font-bold text-muted-foreground">Scope:</span>
-            <MultiSelect
-              value={config.globalEffectiveCompany}
-              onChange={updateGlobalEffectiveCompany}
-              options={COMPANY_LIST}
-              className="w-56"
-            />
-          </div>
         </div>
       </div>
 
@@ -113,7 +99,6 @@ export const MasterConfigPage: React.FC = () => {
         sectionNo="3.1"
         title="Cost Center"
         icon={Building2}
-        onApply={() => saveSection('costCenter', 'Cost Center')}
         isDirty={isSectionDirty('costCenter')}
       >
         <ConfigRow
@@ -129,24 +114,21 @@ export const MasterConfigPage: React.FC = () => {
 
         {/* CONDITIONAL (Mandatory === true) */}
         <div
-          className={`transition-all duration-300 overflow-hidden ${
-            config.costCenter.mandatory ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          className={`transition-all duration-300 ${
+            config.costCenter.mandatory ? 'max-h-96 opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
           }`}
         >
           <div className="pl-4 md:pl-6 my-1 border-l-2 border-primary/50 bg-muted/20 rounded-r-lg space-y-2 py-2">
-            <ConfigRow label="Effective Part" hint="Multi-select balance sheet and income statement">
+            <ConfigRow
+              label="Effective Part"
+              hint="Multi-select balance sheet and income statement"
+              controlClassName="w-full md:w-96 shrink-0"
+            >
               <MultiSelect
                 value={config.costCenter.effectivePart}
                 onChange={(val) => updateSection('costCenter', { effectivePart: val })}
                 options={EFFECTIVE_PART_OPTIONS}
-              />
-            </ConfigRow>
-
-            <ConfigRow label="Apply To All Changes" hint="Apply cost center policy across all detected change rules">
-              <ToggleYesNo
-                label="Apply to all"
-                value={config.costCenter.applyToAllChanges ?? true}
-                onChange={(val) => updateSection('costCenter', { applyToAllChanges: val })}
+                className="w-full max-w-none"
               />
             </ConfigRow>
           </div>
@@ -158,7 +140,6 @@ export const MasterConfigPage: React.FC = () => {
         sectionNo="3.2"
         title="Voucher Controlling"
         icon={Lock}
-        onApply={() => saveSection('voucherControlling', 'Voucher Controlling')}
         isDirty={isSectionDirty('voucherControlling')}
       >
         <ConfigRow label="Voucher Control">
@@ -170,8 +151,8 @@ export const MasterConfigPage: React.FC = () => {
 
         {/* CONDITIONAL (Enabled === true) */}
         <div
-          className={`transition-all duration-300 overflow-hidden ${
-            config.voucherControlling.enabled ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          className={`transition-all duration-300 ${
+            config.voucherControlling.enabled ? 'max-h-[700px] opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
           }`}
         >
           <div className="pl-4 md:pl-6 my-1 border-l-2 border-primary/50 bg-muted/20 rounded-r-lg space-y-3 py-3">
@@ -205,26 +186,31 @@ export const MasterConfigPage: React.FC = () => {
 
             {/* Voucher-wise Selection */}
             {config.voucherControlling.controlMode === 'voucher-wise' ? (
-              <ConfigRow label="Controlled Vouchers" hint="Multi-select vouchers with select-all option">
-                <div className="space-y-1.5 w-full max-w-md">
-                  <div className="flex items-center gap-2">
-                    <MultiSelect
-                      value={config.voucherControlling.selectedVouchers || []}
-                      onChange={(val) => updateSection('voucherControlling', { selectedVouchers: val })}
-                      options={voucherTypeOptions}
-                      className="flex-1"
-                    />
+              <ConfigRow
+                label="Controlled Vouchers"
+                hint="Multi-select vouchers with select-all option"
+                controlClassName="w-full md:flex-1 md:max-w-3xl shrink-0"
+              >
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full">
+                  <MultiSelect
+                    value={config.voucherControlling.selectedVouchers || []}
+                    onChange={(val) => updateSection('voucherControlling', { selectedVouchers: val })}
+                    options={voucherTypeOptions}
+                    placeholder="Select Controlled Vouchers..."
+                    className="flex-1 max-w-none"
+                  />
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       type="button"
                       onClick={handleSelectAllVouchers}
-                      className="px-2.5 py-1 text-[11px] font-bold text-primary hover:bg-primary/10 rounded-md border border-primary/30 transition-colors whitespace-nowrap cursor-pointer"
+                      className="px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/10 rounded-md border border-primary/30 transition-colors whitespace-nowrap cursor-pointer active:scale-95"
                     >
                       Select All
                     </button>
                     <button
                       type="button"
                       onClick={handleDeselectAllVouchers}
-                      className="px-2 py-1 text-[11px] font-bold text-muted-foreground hover:bg-muted rounded-md border border-border transition-colors whitespace-nowrap cursor-pointer"
+                      className="px-2.5 py-1.5 text-[11px] font-bold text-muted-foreground hover:bg-muted rounded-md border border-border transition-colors whitespace-nowrap cursor-pointer active:scale-95"
                     >
                       Clear
                     </button>
@@ -233,26 +219,31 @@ export const MasterConfigPage: React.FC = () => {
               </ConfigRow>
             ) : (
               /* User-wise Selection */
-              <ConfigRow label="Controlled Users" hint="Multi-user selection with select-all option">
-                <div className="space-y-1.5 w-full max-w-md">
-                  <div className="flex items-center gap-2">
-                    <MultiSelect
-                      value={config.voucherControlling.selectedUsers || []}
-                      onChange={(val) => updateSection('voucherControlling', { selectedUsers: val })}
-                      options={USER_OPTIONS}
-                      className="flex-1"
-                    />
+              <ConfigRow
+                label="Controlled Users"
+                hint="Multi-user selection with select-all option"
+                controlClassName="w-full md:flex-1 md:max-w-3xl shrink-0"
+              >
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full">
+                  <MultiSelect
+                    value={config.voucherControlling.selectedUsers || []}
+                    onChange={(val) => updateSection('voucherControlling', { selectedUsers: val })}
+                    options={USER_OPTIONS}
+                    placeholder="Select Controlled Users..."
+                    className="flex-1 max-w-none"
+                  />
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       type="button"
                       onClick={handleSelectAllUsers}
-                      className="px-2.5 py-1 text-[11px] font-bold text-primary hover:bg-primary/10 rounded-md border border-primary/30 transition-colors whitespace-nowrap cursor-pointer"
+                      className="px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/10 rounded-md border border-primary/30 transition-colors whitespace-nowrap cursor-pointer active:scale-95"
                     >
                       Select All
                     </button>
                     <button
                       type="button"
                       onClick={handleDeselectAllUsers}
-                      className="px-2 py-1 text-[11px] font-bold text-muted-foreground hover:bg-muted rounded-md border border-border transition-colors whitespace-nowrap cursor-pointer"
+                      className="px-2.5 py-1.5 text-[11px] font-bold text-muted-foreground hover:bg-muted rounded-md border border-border transition-colors whitespace-nowrap cursor-pointer active:scale-95"
                     >
                       Clear
                     </button>
@@ -261,50 +252,38 @@ export const MasterConfigPage: React.FC = () => {
               </ConfigRow>
             )}
 
-            {/* Threshold Days: Max Due Days & Max Delay Days */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <ConfigRow label="Max Due Days">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min="0"
-                    max="365"
-                    value={config.voucherControlling.maxDueDays}
-                    onChange={(e) =>
-                      updateSection('voucherControlling', {
-                        maxDueDays: parseInt(e.target.value, 10) || 0,
-                      })
-                    }
-                    className="w-24 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
-                  />
-                  <span className="text-xs text-muted-foreground font-semibold">Days</span>
-                </div>
-              </ConfigRow>
+            {/* Threshold: Max Due Days ONLY */}
+            <ConfigRow
+              label="Max Due Days"
+              hint="Maximum allowable due period (in days) before voucher creation is restricted"
+            >
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max="365"
+                  value={config.voucherControlling.maxDueDays}
+                  onChange={(e) =>
+                    updateSection('voucherControlling', {
+                      maxDueDays: parseInt(e.target.value, 10) || 0,
+                    })
+                  }
+                  className="w-24 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                />
+                <span className="text-xs text-muted-foreground font-semibold">Days</span>
+              </div>
+            </ConfigRow>
 
-              <ConfigRow label="Max Delay Days">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min="0"
-                    max="365"
-                    value={config.voucherControlling.maxDelayDays ?? 3}
-                    onChange={(e) =>
-                      updateSection('voucherControlling', {
-                        maxDelayDays: parseInt(e.target.value, 10) || 0,
-                      })
-                    }
-                    className="w-24 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
-                  />
-                  <span className="text-xs text-muted-foreground font-semibold">Days</span>
-                </div>
-              </ConfigRow>
-            </div>
-
-            <ConfigRow label="Effective Company">
+            <ConfigRow
+              label="Effective Company"
+              hint="Select which companies this voucher control policy governs"
+              controlClassName="w-full md:w-96 shrink-0"
+            >
               <MultiSelect
                 value={config.voucherControlling.effectiveCompany}
                 onChange={(val) => updateSection('voucherControlling', { effectiveCompany: val })}
                 options={COMPANY_LIST}
+                className="w-full max-w-none"
               />
             </ConfigRow>
           </div>
@@ -316,7 +295,6 @@ export const MasterConfigPage: React.FC = () => {
         sectionNo="3.3"
         title="Month Lock"
         icon={CalendarDays}
-        onApply={() => saveSection('monthLock', 'Month Lock')}
         isDirty={isSectionDirty('monthLock')}
       >
         <ConfigRow label="Fiscal Year" hint="Selecting a year displays that year's 12 months for locking">
@@ -341,11 +319,16 @@ export const MasterConfigPage: React.FC = () => {
           />
         </div>
 
-        <ConfigRow label="Effective Company">
+        <ConfigRow
+          label="Effective Company"
+          hint="Select which companies this period lock governs"
+          controlClassName="w-full md:w-96 shrink-0"
+        >
           <MultiSelect
             value={config.monthLock.effectiveCompany}
             onChange={(val) => updateSection('monthLock', { effectiveCompany: val })}
             options={COMPANY_LIST}
+            className="w-full max-w-none"
           />
         </ConfigRow>
       </SectionCard>
@@ -355,7 +338,6 @@ export const MasterConfigPage: React.FC = () => {
         sectionNo="3.4"
         title="Accounts Code Setup"
         icon={FileText}
-        onApply={() => saveSection('accountsCode', 'Accounts Code')}
         isDirty={isSectionDirty('accountsCode')}
       >
         <ConfigRow label="Auto-Generate Account Code" hint="Automatically generate incremental GL code for new accounts">
@@ -405,11 +387,16 @@ export const MasterConfigPage: React.FC = () => {
           />
         </ConfigRow>
 
-        <ConfigRow label="Effective Company">
+        <ConfigRow
+          label="Effective Company"
+          hint="Select company scope for auto-generated GL codes"
+          controlClassName="w-full md:w-96 shrink-0"
+        >
           <MultiSelect
             value={config.accountsCode.effectiveCompany}
             onChange={(val) => updateSection('accountsCode', { effectiveCompany: val })}
             options={COMPANY_LIST}
+            className="w-full max-w-none"
           />
         </ConfigRow>
       </SectionCard>
@@ -419,7 +406,6 @@ export const MasterConfigPage: React.FC = () => {
         sectionNo="3.5"
         title="Accounts Identifications"
         icon={Landmark}
-        onApply={() => saveSection('accountsIdentifications', 'Accounts Identifications')}
         isDirty={isSectionDirty('accountsIdentifications')}
       >
         <div className="py-2 grid grid-cols-1 md:grid-cols-2 gap-3.5">
@@ -482,7 +468,6 @@ export const MasterConfigPage: React.FC = () => {
         sectionNo="3.6"
         title="Bank & Cheque"
         icon={Wallet}
-        onApply={() => saveSection('bankCheque', 'Bank & Cheque')}
         isDirty={isSectionDirty('bankCheque')}
       >
         <ConfigRow label="Default Voucher Name">
@@ -506,51 +491,34 @@ export const MasterConfigPage: React.FC = () => {
 
       {/* ── 4. STICKY GLOBAL BOTTOM BAR ── */}
       <div className="sticky bottom-0 z-30 bg-card/95 backdrop-blur-md border-t border-border/80 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] py-2.5 px-4 sm:px-6 lg:px-8 mt-6">
-        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3">
-          {/* Left: Global Scope */}
-          <div className="flex items-center gap-2">
-            <Building2 className="size-4 text-primary shrink-0" />
-            <span className="text-xs font-bold text-foreground whitespace-nowrap">
-              Effective Company:
-            </span>
-            <MultiSelect
-              value={config.globalEffectiveCompany}
-              onChange={updateGlobalEffectiveCompany}
-              options={COMPANY_LIST}
-              className="w-56"
-            />
-          </div>
+        <div className="w-full flex items-center justify-end gap-2.5">
+          <button
+            type="button"
+            onClick={resetAll}
+            disabled={!isGlobalDirty}
+            className={`inline-flex items-center gap-1.5 h-8.5 px-4 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+              isGlobalDirty
+                ? 'text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95'
+                : 'text-muted-foreground/40 cursor-not-allowed'
+            }`}
+          >
+            <RotateCcw className="size-3.5 shrink-0" />
+            <span className="whitespace-nowrap">Reset</span>
+          </button>
 
-          {/* Right: Actions */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            <button
-              type="button"
-              onClick={resetAll}
-              disabled={!isGlobalDirty}
-              className={`inline-flex items-center gap-1.5 h-8.5 px-4 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
-                isGlobalDirty
-                  ? 'text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95'
-                  : 'text-muted-foreground/40 cursor-not-allowed'
-              }`}
-            >
-              <RotateCcw className="size-3.5 shrink-0" />
-              <span className="whitespace-nowrap">Reset</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={saveAll}
-              disabled={!isGlobalDirty}
-              className={`inline-flex items-center gap-2 h-8.5 px-5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all shadow-sm cursor-pointer ${
-                isGlobalDirty
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/95 shadow-primary/20 active:scale-95'
-                  : 'bg-muted/60 text-muted-foreground/50 border border-border/40 cursor-not-allowed shadow-none'
-              }`}
-            >
-              <Check className="size-3.5 stroke-[2.5] shrink-0" />
-              <span className="whitespace-nowrap">Apply All Changes</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={saveAll}
+            disabled={!isGlobalDirty}
+            className={`inline-flex items-center gap-2 h-8.5 px-5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all shadow-sm cursor-pointer ${
+              isGlobalDirty
+                ? 'bg-primary text-primary-foreground hover:bg-primary/95 shadow-primary/20 active:scale-95'
+                : 'bg-muted/60 text-muted-foreground/50 border border-border/40 cursor-not-allowed shadow-none'
+            }`}
+          >
+            <Check className="size-3.5 stroke-[2.5] shrink-0" />
+            <span className="whitespace-nowrap">Apply All Changes</span>
+          </button>
         </div>
       </div>
     </div>

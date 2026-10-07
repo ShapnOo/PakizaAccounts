@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AccountOption } from '../../types/openingBalance';
 import { listAccounts } from '../../services/accountsService';
 import { Search, ChevronDown, Check, FolderTree, X } from 'lucide-react';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface AccountHeadPickerProps {
   value: string;
@@ -22,6 +23,12 @@ export const AccountHeadPicker: React.FC<AccountHeadPickerProps> = ({
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const { openUpward, maxHeight } = useDropdownPosition({
+    triggerRef: containerRef,
+    isOpen,
+    minMenuHeight: 250,
+  });
 
   useEffect(() => {
     let active = true;
@@ -111,7 +118,14 @@ export const AccountHeadPicker: React.FC<AccountHeadPickerProps> = ({
 
       {/* Dropdown Menu with Search and Breadcrumb Paths */}
       {isOpen && (
-        <div className="absolute z-50 top-full left-0 mt-1 w-full min-w-[280px] max-w-[420px] bg-popover rounded-xl border border-border shadow-xl p-1.5 animate-in fade-in-50 zoom-in-95 duration-100">
+        <div
+          style={{ maxHeight }}
+          className={`absolute z-50 left-0 w-full min-w-[280px] max-w-[420px] bg-popover rounded-xl border border-border shadow-2xl p-1.5 overflow-hidden transition-all ${
+            openUpward
+              ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-50 zoom-in-95'
+              : 'top-full mt-1.5 origin-top animate-in fade-in-50 zoom-in-95'
+          }`}
+        >
           <div className="relative mb-1.5">
             <Search className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
