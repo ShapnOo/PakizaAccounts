@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Account, HierarchyLevel } from '../../types/coa';
 import { formatAccountCode } from '../../lib/accountCode';
-import { BaseDigitLegend } from './BaseDigitLegend';
 import {
   ChevronRight,
   ChevronDown,
@@ -16,7 +15,10 @@ import {
   Table,
   Layers,
   Building2,
+  FileSpreadsheet,
+  FileText,
 } from 'lucide-react';
+import { exportCoaToExcel, exportCoaToPdf } from '../../services/coaExportService';
 
 interface AccountTreeProps {
   accounts: Account[];
@@ -110,10 +112,7 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
   onOpenEdit,
 }) => {
   const navigate = useNavigate();
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
-    // Default: expand all parent accounts so the tree is immediately rich and visible
-    return new Set(accounts.filter((a) => a.isParent).map((a) => a.id));
-  });
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [useCardLayout, setUseCardLayout] = useState(true);
 
@@ -205,24 +204,26 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
             {config.headerName}
           </span>
 
-          <button
-            type="button"
-            onClick={() => {
-              if (onOpenCreate) {
-                onOpenCreate(parentAccount?.id || null);
-              } else {
-                navigate(
-                  parentAccount
-                    ? `/chart-of-accounts/new?parentId=${parentAccount.id}`
-                    : `/chart-of-accounts/new`
-                );
-              }
-            }}
-            className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg border ${config.btnBorderColor} bg-card/80 text-[11px] font-bold ${config.btnTextColor} ${config.btnHoverBg} shadow-2xs transition-all cursor-pointer whitespace-nowrap active:scale-95`}
-          >
-            <Plus className="size-3 stroke-[2.5]" />
-            <span>{config.addBtnText}</span>
-          </button>
+          {titleLevel > 2 && (
+            <button
+              type="button"
+              onClick={() => {
+                if (onOpenCreate) {
+                  onOpenCreate(parentAccount?.id || null);
+                } else {
+                  navigate(
+                    parentAccount
+                      ? `/chart-of-accounts/new?parentId=${parentAccount.id}`
+                      : `/chart-of-accounts/new`
+                  );
+                }
+              }}
+              className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg border ${config.btnBorderColor} bg-card/80 text-[11px] font-bold ${config.btnTextColor} ${config.btnHoverBg} shadow-2xs transition-all cursor-pointer whitespace-nowrap active:scale-95`}
+            >
+              <Plus className="size-3 stroke-[2.5]" />
+              <span>{config.addBtnText}</span>
+            </button>
+          )}
         </div>
 
         {/* Level Body */}
@@ -257,16 +258,14 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
                       </td>
                       <td className="py-2.5 px-4">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border ${
-                            leaf.activeStatus === 'Active'
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border ${leaf.activeStatus === 'Active'
                               ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
                               : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                          }`}
+                            }`}
                         >
                           <span
-                            className={`size-1.5 rounded-full ${
-                              leaf.activeStatus === 'Active' ? 'bg-emerald-500' : 'bg-rose-500'
-                            }`}
+                            className={`size-1.5 rounded-full ${leaf.activeStatus === 'Active' ? 'bg-emerald-500' : 'bg-rose-500'
+                              }`}
                           />
                           <span>{leaf.activeStatus}</span>
                         </span>
@@ -295,7 +294,7 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
           ) : (
             /* Otherwise, render each row in this level */
             nodes.map((node) => {
-              const isExpanded = expandedIds.has(node.id);
+              const isExpanded = searchQuery.trim() ? true : expandedIds.has(node.id);
               const hasChildren = node.children.length > 0;
               const displayCode = node.manualCode || formatAccountCode(node.code);
 
@@ -346,38 +345,42 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
                       className="flex items-center gap-2 shrink-0"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <button
-                        type="button"
-                        onClick={() => onToggleActive(node.id)}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border transition-colors cursor-pointer ${
-                          node.activeStatus === 'Active'
-                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/25 hover:bg-emerald-500/15'
-                            : 'bg-rose-500/10 text-rose-600 border-rose-500/25 hover:bg-rose-500/15'
-                        }`}
-                        title="Click to toggle Active / Inactive"
-                      >
-                        <span
-                          className={`size-1.5 rounded-full ${
-                            node.activeStatus === 'Active' ? 'bg-emerald-500' : 'bg-rose-500'
-                          }`}
-                        />
-                        <span>{node.activeStatus}</span>
-                      </button>
+                      {node.level > 2 ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => onToggleActive(node.id)}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border transition-colors cursor-pointer ${
+                              node.activeStatus === 'Active'
+                                ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/25 hover:bg-emerald-500/15'
+                                : 'bg-rose-500/10 text-rose-600 border-rose-500/25 hover:bg-rose-500/15'
+                            }`}
+                            title="Click to toggle Active / Inactive"
+                          >
+                            <span
+                              className={`size-1.5 rounded-full ${
+                                node.activeStatus === 'Active' ? 'bg-emerald-500' : 'bg-rose-500'
+                              }`}
+                            />
+                            <span>{node.activeStatus}</span>
+                          </button>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (onOpenEdit) {
-                            onOpenEdit(node);
-                          } else {
-                            navigate(`/chart-of-accounts/${node.id}/edit`);
-                          }
-                        }}
-                        className="size-7 rounded-lg border border-border/80 hover:bg-muted text-muted-foreground hover:text-foreground grid place-items-center transition-colors cursor-pointer shadow-2xs"
-                        title="Edit Account"
-                      >
-                        <Edit2 className="size-3.5" />
-                      </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (onOpenEdit) {
+                                onOpenEdit(node);
+                              } else {
+                                navigate(`/chart-of-accounts/${node.id}/edit`);
+                              }
+                            }}
+                            className="size-7 rounded-lg border border-border/80 hover:bg-muted text-muted-foreground hover:text-foreground grid place-items-center transition-colors cursor-pointer shadow-2xs"
+                            title="Edit Account"
+                          >
+                            <Edit2 className="size-3.5" />
+                          </button>
+                        </>
+                      ) : null}
                     </div>
                   </div>
 
@@ -419,11 +422,10 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
             <button
               type="button"
               onClick={() => setUseCardLayout(true)}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold transition-all cursor-pointer ${
-                useCardLayout
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold transition-all cursor-pointer ${useCardLayout
                   ? 'bg-card text-foreground shadow-2xs'
                   : 'text-muted-foreground hover:text-foreground'
-              }`}
+                }`}
             >
               <Layers className="size-3 text-primary" />
               <span>Card Hierarchy</span>
@@ -431,11 +433,10 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
             <button
               type="button"
               onClick={() => setUseCardLayout(false)}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold transition-all cursor-pointer ${
-                !useCardLayout
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold transition-all cursor-pointer ${!useCardLayout
                   ? 'bg-card text-foreground shadow-2xs'
                   : 'text-muted-foreground hover:text-foreground'
-              }`}
+                }`}
             >
               <Table className="size-3 text-muted-foreground" />
               <span>Tree Table</span>
@@ -459,6 +460,28 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
             <ChevronRight className="size-3.5 text-muted-foreground" />
             <span>Collapse All</span>
           </button>
+
+          {/* Quick Export in Tree View */}
+          <div className="flex items-center gap-1.5 pl-1.5 border-l border-border/60">
+            <button
+              type="button"
+              onClick={() => exportCoaToExcel(accounts)}
+              className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-border/80 bg-background hover:bg-emerald-500/10 hover:text-emerald-700 dark:hover:text-emerald-400 hover:border-emerald-500/30 text-foreground text-xs font-bold shadow-2xs transition-all cursor-pointer"
+              title="Export Chart of Accounts to Excel (.xlsx)"
+            >
+              <FileSpreadsheet className="size-3.5 text-emerald-600" />
+              <span>Excel</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => exportCoaToPdf(accounts)}
+              className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-border/80 bg-background hover:bg-rose-500/10 hover:text-rose-700 dark:hover:text-rose-400 hover:border-rose-500/30 text-foreground text-xs font-bold shadow-2xs transition-all cursor-pointer"
+              title="Export Chart of Accounts to PDF"
+            >
+              <FileText className="size-3.5 text-rose-600" />
+              <span>PDF</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -474,11 +497,6 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
           ) : (
             renderCardLevel(1, filteredRoots)
           )}
-
-          {/* Pinned Base Digit Legend Strip */}
-          <div className="rounded-xl border border-border/70 overflow-hidden shadow-2xs">
-            <BaseDigitLegend />
-          </div>
         </div>
       ) : (
         /* ── Alternative: Indented Tree Table ── */
@@ -502,13 +520,16 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
                   <tr
                     key={acc.id}
                     onClick={() => {
+                      if (acc.level <= 2) return;
                       if (onOpenEdit) {
                         onOpenEdit(acc);
                       } else {
                         navigate(`/chart-of-accounts/${acc.id}/edit`);
                       }
                     }}
-                    className="hover:bg-muted/30 transition-colors cursor-pointer"
+                    className={`transition-colors ${
+                      acc.level <= 2 ? 'cursor-default bg-muted/10' : 'hover:bg-muted/30 cursor-pointer'
+                    }`}
                   >
                     <td className="px-4 py-2 font-mono font-bold text-foreground">
                       <div
@@ -529,27 +550,28 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
                       </td>
                     ))}
                     <td className="px-3 py-2 text-right">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onOpenEdit) {
-                            onOpenEdit(acc);
-                          } else {
-                            navigate(`/chart-of-accounts/${acc.id}/edit`);
-                          }
-                        }}
-                        className="size-6 rounded border border-border/70 hover:bg-muted text-muted-foreground hover:text-foreground inline-grid place-items-center transition-colors cursor-pointer"
-                      >
-                        <Edit2 className="size-3" />
-                      </button>
+                      {acc.level > 2 ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onOpenEdit) {
+                              onOpenEdit(acc);
+                            } else {
+                              navigate(`/chart-of-accounts/${acc.id}/edit`);
+                            }
+                          }}
+                          className="size-6 rounded border border-border/70 hover:bg-muted text-muted-foreground hover:text-foreground inline-grid place-items-center transition-colors cursor-pointer"
+                        >
+                          <Edit2 className="size-3" />
+                        </button>
+                      ) : null}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <BaseDigitLegend />
         </div>
       )}
     </div>

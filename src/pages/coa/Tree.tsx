@@ -49,6 +49,7 @@ export const CoaTreePage: React.FC = () => {
         onOpenUpload={() => setIsUploadOpen(true)}
         onOpenCreate={() => handleOpenCreate(null)}
         totalAccounts={accounts.length}
+        accounts={accounts}
       />
 
       <AccountTree

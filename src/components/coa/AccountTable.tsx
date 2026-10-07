@@ -15,8 +15,11 @@ import {
   ChevronsRight,
   ArrowUpDown,
   Filter,
+  FileSpreadsheet,
+  FileText,
 } from 'lucide-react';
 import { ACCOUNTS_TYPE_TREE } from '../../constants/accountsTypeTree';
+import { exportCoaToExcel, exportCoaToPdf } from '../../services/coaExportService';
 
 interface AccountTableProps {
   accounts: Account[];
@@ -254,6 +257,33 @@ export const AccountTable: React.FC<AccountTableProps> = ({
               Compact
             </button>
           </div>
+
+          {/* Quick Export Buttons */}
+          <div className="flex items-center gap-1.5 pl-1.5 border-l border-border/60">
+            <button
+              type="button"
+              onClick={() =>
+                exportCoaToExcel(
+                  sortedData,
+                  `Chart_of_Accounts_Filtered_${new Date().toISOString().split('T')[0]}.xlsx`
+                )
+              }
+              className="inline-flex items-center gap-1.5 h-7.5 px-2.5 rounded-lg border border-border/80 bg-background hover:bg-emerald-500/10 hover:text-emerald-700 dark:hover:text-emerald-400 hover:border-emerald-500/30 text-foreground text-[11px] font-bold shadow-2xs transition-all cursor-pointer"
+              title="Export filtered accounts to Excel (.xlsx)"
+            >
+              <FileSpreadsheet className="size-3.5 text-emerald-600" />
+              <span>Excel</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => exportCoaToPdf(sortedData)}
+              className="inline-flex items-center gap-1.5 h-7.5 px-2.5 rounded-lg border border-border/80 bg-background hover:bg-rose-500/10 hover:text-rose-700 dark:hover:text-rose-400 hover:border-rose-500/30 text-foreground text-[11px] font-bold shadow-2xs transition-all cursor-pointer"
+              title="Export filtered accounts to PDF"
+            >
+              <FileText className="size-3.5 text-rose-600" />
+              <span>PDF</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -299,10 +329,19 @@ export const AccountTable: React.FC<AccountTableProps> = ({
                   return (
                     <tr
                       key={acc.id}
-                      onClick={() =>
-                        onOpenEdit ? onOpenEdit(acc) : navigate(`/chart-of-accounts/${acc.id}/edit`)
-                      }
-                      className="hover:bg-muted/30 transition-colors cursor-pointer group"
+                      onClick={() => {
+                        if (acc.level <= 2) return;
+                        if (onOpenEdit) {
+                          onOpenEdit(acc);
+                        } else {
+                          navigate(`/chart-of-accounts/${acc.id}/edit`);
+                        }
+                      }}
+                      className={`transition-colors ${
+                        acc.level <= 2
+                          ? 'cursor-default bg-muted/10'
+                          : 'hover:bg-muted/30 cursor-pointer'
+                      } group`}
                     >
                       {/* 1. Level No */}
                       <td className="px-3.5 py-2 whitespace-nowrap font-mono text-[11px] font-bold text-foreground tracking-tight select-all">
@@ -350,14 +389,15 @@ export const AccountTable: React.FC<AccountTableProps> = ({
                         className="px-3.5 py-2 text-right whitespace-nowrap"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <div className="relative inline-block">
-                          <button
-                            type="button"
-                            onClick={() => setActiveMenuId(isMenuOpen ? null : acc.id)}
-                            className="size-7 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground grid place-items-center transition-colors cursor-pointer"
-                          >
-                            <MoreVertical className="size-4" />
-                          </button>
+                        {acc.level <= 2 ? null : (
+                          <div className="relative inline-block">
+                            <button
+                              type="button"
+                              onClick={() => setActiveMenuId(isMenuOpen ? null : acc.id)}
+                              className="size-7 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground grid place-items-center transition-colors cursor-pointer"
+                            >
+                              <MoreVertical className="size-4" />
+                            </button>
 
                           {isMenuOpen && (
                             <>
@@ -437,7 +477,8 @@ export const AccountTable: React.FC<AccountTableProps> = ({
                             </>
                           )}
                         </div>
-                      </td>
+                      )}
+                    </td>
                     </tr>
                   );
                 })

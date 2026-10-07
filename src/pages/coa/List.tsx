@@ -54,6 +54,7 @@ export const CoaListPage: React.FC = () => {
         onOpenUpload={() => setIsUploadOpen(true)}
         onOpenCreate={() => handleOpenCreate(null)}
         totalAccounts={accounts.length}
+        accounts={accounts}
       />
 
       {/* Main View: List or Tree */}

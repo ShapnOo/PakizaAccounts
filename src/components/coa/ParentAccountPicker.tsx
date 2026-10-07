@@ -109,7 +109,7 @@ export const ParentAccountPicker: React.FC<ParentAccountPickerProps> = ({
             </div>
           ) : (
             <span className="text-muted-foreground/70 font-normal">
-              Select Parent Account (Leave empty for Level-1 Root)...
+              Select Parent Group / Subgroup / Control...
             </span>
           )}
         </div>
@@ -122,7 +122,7 @@ export const ParentAccountPicker: React.FC<ParentAccountPickerProps> = ({
                 onChange(null);
               }}
               className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition-colors"
-              title="Clear Parent (Make Level-1 Root)"
+              title="Clear Parent Selection"
             >
               <X className="size-3" />
             </span>
@@ -153,30 +153,6 @@ export const ParentAccountPicker: React.FC<ParentAccountPickerProps> = ({
             </div>
           </div>
 
-          {/* Root option (None) */}
-          <div className="p-1.5 border-b border-border/40">
-            <button
-              type="button"
-              onClick={() => {
-                onChange(null);
-                setIsOpen(false);
-              }}
-              className={`w-full px-2.5 py-1.5 rounded-lg flex items-center justify-between text-xs font-semibold cursor-pointer transition-colors ${
-                value === null
-                  ? 'bg-primary/10 text-primary font-bold'
-                  : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted border border-border/60">
-                  ROOT
-                </span>
-                <span>No Parent (Top-level Nature Root, Level-1)</span>
-              </div>
-              {value === null && <Check className="size-3.5 text-primary stroke-[2.5]" />}
-            </button>
-          </div>
-
           {/* Account Tree Options List */}
           <div className="max-h-64 overflow-y-auto p-1.5 space-y-0.5 sidebar-scroll">
             {filteredAccounts.length === 0 ? (
@@ -186,21 +162,23 @@ export const ParentAccountPicker: React.FC<ParentAccountPickerProps> = ({
             ) : (
               filteredAccounts.map((acc) => {
                 const isSelected = acc.id === value;
-                const isMaxDepthReached = acc.level >= 6; // RULE: Cannot choose Level-6 as parent (max depth 6)
+                const isFixedLevel = acc.level === 1; // Level 1 is fixed (Group Name Level 2 cannot be created)
+                const isMaxDepthReached = acc.level >= 6; // Level 6 cannot have child
+                const isDisabled = isFixedLevel || isMaxDepthReached;
 
                 return (
                   <button
                     key={acc.id}
                     type="button"
-                    disabled={isMaxDepthReached}
+                    disabled={isDisabled}
                     onClick={() => {
-                      if (!isMaxDepthReached) {
+                      if (!isDisabled) {
                         onChange(acc.id);
                         setIsOpen(false);
                       }
                     }}
                     className={`w-full text-left px-2.5 py-1.5 rounded-lg flex items-center justify-between text-xs transition-colors ${
-                      isMaxDepthReached
+                      isDisabled
                         ? 'opacity-40 cursor-not-allowed bg-muted/20'
                         : isSelected
                         ? 'bg-primary/10 text-primary font-bold cursor-pointer'

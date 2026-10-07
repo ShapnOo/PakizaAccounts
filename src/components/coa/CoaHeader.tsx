@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   FolderTree,
@@ -8,22 +8,42 @@ import {
   ListTree,
   Building2,
   ChevronRight,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  ChevronDown,
 } from 'lucide-react';
 import { COMPANY } from '../../constants/accountsTypeTree';
+import { Account } from '../../types/coa';
+import { exportCoaToExcel, exportCoaToPdf } from '../../services/coaExportService';
 
 interface CoaHeaderProps {
   onOpenUpload: () => void;
   onOpenCreate?: () => void;
   totalAccounts?: number;
+  accounts?: Account[];
 }
 
 export const CoaHeader: React.FC<CoaHeaderProps> = ({
   onOpenUpload,
   onOpenCreate,
   totalAccounts = 0,
+  accounts = [],
 }) => {
   const [searchParams] = useSearchParams();
   const currentView = searchParams.get('view') === 'tree' ? 'tree' : 'list';
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
+        setIsExportOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="space-y-3.5 pb-2">
@@ -63,6 +83,66 @@ export const CoaHeader: React.FC<CoaHeaderProps> = ({
           <div className="hidden lg:flex items-center gap-1.5 bg-card px-2.5 py-1.5 rounded-lg border border-border/70 shadow-2xs text-xs font-semibold text-muted-foreground">
             <Building2 className="size-3.5 text-primary" />
             <span className="text-foreground font-bold">{COMPANY}</span>
+          </div>
+
+          {/* Export Dropdown (Excel & PDF) */}
+          <div className="relative" ref={exportRef}>
+            <button
+              type="button"
+              onClick={() => setIsExportOpen(!isExportOpen)}
+              className="inline-flex items-center gap-1.5 h-8.5 px-3 rounded-lg border border-border/80 bg-card hover:bg-muted/70 text-foreground text-xs font-bold shadow-2xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
+              title="Export Chart of Accounts"
+            >
+              <Download className="size-3.5 text-muted-foreground" />
+              <span>Export</span>
+              <ChevronDown
+                className={`size-3 text-muted-foreground transition-transform duration-200 ${
+                  isExportOpen ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+
+            {isExportOpen && (
+              <div className="absolute right-0 top-full mt-1.5 z-50 w-52 bg-popover border border-border rounded-xl shadow-xl p-1.5 space-y-1 text-xs animate-in fade-in-50 zoom-in-95 duration-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportOpen(false);
+                    exportCoaToExcel(accounts);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-emerald-500/10 hover:text-emerald-700 dark:hover:text-emerald-400 text-foreground font-semibold transition-colors cursor-pointer text-left group"
+                >
+                  <div className="size-7 rounded-md bg-emerald-500/10 text-emerald-600 grid place-items-center shrink-0 group-hover:bg-emerald-500/20">
+                    <FileSpreadsheet className="size-4" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-xs">Export to Excel</div>
+                    <div className="text-[10px] text-muted-foreground font-normal">
+                      Microsoft Excel (.xlsx)
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportOpen(false);
+                    exportCoaToPdf(accounts);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-rose-500/10 hover:text-rose-700 dark:hover:text-rose-400 text-foreground font-semibold transition-colors cursor-pointer text-left group"
+                >
+                  <div className="size-7 rounded-md bg-rose-500/10 text-rose-600 grid place-items-center shrink-0 group-hover:bg-rose-500/20">
+                    <FileText className="size-4" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-xs">Export to PDF</div>
+                    <div className="text-[10px] text-muted-foreground font-normal">
+                      Print / Save as PDF
+                    </div>
+                  </div>
+                </button>
+              </div>
+            )}
           </div>
 
           <button

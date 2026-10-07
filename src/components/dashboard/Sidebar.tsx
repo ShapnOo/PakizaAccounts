@@ -427,8 +427,8 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex w-[280px] h-screen sticky top-0 shrink-0 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 select-none">
       {/* Brand Header */}
-      <Link
-        to="/"
+      <a
+        href="https://shapno.vercel.app/module-selection"
         className="px-5 py-4 flex items-center gap-2.5 border-b border-sidebar-border/80 group transition-all duration-300 hover:bg-sidebar-accent/30 cursor-pointer relative z-50 shrink-0"
       >
         {/* Hover Tooltip */}
@@ -461,7 +461,7 @@ export function Sidebar() {
             ACCOUNTS
           </div>
         </div>
-      </Link>
+      </a>
 
       {/* Main Navigation */}
       <nav
