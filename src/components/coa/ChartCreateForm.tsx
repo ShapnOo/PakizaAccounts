@@ -485,8 +485,6 @@ export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
                         value={field.value}
                         onChange={field.onChange}
                         availableOptions={currentTaxonomyNode?.detailsTypeOptions}
-                        extraOptions={extraDetailsTypes}
-                        onAddOption={onAddDetailsType}
                         isMandatory={isDetailsMandatory}
                         error={errors.detailsType?.message}
                       />

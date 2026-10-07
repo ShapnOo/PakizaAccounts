@@ -1,6 +1,7 @@
 import React from 'react';
 import { Truck, Users, User, Bookmark, Car } from 'lucide-react';
 import { AuxiliaryDimensions as AuxType, AuxiliaryDimensionItem } from '../../types/coa';
+import { AuxMultiSelectPicker } from './AuxMultiSelectPicker';
 
 interface AuxiliaryDimensionsProps {
   values?: AuxType;
@@ -57,8 +58,9 @@ export const AuxiliaryDimensions: React.FC<AuxiliaryDimensionsProps> = ({
     if (typeof raw === 'string') {
       return { value: raw, isMandatory: false, isFixed: false };
     }
+    const val = Array.isArray(raw.value) ? raw.value.join(', ') : raw.value || '';
     return {
-      value: raw.value || '',
+      value: val,
       isMandatory: !!raw.isMandatory,
       isFixed: !!raw.isFixed,
     };
@@ -156,24 +158,16 @@ export const AuxiliaryDimensions: React.FC<AuxiliaryDimensionsProps> = ({
                 </div>
               </div>
 
-              {/* Fixed Dropdown Select (Only shown when Is Fixed is checked!) */}
+              {/* Fixed Multi-Select Picker (Shown when Is Fixed is checked) */}
               {isFixed && (
-                <div className="relative pt-1 animate-in fade-in-50 zoom-in-95 duration-150">
-                  <select
-                    disabled={disabled}
+                <div className="relative pt-0.5 animate-in fade-in-50 zoom-in-95 duration-150">
+                  <AuxMultiSelectPicker
+                    label={dim.label}
+                    samples={dim.samples}
                     value={currentVal}
-                    onChange={(e) => updateDimension(dim.key, { value: e.target.value })}
-                    className={`w-full h-8.5 px-3 rounded-lg bg-background border text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-2xs cursor-pointer ${
-                      disabled ? 'bg-muted/40 text-muted-foreground cursor-not-allowed' : 'border-border/80'
-                    }`}
-                  >
-                    <option value="">-- Select Fixed {dim.label} --</option>
-                    {dim.samples.map((sample) => (
-                      <option key={sample} value={sample}>
-                        {sample}
-                      </option>
-                    ))}
-                  </select>
+                    disabled={disabled}
+                    onChange={(val) => updateDimension(dim.key, { value: val })}
+                  />
                 </div>
               )}
             </div>

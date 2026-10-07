@@ -3,7 +3,7 @@ import { Nature } from '../constants/accountsTypeTree';
 export type HierarchyLevel = 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface AuxiliaryDimensionItem {
-  value?: string;
+  value?: string | string[];
   isMandatory?: boolean;
   isFixed?: boolean;
 }
