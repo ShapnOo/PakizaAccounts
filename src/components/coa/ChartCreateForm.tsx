@@ -422,63 +422,37 @@ export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
               </div>
             ) : (
               <>
-                {/* Default Currency & Mandatory flag */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-foreground/85 flex items-center justify-between">
-                      <span>Default Currency</span>
-                      <span className="text-[10px] text-muted-foreground font-normal">Optional</span>
-                    </label>
-                    <Controller
-                      control={control}
-                      name="defaultCurrency"
-                      render={({ field }) => (
-                        <select
-                          value={field.value || ''}
-                          onChange={(e) => field.onChange(e.target.value)}
-                          className="w-full h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-2xs cursor-pointer"
-                        >
-                          <option value="">-- Select Currency (Optional) --</option>
-                          <option value="BDT">BDT (Bangladeshi Taka)</option>
-                          <option value="USD">USD (US Dollar)</option>
-                          <option value="EUR">EUR (Euro)</option>
-                          <option value="GBP">GBP (British Pound)</option>
-                          <option value="INR">INR (Indian Rupee)</option>
-                          <option value="CAD">CAD (Canadian Dollar)</option>
-                          <option value="AUD">AUD (Australian Dollar)</option>
-                          <option value="SAR">SAR (Saudi Riyal)</option>
-                          <option value="AED">AED (UAE Dirham)</option>
-                          <option value="SGD">SGD (Singapore Dollar)</option>
-                          <option value="CNY">CNY (Chinese Yuan)</option>
-                          <option value="JPY">JPY (Japanese Yen)</option>
-                        </select>
-                      )}
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-foreground/85">Is Mandatory?</label>
-                    <Controller
-                      control={control}
-                      name="isMandatory"
-                      render={({ field }) => (
-                        <div className="flex items-center h-8.5">
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={field.value}
-                              onChange={(e) => field.onChange(e.target.checked)}
-                              className="sr-only peer"
-                            />
-                            <div className="w-10 h-5.5 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:width-4.5 after:w-4.5 after:transition-all peer-checked:bg-primary"></div>
-                            <span className="ml-2 text-xs font-semibold text-foreground">
-                              {field.value ? 'Yes' : 'No'}
-                            </span>
-                          </label>
-                        </div>
-                      )}
-                    />
-                  </div>
+                {/* Default Currency */}
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-foreground/85 flex items-center justify-between">
+                    <span>Default Currency</span>
+                    <span className="text-[10px] text-muted-foreground font-normal">Optional</span>
+                  </label>
+                  <Controller
+                    control={control}
+                    name="defaultCurrency"
+                    render={({ field }) => (
+                      <select
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        className="w-full h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-2xs cursor-pointer"
+                      >
+                        <option value="">-- Select Currency (Optional) --</option>
+                        <option value="BDT">BDT (Bangladeshi Taka)</option>
+                        <option value="USD">USD (US Dollar)</option>
+                        <option value="EUR">EUR (Euro)</option>
+                        <option value="GBP">GBP (British Pound)</option>
+                        <option value="INR">INR (Indian Rupee)</option>
+                        <option value="CAD">CAD (Canadian Dollar)</option>
+                        <option value="AUD">AUD (Australian Dollar)</option>
+                        <option value="SAR">SAR (Saudi Riyal)</option>
+                        <option value="AED">AED (UAE Dirham)</option>
+                        <option value="SGD">SGD (Singapore Dollar)</option>
+                        <option value="CNY">CNY (Chinese Yuan)</option>
+                        <option value="JPY">JPY (Japanese Yen)</option>
+                      </select>
+                    )}
+                  />
                 </div>
 
                 {/* 5 Fixed Auxiliary Dimensions */}
