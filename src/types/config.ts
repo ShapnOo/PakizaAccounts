@@ -5,6 +5,7 @@ export type Config = {
   costCenter: {
     mandatory: boolean;
     effectivePart: string[]; // multi: 'Balance sheet' | 'Income Statement'
+    effectiveCompany?: string[];
     applyToAllChanges?: boolean;
   };
   voucherControlling: {
@@ -40,6 +41,7 @@ export type Config = {
     accountsReceivable: string | null;
     advancePayment: string | null;
     advanceReceive: string | null;
+    effectiveCompany?: string[];
   };
   bankCheque: {
     defaultVoucherName: string; // "Bank Payment Voucher"

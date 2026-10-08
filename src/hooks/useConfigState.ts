@@ -6,6 +6,7 @@ export const DEFAULT_CONFIG: Config = {
   costCenter: {
     mandatory: true,
     effectivePart: ['Balance sheet', 'Income Statement'],
+    effectiveCompany: ['Pakiza Software Ltd.'],
     applyToAllChanges: true,
   },
   voucherControlling: {
@@ -53,6 +54,7 @@ export const DEFAULT_CONFIG: Config = {
     accountsReceivable: '1021',
     advancePayment: '1031',
     advanceReceive: '2021',
+    effectiveCompany: ['Pakiza Software Ltd.'],
   },
   bankCheque: {
     defaultVoucherName: 'Bank Payment Voucher',
@@ -98,6 +100,7 @@ function normalizeConfig(parsed: any): Config {
     'Balance sheet',
     'Income Statement',
   ]);
+  merged.costCenter.effectiveCompany = toArray(merged.costCenter?.effectiveCompany);
   merged.voucherControlling.selectedVouchers = Array.isArray(merged.voucherControlling.selectedVouchers)
     ? merged.voucherControlling.selectedVouchers
     : DEFAULT_CONFIG.voucherControlling.selectedVouchers;
@@ -107,6 +110,7 @@ function normalizeConfig(parsed: any): Config {
   merged.voucherControlling.effectiveCompany = toArray(merged.voucherControlling.effectiveCompany);
   merged.monthLock.effectiveCompany = toArray(merged.monthLock.effectiveCompany);
   merged.accountsCode.effectiveCompany = toArray(merged.accountsCode.effectiveCompany);
+  merged.accountsIdentifications.effectiveCompany = toArray(merged.accountsIdentifications?.effectiveCompany);
   merged.bankCheque.effectiveCompany = toArray(merged.bankCheque.effectiveCompany);
   merged.globalEffectiveCompany = toArray(merged.globalEffectiveCompany);
 

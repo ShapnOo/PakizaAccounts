@@ -124,6 +124,19 @@ export const MasterConfigPage: React.FC = () => {
                 className="w-full max-w-none"
               />
             </ConfigRow>
+
+            <ConfigRow
+              label="Effective Company"
+              hint="Select companies to apply cost center configuration"
+              controlClassName="w-full md:w-96 shrink-0"
+            >
+              <MultiSelect
+                value={config.costCenter.effectiveCompany || COMPANY_LIST}
+                onChange={(val) => updateSection('costCenter', { effectiveCompany: val })}
+                options={COMPANY_LIST}
+                className="w-full max-w-none"
+              />
+            </ConfigRow>
           </div>
         </div>
       </SectionCard>
@@ -179,7 +192,7 @@ export const MasterConfigPage: React.FC = () => {
               <ConfigRow
                 label="Controlled Vouchers"
                 hint="Multi-select vouchers with select-all option"
-                controlClassName="w-full md:flex-1 md:max-w-3xl shrink-0"
+                controlClassName="w-full md:w-3/4 shrink-0"
               >
                 <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full">
                   <MultiSelect
@@ -243,26 +256,49 @@ export const MasterConfigPage: React.FC = () => {
             )}
 
             {/* Threshold: Max Due Days ONLY */}
-            <ConfigRow
-              label="Max Due Days"
-              hint="Maximum allowable due period (in days) before voucher creation is restricted"
-            >
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  max="365"
-                  value={config.voucherControlling.maxDueDays}
-                  onChange={(e) =>
-                    updateSection('voucherControlling', {
-                      maxDueDays: parseInt(e.target.value, 10) || 0,
-                    })
-                  }
-                  className="w-24 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
-                />
-                <span className="text-xs text-muted-foreground font-semibold">Days</span>
-              </div>
-            </ConfigRow>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ConfigRow
+                label="Max Due Days"
+                hint="Maximum allowable due period (in days) before voucher creation is restricted"
+              >
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    max="365"
+                    value={config.voucherControlling.maxDueDays}
+                    onChange={(e) =>
+                      updateSection('voucherControlling', {
+                        maxDueDays: parseInt(e.target.value, 10) || 0,
+                      })
+                    }
+                    className="w-24 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  />
+                  <span className="text-xs text-muted-foreground font-semibold">Days</span>
+                </div>
+              </ConfigRow>
+
+              <ConfigRow
+                label="Max Delay Days"
+                hint="Maximum allowable delay period (in days)"
+              >
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    max="365"
+                    value={config.voucherControlling.maxDelayDays}
+                    onChange={(e) =>
+                      updateSection('voucherControlling', {
+                        maxDelayDays: parseInt(e.target.value, 10) || 0,
+                      })
+                    }
+                    className="w-24 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  />
+                  <span className="text-xs text-muted-foreground font-semibold">Days</span>
+                </div>
+              </ConfigRow>
+            </div>
 
             <ConfigRow
               label="Effective Company"
@@ -427,6 +463,19 @@ export const MasterConfigPage: React.FC = () => {
             />
           </div>
         </div>
+
+        <ConfigRow
+          label="Effective Company"
+          hint="Select company scope for accounts identifications"
+          controlClassName="w-full md:w-96 shrink-0"
+        >
+          <MultiSelect
+            value={config.accountsIdentifications.effectiveCompany || COMPANY_LIST}
+            onChange={(val) => updateSection('accountsIdentifications', { effectiveCompany: val })}
+            options={COMPANY_LIST}
+            className="w-full max-w-none"
+          />
+        </ConfigRow>
       </SectionCard>
 
       {/* ── 3.6 BANK & CHEQUE ── */}
@@ -494,7 +543,7 @@ export const MasterConfigPage: React.FC = () => {
               }`}
           >
             <Check className="size-3.5 stroke-[2.5] shrink-0" />
-            <span className="whitespace-nowrap">Apply All Changes</span>
+            <span className="whitespace-nowrap">Save</span>
           </button>
         </div>
       </div>

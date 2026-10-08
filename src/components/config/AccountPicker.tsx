@@ -52,13 +52,22 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
     // fallback to INITIAL_ACCOUNTS
   }
 
-  // Build unified list of accounts with full hierarchy paths
+  // Build unified list of accounts with full hierarchy paths (ONLY GL / posting accounts)
   const allAccounts = useMemo<PickerAccountItem[]>(() => {
     const list: PickerAccountItem[] = [];
     const seenIds = new Set<string>();
 
-    // 1. Add COA accounts (with real paths e.g. Assets > Current Assets > ...)
+    // 1. Add COA accounts - strictly General Ledger (GL) leaf posting accounts
+    const parentIdSet = new Set(
+      coaAccounts.map((a) => a.parentId).filter((id): id is string => Boolean(id))
+    );
+
     for (const acc of coaAccounts) {
+      // Must not be a parent account, must not have children, and must not be a parentId target
+      if (acc.isParent) continue;
+      if (parentIdSet.has(acc.id)) continue;
+      if (acc.children && acc.children.length > 0) continue;
+
       if (!seenIds.has(acc.id)) {
         seenIds.add(acc.id);
         const rawCode = acc.manualCode || acc.code.replace(/^0+/, '') || acc.code;
@@ -74,12 +83,14 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
       }
     }
 
-    // 2. Add mockAccountTree items if not already present
+    // 2. Add mockAccountTree items if not already present - only leaf GL accounts
     function traverseTree(nodes: AccountNode[], path: string[]) {
       for (const node of nodes) {
         const cleanName = node.name.replace(/^[0-9]+\s*-\s*/, '');
         const currentPath = [...path, cleanName];
-        if (node.isSelectable && !seenIds.has(node.id)) {
+        const hasChildren = Boolean(node.children && node.children.length > 0);
+        // Only leaf GL accounts: must be selectable and not have children
+        if (node.isSelectable && !hasChildren && !seenIds.has(node.id)) {
           seenIds.add(node.id);
           list.push({
             id: node.id,
@@ -101,16 +112,48 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
   // Find currently selected account
   const selectedItem = useMemo(() => {
     if (!value) return null;
-    return (
-      allAccounts.find(
-        (a) =>
-          a.id === value ||
-          a.code === value ||
-          a.code.replace(/^0+/, '') === value ||
-          a.id.endsWith(value)
-      ) || null
+    const found = allAccounts.find(
+      (a) =>
+        a.id === value ||
+        a.code === value ||
+        a.code.replace(/^0+/, '') === value ||
+        a.id.endsWith(value)
     );
-  }, [allAccounts, value]);
+    if (found) return found;
+
+    // Fallback search across coaAccounts and mockAccountTree in case of legacy selections
+    const coaMatch = coaAccounts.find(
+      (a) =>
+        a.id === value ||
+        a.code === value ||
+        a.code.replace(/^0+/, '') === value ||
+        a.manualCode === value
+    );
+    if (coaMatch) {
+      const rawCode = coaMatch.manualCode || coaMatch.code.replace(/^0+/, '') || coaMatch.code;
+      const dedupedPath = (coaMatch.path || []).filter(
+        (seg, idx, arr) => idx === 0 || seg !== arr[idx - 1]
+      );
+      return {
+        id: coaMatch.id,
+        code: rawCode,
+        name: coaMatch.name,
+        pathText: dedupedPath.join(' › '),
+      };
+    }
+
+    const treeMatch = findAccountById(value);
+    if (treeMatch) {
+      return {
+        id: treeMatch.id,
+        code: treeMatch.code,
+        name: treeMatch.name.replace(/^[0-9]+\s*-\s*/, ''),
+        pathText: 'Chart of Accounts',
+      };
+    }
+
+    return null;
+  }, [allAccounts, coaAccounts, value]);
 
   // Close on outside click
   useEffect(() => {
@@ -183,7 +226,7 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
                   {selectedItem.code}
                 </span>
                 <span className="truncate font-semibold text-foreground text-[12px]">
-                  {selectedItem.name}
+                  {selectedItem.name} {selectedItem.pathText ? <span className="text-[10px] text-muted-foreground ml-1 font-normal">({selectedItem.pathText})</span> : null}
                 </span>
               </>
             ) : (
@@ -231,7 +274,7 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
                 ref={searchInputRef}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search account code, name, or path..."
+                placeholder="Search GL account code, name, or path..."
                 className="w-full bg-transparent text-xs outline-none text-foreground font-semibold placeholder:text-muted-foreground/60 placeholder:font-normal"
               />
               {searchQuery && (
@@ -264,13 +307,16 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
                     }`}
                   >
                     <div className="min-w-0 flex-1 pr-2">
-                      {/* Line 1: Code Badge + Account Name */}
-                      <div className="flex items-center gap-2">
+                      {/* Line 1: Code Badge + Account Name + GL Badge */}
+                      <div className="flex items-center gap-1.5">
                         <span className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded bg-muted/80 text-foreground/85 shrink-0 border border-border/70 shadow-2xs">
                           {item.code}
                         </span>
-                        <span className="font-bold text-xs text-foreground truncate">
+                        <span className="font-bold text-xs text-foreground truncate flex-1">
                           {item.name}
+                        </span>
+                        <span className="text-[9px] font-black uppercase px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                          GL
                         </span>
                       </div>
 
@@ -290,7 +336,7 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
 
               {filteredAccounts.length === 0 && (
                 <div className="px-3 py-6 text-center text-xs text-muted-foreground">
-                  No accounts found matching query.
+                  No GL accounts found matching query.
                 </div>
               )}
             </div>

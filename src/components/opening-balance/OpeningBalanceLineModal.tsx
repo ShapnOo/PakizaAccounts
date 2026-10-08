@@ -42,7 +42,8 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
 
   const [accountHeadId, setAccountHeadId] = useState('');
   const [balanceType, setBalanceType] = useState<'debit' | 'credit'>('debit');
-  const [amount, setAmount] = useState<string>('');
+  const [debitAmount, setDebitAmount] = useState<string>('');
+  const [creditAmount, setCreditAmount] = useState<string>('');
   const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
   const [exchangeRate, setExchangeRate] = useState<string>('1');
   const [costCenterId, setCostCenterId] = useState('');
@@ -65,10 +66,15 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
         const isCredit = (line.creditBDT && line.creditBDT > 0) || (line.credit && line.credit > 0);
         setBalanceType(isCredit ? 'credit' : 'debit');
 
-        const amt = isCredit
-          ? (line.credit !== undefined ? line.credit : line.creditBDT)
-          : (line.debit !== undefined ? line.debit : line.debitBDT);
-        setAmount(amt !== undefined && amt > 0 ? amt.toString() : '');
+        if (isCredit) {
+          const amt = line.credit !== undefined ? line.credit : (line.creditBDT || 0);
+          setCreditAmount(amt > 0 ? amt.toString() : '');
+          setDebitAmount('');
+        } else {
+          const amt = line.debit !== undefined ? line.debit : (line.debitBDT || 0);
+          setDebitAmount(amt > 0 ? amt.toString() : '');
+          setCreditAmount('');
+        }
 
         setCurrency(line.currency || DEFAULT_CURRENCY);
         setExchangeRate((line.exchangeRate || 1).toString());
@@ -83,7 +89,8 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
         // Reset form for new entry
         setAccountHeadId('');
         setBalanceType('debit');
-        setAmount('');
+        setDebitAmount('');
+        setCreditAmount('');
         setCurrency(DEFAULT_CURRENCY);
         setExchangeRate('1');
         setCostCenterId('');
@@ -128,9 +135,51 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
 
   if (!isOpen) return null;
 
-  const numAmount = parseFloat(amount) || 0;
+  const numDebit = parseFloat(debitAmount) || 0;
+  const numCredit = parseFloat(creditAmount) || 0;
+  const numAmount = balanceType === 'credit' ? numCredit : numDebit;
   const numRate = parseFloat(exchangeRate) || 1;
   const convertedBDT = round2(numAmount * (currency === 'BDT' ? 1 : numRate));
+
+  const handleDebitChange = (val: string) => {
+    setDebitAmount(val);
+    if (val) {
+      setCreditAmount('');
+      setBalanceType('debit');
+    }
+    if (errors.amount) {
+      setErrors((prev) => ({ ...prev, amount: '' }));
+    }
+  };
+
+  const handleCreditChange = (val: string) => {
+    setCreditAmount(val);
+    if (val) {
+      setDebitAmount('');
+      setBalanceType('credit');
+    }
+    if (errors.amount) {
+      setErrors((prev) => ({ ...prev, amount: '' }));
+    }
+  };
+
+  const handleToggleBalanceType = (type: 'debit' | 'credit') => {
+    setBalanceType(type);
+    if (type === 'debit') {
+      if (creditAmount && !debitAmount) {
+        setDebitAmount(creditAmount);
+        setCreditAmount('');
+      }
+    } else {
+      if (debitAmount && !creditAmount) {
+        setCreditAmount(debitAmount);
+        setDebitAmount('');
+      }
+    }
+    if (errors.amount) {
+      setErrors((prev) => ({ ...prev, amount: '' }));
+    }
+  };
 
   const handleCurrencyChange = (newCurr: string) => {
     setCurrency(newCurr);
@@ -163,8 +212,11 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
       newErrors.subsidiaryId = 'Customer selection is required for Accounts Receivable';
     }
 
-    if (isNaN(numAmount) || numAmount <= 0) {
-      newErrors.amount = 'Please enter an amount greater than 0';
+    const hasDebit = !isNaN(numDebit) && numDebit > 0;
+    const hasCredit = !isNaN(numCredit) && numCredit > 0;
+
+    if (!hasDebit && !hasCredit) {
+      newErrors.amount = 'Please enter an amount in either Debit or Credit';
     }
 
     if (currency !== 'BDT' && (isNaN(numRate) || numRate <= 0)) {
@@ -186,6 +238,8 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
     }
 
     const isCredit = balanceType === 'credit';
+    const effectiveAmount = isCredit ? numCredit : numDebit;
+    const effectiveBDT = round2(effectiveAmount * (currency === 'BDT' ? 1 : numRate));
     const isForeign = currency !== 'BDT';
 
     const savedLine: OpeningBalanceLine = {
@@ -200,10 +254,10 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
       customFields: customFieldsValues,
       currency,
       exchangeRate: isForeign ? numRate : 1,
-      debit: isCredit ? undefined : (isForeign ? numAmount : undefined),
-      credit: isCredit ? (isForeign ? numAmount : undefined) : undefined,
-      debitBDT: isCredit ? 0 : convertedBDT,
-      creditBDT: isCredit ? convertedBDT : 0,
+      debit: isCredit ? undefined : (isForeign ? effectiveAmount : undefined),
+      credit: isCredit ? (isForeign ? effectiveAmount : undefined) : undefined,
+      debitBDT: isCredit ? 0 : effectiveBDT,
+      creditBDT: isCredit ? effectiveBDT : 0,
     };
 
     onSave(savedLine);
@@ -278,7 +332,7 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
               <div className="inline-flex items-center p-1 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card">
                 <button
                   type="button"
-                  onClick={() => setBalanceType('debit')}
+                  onClick={() => handleToggleBalanceType('debit')}
                   className={[
                     'inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer select-none',
                     balanceType === 'debit'
@@ -291,7 +345,7 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
                 </button>
                 <button
                   type="button"
-                  onClick={() => setBalanceType('credit')}
+                  onClick={() => handleToggleBalanceType('credit')}
                   className={[
                     'inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer select-none',
                     balanceType === 'credit'
@@ -306,36 +360,67 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
             </div>
 
             {/* Amount & Currency Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* Amount Input */}
-              <div className="sm:col-span-1 space-y-1">
-                <label className="block text-[11px] font-bold text-slate-600 dark:text-muted-foreground">
-                  Amount ({currency}) <span className="text-rose-500">*</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {/* Debit Amount Input */}
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-emerald-700 dark:text-emerald-400 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-2 rounded-full bg-emerald-600 inline-block" />
+                    Debit ({currency})
+                  </span>
+                  {balanceType === 'debit' && numDebit > 0 && (
+                    <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-emerald-100/80 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300">
+                      Active
+                    </span>
+                  )}
                 </label>
                 <input
                   type="number"
                   step="any"
                   min="0"
-                  value={amount}
-                  onChange={(e) => {
-                    setAmount(e.target.value);
-                    if (errors.amount) {
-                      setErrors((prev) => ({ ...prev, amount: '' }));
-                    }
-                  }}
+                  value={debitAmount}
+                  onChange={(e) => handleDebitChange(e.target.value)}
                   placeholder="0.00"
                   className={[
                     'w-full h-9 px-3 rounded-lg border text-sm font-semibold outline-none bg-white dark:bg-card transition-all',
-                    errors.amount
+                    errors.amount && !debitAmount && !creditAmount
                       ? 'border-rose-400 bg-rose-50/30 text-rose-900 focus:ring-2 focus:ring-rose-500/20'
-                      : 'border-slate-300 dark:border-border text-slate-900 dark:text-foreground focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20',
+                      : debitAmount
+                      ? 'border-emerald-500 ring-2 ring-emerald-500/20 text-emerald-900 dark:text-emerald-200 font-bold bg-emerald-50/20'
+                      : 'border-slate-300 dark:border-border text-slate-900 dark:text-foreground focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20',
                   ].join(' ')}
                 />
-                {errors.amount && (
-                  <p className="text-[11px] text-rose-600 font-medium mt-0.5">
-                    {errors.amount}
-                  </p>
-                )}
+              </div>
+
+              {/* Credit Amount Input */}
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-rose-700 dark:text-rose-400 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-2 rounded-full bg-rose-600 inline-block" />
+                    Credit ({currency})
+                  </span>
+                  {balanceType === 'credit' && numCredit > 0 && (
+                    <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-rose-100/80 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300">
+                      Active
+                    </span>
+                  )}
+                </label>
+                <input
+                  type="number"
+                  step="any"
+                  min="0"
+                  value={creditAmount}
+                  onChange={(e) => handleCreditChange(e.target.value)}
+                  placeholder="0.00"
+                  className={[
+                    'w-full h-9 px-3 rounded-lg border text-sm font-semibold outline-none bg-white dark:bg-card transition-all',
+                    errors.amount && !debitAmount && !creditAmount
+                      ? 'border-rose-400 bg-rose-50/30 text-rose-900 focus:ring-2 focus:ring-rose-500/20'
+                      : creditAmount
+                      ? 'border-rose-500 ring-2 ring-rose-500/20 text-rose-900 dark:text-rose-200 font-bold bg-rose-50/20'
+                      : 'border-slate-300 dark:border-border text-slate-900 dark:text-foreground focus:border-rose-600 focus:ring-2 focus:ring-rose-500/20',
+                  ].join(' ')}
+                />
               </div>
 
               {/* Currency Selector */}
@@ -383,6 +468,13 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
                   ].join(' ')}
                 />
               </div>
+
+              {errors.amount && (
+                <p className="sm:col-span-2 lg:col-span-4 text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-0.5">
+                  <AlertCircle className="size-3.5" />
+                  <span>{errors.amount}</span>
+                </p>
+              )}
             </div>
 
             {/* Real-time BDT Equivalent Banner */}
@@ -512,7 +604,7 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
             <div className="space-y-1">
               <label className="block text-[11px] font-bold text-slate-600 dark:text-muted-foreground">
-                Reference / Voucher Ref
+                Reference
               </label>
               <input
                 type="text"
