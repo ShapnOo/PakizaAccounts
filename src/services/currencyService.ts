@@ -84,15 +84,30 @@ export async function deleteCurrencySetup(id: string): Promise<void> {
   localStorage.setItem(LS_RATES, JSON.stringify(updatedRates));
 }
 
-function computeRatesWithHistory(rates: ExchangeRate[]): ExchangeRate[] {
-  const today = new Date().toISOString().split('T')[0];
-  let allHistory: RateHistoryEntry[] = [];
+function getAllHistoryData(): RateHistoryEntry[] {
   try {
     const raw = localStorage.getItem(LS_HISTORY);
-    allHistory = raw ? JSON.parse(raw) : MOCK_RATE_HISTORY;
+    if (!raw) {
+      localStorage.setItem(LS_HISTORY, JSON.stringify(MOCK_RATE_HISTORY));
+      return MOCK_RATE_HISTORY;
+    }
+    const stored: RateHistoryEntry[] = JSON.parse(raw);
+    if (stored.length < MOCK_RATE_HISTORY.length) {
+      const mockIds = new Set(MOCK_RATE_HISTORY.map((m) => m.id));
+      const userAdded = stored.filter((s) => !mockIds.has(s.id));
+      const merged = [...userAdded, ...MOCK_RATE_HISTORY];
+      localStorage.setItem(LS_HISTORY, JSON.stringify(merged));
+      return merged;
+    }
+    return stored;
   } catch {
-    allHistory = MOCK_RATE_HISTORY;
+    return MOCK_RATE_HISTORY;
   }
+}
+
+function computeRatesWithHistory(rates: ExchangeRate[]): ExchangeRate[] {
+  const today = new Date().toISOString().split('T')[0];
+  const allHistory = getAllHistoryData();
 
   return rates.map((r) => {
     if (r.isBase) {
@@ -242,8 +257,7 @@ export async function setBaseCurrency(currencyId: string): Promise<ExchangeRate[
 export async function getRateHistory(currencyId: string): Promise<RateHistoryEntry[]> {
   await delay(200);
   try {
-    const raw = localStorage.getItem(LS_HISTORY);
-    const allHistory: RateHistoryEntry[] = raw ? JSON.parse(raw) : MOCK_RATE_HISTORY;
+    const allHistory = getAllHistoryData();
     return allHistory
       .filter((h) => h.currencyId === currencyId)
       .sort((a, b) => new Date(b.effectiveDate).getTime() - new Date(a.effectiveDate).getTime());
