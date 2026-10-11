@@ -130,12 +130,17 @@ export const CurrencySetupModal: React.FC<CurrencySetupModalProps> = ({
       commaFormat,
     };
 
+    if (!isEdit && effectiveDate < today) {
+      toast.error('Backdating is not allowed. Effective date must be today or a future date.');
+      return;
+    }
+
     try {
       if (isEdit && initialCurrency) {
         await updateSetup(initialCurrency.id, payload);
         toast.success(`Currency ${code} updated successfully`);
       } else {
-        await addSetup(payload, initialRate > 0 ? initialRate : 1);
+        await addSetup(payload, initialRate > 0 ? initialRate : 1, effectiveDate);
         toast.success(`Currency ${code} added successfully`);
       }
       onClose();
@@ -289,24 +294,45 @@ export const CurrencySetupModal: React.FC<CurrencySetupModalProps> = ({
             />
           </div>
 
-          {/* 5. Initial Exchange Rate (only on create) */}
+          {/* 5. Initial Exchange Rate & Effective Date (only on create) */}
           {!isEdit && (
-            <div className="space-y-1 pt-2 border-t border-border/50">
-              <label className="text-xs font-bold text-foreground flex items-center justify-between">
-                <span>Initial Exchange Rate (vs Base Currency)</span>
-                <span className="text-[10px] text-muted-foreground font-normal">Optional</span>
-              </label>
-              <input
-                type="number"
-                step="any"
-                min={0.0001}
-                value={initialRate}
-                onChange={(e) => setInitialRate(parseFloat(e.target.value) || 1)}
-                placeholder="1.00"
-                className="w-full h-8.5 px-3 rounded-lg border border-border/80 bg-background text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-              />
+            <div className="pt-2 border-t border-border/50 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                    <span>Exchange Rate (vs Base)</span>
+                    <span className="text-[10px] text-muted-foreground font-normal">Optional</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    min={0.0001}
+                    value={initialRate}
+                    onWheel={(e) => e.currentTarget.blur()}
+                    onChange={(e) => setInitialRate(parseFloat(e.target.value) || 1)}
+                    placeholder="1.00"
+                    className="w-full h-8.5 px-3 rounded-lg border border-border/80 bg-background text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                    <span>Effective Date</span>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                      Future allowed
+                    </span>
+                  </label>
+                  <input
+                    type="date"
+                    min={today}
+                    value={effectiveDate}
+                    onChange={(e) => setEffectiveDate(e.target.value)}
+                    className="w-full h-8.5 px-3 rounded-lg border border-border/80 bg-background text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer"
+                  />
+                </div>
+              </div>
               <p className="text-[10.5px] text-muted-foreground">
-                Relative to system base currency. Can be updated anytime in the rate list.
+                Set exchange rate and effective date. Advance dates (e.g. 10 days ahead) are supported; backdating before today is restricted.
               </p>
             </div>
           )}
