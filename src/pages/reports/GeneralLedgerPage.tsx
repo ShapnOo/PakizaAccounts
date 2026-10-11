@@ -38,6 +38,7 @@ export const GeneralLedgerPage: React.FC = () => {
   // Advance filter state and compiled predicate
   const getPredicate = useAdvanceFilterStore((s) => s.getPredicate);
   const filterState = useAdvanceFilterStore((s) => s.state);
+  const resetAdvanceFilter = useAdvanceFilterStore((s) => s.reset);
 
   const predicate = useMemo(() => {
     return getPredicate();
@@ -268,17 +269,19 @@ export const GeneralLedgerPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Clear Basic Filters */}
-        {(subLedgerFilter || dateRangePreset !== 'this-month') && (
+        {/* Clear / Reset All Filters */}
+        {(subLedgerFilter || dateRangePreset !== 'this-month' || filterState.conditions.length > 0) && (
           <button
             type="button"
             onClick={() => {
               setSubLedgerFilter('');
               setDateRangePreset('this-month');
+              resetAdvanceFilter();
             }}
-            className="text-xs text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/70 border border-rose-200/60 rounded-md transition-all cursor-pointer shadow-2xs"
           >
-            Clear Basic Filters
+            <RefreshCw className="w-3 h-3" />
+            <span>Reset All Filters</span>
           </button>
         )}
       </div>

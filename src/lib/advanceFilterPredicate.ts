@@ -28,6 +28,8 @@ function getRowFieldValue(row: any, fieldKey: string): any {
         row.accountHeadName ||
         row.accountsHead ||
         row.accountHeadId ||
+        row.headerAccountName ||
+        row.headerAccountId ||
         row.accountName ||
         row.account ||
         ''
@@ -45,6 +47,7 @@ function getRowFieldValue(row: any, fieldKey: string): any {
         row.costCenterName ||
         row.costCenter ||
         row.costCenterId ||
+        row.headerCostCenterId ||
         ''
       );
     case 'employee':
@@ -64,7 +67,11 @@ function getRowFieldValue(row: any, fieldKey: string): any {
     case 'voucherNo':
       return row.voucherNo || row.voucherNumber || '';
     case 'voucherType':
-      return row.voucherType || '';
+      return row.voucherType || row.voucherName || '';
+    case 'approvalStatus':
+      return row.approvalStatus || 'Approved';
+    case 'source':
+      return row.source || '';
     case 'reference':
       return row.reference || '';
     case 'narration':
@@ -74,7 +81,7 @@ function getRowFieldValue(row: any, fieldKey: string): any {
     case 'date':
       return row.date || row.voucherDate || '';
     case 'amount':
-      return row.amount ?? row.debit ?? row.credit ?? 0;
+      return row.amount ?? row.debit ?? row.credit ?? row.debitBDT ?? row.creditBDT ?? 0;
     default:
       return row[fieldKey];
   }
@@ -87,6 +94,20 @@ function compileCondition(c: FilterCondition): ((r: any) => boolean) | null {
   if (!isValueless && (c.value === null || c.value === undefined || c.value === '')) {
     return null; // Incomplete row silently skipped
   }
+
+  const baseTest = compileBaseCondition(c);
+  if (!baseTest) return null;
+
+  return (row: any) => {
+    if (baseTest(row)) return true;
+    if (row && Array.isArray(row.lines) && row.lines.length > 0) {
+      return row.lines.some((line: any) => baseTest(line));
+    }
+    return false;
+  };
+}
+
+function compileBaseCondition(c: FilterCondition): ((r: any) => boolean) | null {
 
   const v = c.value;
 

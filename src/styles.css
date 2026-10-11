@@ -249,3 +249,14 @@
   background: oklch(0.5 0.05 255 / 0.6);
 }
 
+/* ── Global: Disable up/down stepper arrows & pins on all number & amount inputs ── */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}

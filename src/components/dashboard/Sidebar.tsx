@@ -74,7 +74,6 @@ export const nav: NavItem[] = [
           { label: "Voucher Approval Setup", to: "/accounts-config/voucher-approval-setup" },
           { label: "Custom Field", to: "/accounts-config/custom-field" },
           { label: "Customer Master Setup", to: "/customers" },
-          { label: "Bank Setup", to: "/banks" },
         ],
       },
       {
@@ -268,6 +267,9 @@ const READY_ROUTE_PATTERNS = [
   '/journal-books/bulk-data-upload',
   '/bulk-update',
   '/journal-books/bulk-update',
+  '/reports/ledger/general-ledger',
+  '/accounts-report/general-ledger',
+  '/general-ledger',
 ];
 
 function isRouteReady(path?: string): boolean {
@@ -303,6 +305,12 @@ function isPathActive(itemTo: string | undefined, currentPath: string): boolean 
   if (itemTo === '/bulk-update' && (currentPath.startsWith('/bulk-update') || currentPath.startsWith('/journal-books/bulk-update'))) return true;
   if (itemTo === '/journal-books/bulk-update' && (currentPath.startsWith('/bulk-update') || currentPath.startsWith('/journal-books/bulk-update'))) return true;
   if (itemTo === '/accounts-report/journal' && (currentPath === '/accounts-report/journal' || currentPath.startsWith('/voucher-template'))) return true;
+  if (
+    (itemTo === '/reports/ledger/general-ledger' || itemTo === '/accounts-report/general-ledger') &&
+    (currentPath.startsWith('/reports/ledger/general-ledger') || currentPath.startsWith('/accounts-report/general-ledger') || currentPath.startsWith('/general-ledger'))
+  ) {
+    return true;
+  }
 
   return false;
 }

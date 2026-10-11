@@ -655,50 +655,50 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
           </div>
 
           <div className="overflow-x-auto sidebar-scroll">
-            <table className="w-full text-left text-xs border-collapse min-w-[1200px]">
-              <thead className="bg-muted/40 border-b border-border text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <table className="w-full text-left text-xs border-collapse min-w-[1450px]">
+              <thead className="bg-muted/40 border-b border-border text-[11px] font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
                 <tr>
-                  <th className="py-2.5 px-3 min-w-[220px]">Accounts Head *</th>
+                  <th className="py-2.5 px-3 min-w-[260px]">Accounts Head *</th>
                   {visibleColumns.costCenter && (
-                    <th className="py-2.5 px-3 min-w-[140px]">Cost Center</th>
+                    <th className="py-2.5 px-3 min-w-[170px]">Cost Center</th>
                   )}
                   {visibleColumns.subsidiary && (
-                    <th className="py-2.5 px-3 min-w-[160px]">Subsidiary (Customer/Vendor)</th>
+                    <th className="py-2.5 px-3 min-w-[180px]">Subsidiary (Customer/Vendor)</th>
                   )}
                   {visibleColumns.employee && (
-                    <th className="py-2.5 px-3 min-w-[140px]">Employee</th>
+                    <th className="py-2.5 px-3 min-w-[170px]">Employee</th>
                   )}
                   {visibleColumns.vehicle && (
-                    <th className="py-2.5 px-3 min-w-[130px]">Vehicles</th>
+                    <th className="py-2.5 px-3 min-w-[150px]">Vehicles</th>
                   )}
                   {visibleColumns.reference && (
                     <th className="py-2.5 px-3 min-w-[140px]">Reference</th>
                   )}
                   {visibleColumns.description && (
-                    <th className="py-2.5 px-3 min-w-[150px]">Description</th>
+                    <th className="py-2.5 px-3 min-w-[170px]">Description</th>
                   )}
                   {visibleColumns.currency && (
                     <>
-                      <th className="py-2.5 px-3 w-20 text-center">Curr.</th>
-                      <th className="py-2.5 px-3 w-20 text-center">Rate</th>
+                      <th className="py-2.5 px-3 min-w-[90px] text-center">Curr.</th>
+                      <th className="py-2.5 px-3 min-w-[85px] text-center">Rate</th>
                     </>
                   )}
 
                   {/* Per-type Dr/Cr columns with Base Currency (#38) */}
                   {cfg.showDebit && (
-                    <th className="py-2.5 px-3 w-28 text-right bg-indigo-500/5">Debit</th>
+                    <th className="py-2.5 px-3 min-w-[125px] text-right bg-indigo-500/5">Debit</th>
                   )}
                   {cfg.showCredit && (
-                    <th className="py-2.5 px-3 w-28 text-right bg-emerald-500/5">Credit</th>
+                    <th className="py-2.5 px-3 min-w-[125px] text-right bg-emerald-500/5">Credit</th>
                   )}
                   {cfg.showDebit && (
-                    <th className="py-2.5 px-3 w-28 text-right bg-indigo-500/10">Debit ({baseCode})</th>
+                    <th className="py-2.5 px-3 min-w-[130px] text-right bg-indigo-500/10">Debit ({baseCode})</th>
                   )}
                   {cfg.showCredit && (
-                    <th className="py-2.5 px-3 w-28 text-right bg-emerald-500/10">Credit ({baseCode})</th>
+                    <th className="py-2.5 px-3 min-w-[130px] text-right bg-emerald-500/10">Credit ({baseCode})</th>
                   )}
 
-                  <th className="py-2.5 px-2 w-10 text-center"></th>
+                  <th className="py-2.5 px-2 min-w-[44px] text-center"></th>
                 </tr>
               </thead>
 
@@ -855,6 +855,7 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
                             step="any"
                             min={0.0001}
                             value={line.exchangeRate || 1}
+                            onWheel={(e) => e.currentTarget.blur()}
                             onChange={(e) =>
                               handleUpdateLine(line.id, {
                                 exchangeRate: parseFloat(e.target.value) || 1,
@@ -868,52 +869,54 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
 
                     {/* Debit Input */}
                     {cfg.showDebit && (
-                      <td className="py-2 px-2 bg-indigo-500/5">
+                      <td className="py-2 px-2 bg-indigo-500/5 min-w-[125px]">
                         <input
                           type="number"
                           step="any"
                           min={0}
                           value={line.debit || ''}
+                          onWheel={(e) => e.currentTarget.blur()}
                           onChange={(e) =>
                             handleUpdateLine(line.id, {
                               debit: parseFloat(e.target.value) || 0,
                             })
                           }
                           placeholder="0.00"
-                          className="w-full h-8 px-2 text-right rounded-lg border border-border bg-background text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-indigo-500"
+                          className="w-full min-w-[95px] h-8.5 px-2.5 text-right rounded-lg border border-border bg-background text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-indigo-500 shadow-2xs"
                         />
                       </td>
                     )}
 
                     {/* Credit Input */}
                     {cfg.showCredit && (
-                      <td className="py-2 px-2 bg-emerald-500/5">
+                      <td className="py-2 px-2 bg-emerald-500/5 min-w-[125px]">
                         <input
                           type="number"
                           step="any"
                           min={0}
                           value={line.credit || ''}
+                          onWheel={(e) => e.currentTarget.blur()}
                           onChange={(e) =>
                             handleUpdateLine(line.id, {
                               credit: parseFloat(e.target.value) || 0,
                             })
                           }
                           placeholder="0.00"
-                          className="w-full h-8 px-2 text-right rounded-lg border border-border bg-background text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-emerald-500"
+                          className="w-full min-w-[95px] h-8.5 px-2.5 text-right rounded-lg border border-border bg-background text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-emerald-500 shadow-2xs"
                         />
                       </td>
                     )}
 
                     {/* Debit BDT (Read-only) */}
                     {cfg.showDebit && (
-                      <td className="py-2 px-2 text-right font-mono font-bold text-xs text-foreground bg-indigo-500/10">
+                      <td className="py-2 px-2.5 text-right font-mono font-bold text-xs text-foreground bg-indigo-500/10 min-w-[130px] whitespace-nowrap">
                         {baseSymbol} {(line.debitBDT || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </td>
                     )}
 
                     {/* Credit BDT (Read-only) */}
                     {cfg.showCredit && (
-                      <td className="py-2 px-2 text-right font-mono font-bold text-xs text-foreground bg-emerald-500/10">
+                      <td className="py-2 px-2.5 text-right font-mono font-bold text-xs text-foreground bg-emerald-500/10 min-w-[130px] whitespace-nowrap">
                         {baseSymbol} {(line.creditBDT || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </td>
                     )}

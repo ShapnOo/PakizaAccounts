@@ -156,22 +156,22 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
       {/* Responsive Scrollable Table */}
       <div className="border border-border/80 rounded-xl overflow-hidden shadow-2xs bg-card">
         <div className="overflow-x-auto sidebar-scroll">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-left text-xs border-collapse min-w-[1450px]">
             <thead className="bg-muted/40 border-b border-border/70 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
               <tr>
-                <th className="py-2.5 px-3 min-w-[220px]">Accounts Head *</th>
-                <th className="py-2.5 px-2.5 min-w-[150px]">Cost Center</th>
-                <th className="py-2.5 px-2.5 min-w-[150px]">Subsidiary</th>
-                <th className="py-2.5 px-2.5 min-w-[150px]">Employee</th>
-                <th className="py-2.5 px-2.5 min-w-[140px]">Vehicles</th>
-                <th className="py-2.5 px-2 min-w-[110px]">Reference</th>
-                <th className="py-2.5 px-2 min-w-[150px]">Description</th>
+                <th className="py-2.5 px-3 min-w-[260px]">Accounts Head *</th>
+                <th className="py-2.5 px-2.5 min-w-[170px]">Cost Center</th>
+                <th className="py-2.5 px-2.5 min-w-[180px]">Subsidiary</th>
+                <th className="py-2.5 px-2.5 min-w-[170px]">Employee</th>
+                <th className="py-2.5 px-2.5 min-w-[150px]">Vehicles</th>
+                <th className="py-2.5 px-2 min-w-[140px]">Reference</th>
+                <th className="py-2.5 px-2 min-w-[170px]">Description</th>
 
                 {/* Dynamic Custom Field Columns (between Description and Currency) */}
                 {customFields.map((cf) => (
                   <th
                     key={cf.id}
-                    className="py-2.5 px-2.5 min-w-[140px] bg-indigo-50/50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-300 border-x border-indigo-100/50 dark:border-indigo-900/30"
+                    className="py-2.5 px-2.5 min-w-[150px] bg-indigo-50/50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-300 border-x border-indigo-100/50 dark:border-indigo-900/30"
                   >
                     <div className="flex items-center gap-1">
                       <span>{cf.label}</span>
@@ -180,24 +180,24 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
                   </th>
                 ))}
 
-                <th className="py-2.5 px-2 w-20">Currency</th>
-                <th className="py-2.5 px-2 w-20 text-right">Exc. Rate</th>
+                <th className="py-2.5 px-2 min-w-[90px] text-center">Currency</th>
+                <th className="py-2.5 px-2 min-w-[85px] text-right">Exc. Rate</th>
 
                 {/* Conditional Debit / Credit Columns */}
                 {config.showDebit && (
-                  <th className="py-2.5 px-2 w-28 text-right bg-emerald-500/5">Debit</th>
+                  <th className="py-2.5 px-2.5 min-w-[125px] text-right bg-emerald-500/5">Debit</th>
                 )}
                 {config.showCredit && (
-                  <th className="py-2.5 px-2 w-28 text-right bg-rose-500/5">Credit</th>
+                  <th className="py-2.5 px-2.5 min-w-[125px] text-right bg-rose-500/5">Credit</th>
                 )}
                 {config.showDebit && (
-                  <th className="py-2.5 px-2 w-28 text-right bg-emerald-500/10">Debit (BDT)</th>
+                  <th className="py-2.5 px-2.5 min-w-[130px] text-right bg-emerald-500/10">Debit (BDT)</th>
                 )}
                 {config.showCredit && (
-                  <th className="py-2.5 px-2 w-28 text-right bg-rose-500/10">Credit (BDT)</th>
+                  <th className="py-2.5 px-2.5 min-w-[130px] text-right bg-rose-500/10">Credit (BDT)</th>
                 )}
 
-                <th className="py-2.5 px-2 w-10 text-center"></th>
+                <th className="py-2.5 px-2 min-w-[44px] text-center"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40 text-xs">

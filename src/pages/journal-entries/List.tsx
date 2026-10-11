@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -9,6 +9,8 @@ import { ViewType, VoucherType } from '../../types/journalEntry';
 import { ListHeader } from '../../components/journal-entries/ListHeader';
 import { Toolbar } from '../../components/journal-entries/Toolbar';
 import { AdvancedFilterPanel } from '../../components/journal-entries/AdvancedFilterPanel';
+import { AdvanceFilter } from '../../components/gl/AdvanceFilter';
+import { useJournalAdvanceFilterStore } from '../../stores/advanceFilterStore';
 import { ListView } from '../../components/journal-entries/ListView';
 import { KanbanView } from '../../components/journal-entries/KanbanView';
 import { BarChartView } from '../../components/journal-entries/BarChartView';
@@ -43,6 +45,14 @@ export const JournalEntriesListPage: React.FC = () => {
     deleteAttachment,
   } = useJournalEntryStore();
 
+  // Dynamic Advance Filter hook for Journal Entries
+  const getJournalPredicate = useJournalAdvanceFilterStore((s) => s.getPredicate);
+  const journalFilterState = useJournalAdvanceFilterStore((s) => s.state);
+
+  const journalPredicate = useMemo(() => {
+    return getJournalPredicate();
+  }, [getJournalPredicate, journalFilterState]);
+
   // Load entries on mount
   useEffect(() => {
     loadEntries();
@@ -69,7 +79,37 @@ export const JournalEntriesListPage: React.FC = () => {
     });
   };
 
-  const filteredEntries = selectFilteredEntries({
+  const filteredEntries = useMemo(() => {
+    const base = selectFilteredEntries({
+      entries,
+      loading,
+      searchQuery,
+      viewType,
+      filterRange,
+      customFromDate,
+      customToDate,
+      advancedOpen,
+      advancedFilters,
+      selectedAttachmentVoucher,
+      loadEntries,
+      setViewType,
+      setFilterRange,
+      setCustomDateRange,
+      setSearchQuery,
+      toggleAdvanced,
+      setAdvancedFilters,
+      resetAdvancedFilters,
+      setSelectedAttachmentVoucher,
+      addEntry: useJournalEntryStore.getState().addEntry,
+      editEntry: useJournalEntryStore.getState().editEntry,
+      toggleVoid: useJournalEntryStore.getState().toggleVoid,
+      removeEntry: useJournalEntryStore.getState().removeEntry,
+      uploadAttachment: useJournalEntryStore.getState().uploadAttachment,
+      deleteAttachment: useJournalEntryStore.getState().deleteAttachment,
+    });
+
+    return base.filter(journalPredicate);
+  }, [
     entries,
     loading,
     searchQuery,
@@ -89,13 +129,8 @@ export const JournalEntriesListPage: React.FC = () => {
     setAdvancedFilters,
     resetAdvancedFilters,
     setSelectedAttachmentVoucher,
-    addEntry: useJournalEntryStore.getState().addEntry,
-    editEntry: useJournalEntryStore.getState().editEntry,
-    toggleVoid: useJournalEntryStore.getState().toggleVoid,
-    removeEntry: useJournalEntryStore.getState().removeEntry,
-    uploadAttachment: useJournalEntryStore.getState().uploadAttachment,
-    deleteAttachment: useJournalEntryStore.getState().deleteAttachment,
-  });
+    journalPredicate,
+  ]);
 
   // Compute active filter count
   let activeFilterCount = 0;
@@ -106,6 +141,7 @@ export const JournalEntriesListPage: React.FC = () => {
   if (advancedFilters.minAmount || advancedFilters.maxAmount) activeFilterCount++;
   if (advancedFilters.hasAttachmentsOnly) activeFilterCount++;
   if (advancedFilters.voidFilter !== 'all') activeFilterCount++;
+  if (journalFilterState.conditions.length > 0) activeFilterCount += journalFilterState.conditions.length;
 
   // Export CSV Handler
   const handleExportCsv = () => {
@@ -170,7 +206,10 @@ export const JournalEntriesListPage: React.FC = () => {
         onExportCsv={handleExportCsv}
       />
 
-      {/* 3. Advanced Filter Collapsible Panel */}
+      {/* 3. Advance Dynamic Condition Filter (Shared Formula Engine) */}
+      <AdvanceFilter useStore={useJournalAdvanceFilterStore} />
+
+      {/* 4. Advanced Filter Quick Options Collapsible Panel */}
       {advancedOpen && (
         <AdvancedFilterPanel
           filters={advancedFilters}

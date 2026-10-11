@@ -146,7 +146,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             }`}
           >
             <Filter className="size-3.5" />
-            <span>Advanced Filter</span>
+            <span>Status Wise Filter</span>
             {activeFilterCount > 0 && (
               <span className="size-4 rounded-full bg-primary text-primary-foreground text-[10px] font-black inline-flex items-center justify-center">
                 {activeFilterCount}

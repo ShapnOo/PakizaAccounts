@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles } from 'lucide-react';
+import { X, CalendarDays } from 'lucide-react';
 import { FiscalYear } from '../../types/financialPeriod';
 
 interface Props {
@@ -67,15 +67,15 @@ export const FinancialPeriodModal: React.FC<Props> = ({
         {/* Modal Header */}
         <div className="px-5 py-4 border-b border-border/60 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="size-9 rounded-xl bg-slate-900 text-white dark:bg-slate-800 flex items-center justify-center shadow-xs">
-              <Sparkles className="size-4.5" />
+            <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shadow-xs">
+              <CalendarDays className="size-4.5" />
             </div>
             <div>
               <h2 className="text-sm font-bold text-foreground">
                 {editPeriod ? 'Edit Financial Period' : 'Create Financial Period'}
               </h2>
               <p className="text-[11px] text-muted-foreground">
-                Define the window and lock rules
+                Define the fiscal year range and transaction lock rules
               </p>
             </div>
           </div>
@@ -174,9 +174,9 @@ export const FinancialPeriodModal: React.FC<Props> = ({
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-xs font-bold shadow-sm transition-all cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-primary hover:bg-primary/95 text-primary-foreground text-xs font-bold shadow-sm shadow-primary/20 transition-all cursor-pointer active:scale-95"
             >
-              {editPeriod ? 'Update' : 'Create'}
+              {editPeriod ? 'Update Period' : 'Create Period'}
             </button>
           </div>
         </form>

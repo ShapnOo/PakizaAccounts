@@ -95,6 +95,18 @@ export const FILTER_FIELDS: FilterField[] = [
   },
   { key: 'date', label: 'Date', type: 'date' },
   { key: 'amount', label: 'Amount', type: 'number' },
+  {
+    key: 'approvalStatus',
+    label: 'Approval Status',
+    type: 'enum',
+    enumOptions: ['Approved', 'Pending', 'Draft', 'Rejected'],
+  },
+  {
+    key: 'source',
+    label: 'Source',
+    type: 'enum',
+    enumOptions: ['Manual', 'Cheque Prepare', 'Opening Balance', 'Bank Reconciliation', 'Purchase Integration'],
+  },
 ];
 
 // Operators per field type
