@@ -229,7 +229,7 @@ export const RecurringJournalFormPage: React.FC = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 w-full max-w-5xl mx-auto space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-5 space-y-4">
       {/* 1. Header Card */}
       <div className="p-5 sm:p-6 rounded-2xl border border-border/80 bg-card shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">

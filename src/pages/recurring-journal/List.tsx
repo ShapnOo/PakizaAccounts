@@ -112,7 +112,7 @@ export const RecurringJournalListPage: React.FC = () => {
   };
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 w-full max-w-7xl mx-auto space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-5 space-y-4">
       {/* 1. Header */}
       <ListHeader totalCount={profiles.length} activeCount={activeCount} />
 

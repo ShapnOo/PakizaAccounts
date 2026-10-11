@@ -26,9 +26,11 @@ import {
   VOUCHER_NAMES,
   ApprovalStatus,
   FormPreset,
+  Attachment,
 } from '../../types/journalEntry';
 import { useJournalEntryStore } from '../../stores/journalEntryStore';
 import { useCurrencyStore } from '../../stores/currencyStore';
+import { useSubledgerStore } from '../../stores/subledgerStore';
 import { listPresets, savePreset } from '../../services/presetService';
 import { MOCK_ACCOUNTS } from '../../mock/accounts';
 import { MOCK_SUBLEDGER } from '../../mock/subledger';
@@ -38,6 +40,8 @@ import { MOCK_CUSTOMERS } from '../../mock/customers';
 import { MOCK_COA_BANK_ACCOUNTS } from '../../mock/coaBankAccounts';
 import { MOCK_CURRENCY_SETUPS } from '../../mock/currencySetup';
 import { SaveAsPresetDialog } from './SaveAsPresetDialog';
+import { LineColumnToggle, useLineColumnVisibility } from './LineColumnToggle';
+import { AttachmentUploadSection } from './AttachmentUploadSection';
 
 export interface VoucherEntryFormProps {
   voucherType: VoucherType;
@@ -85,8 +89,24 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
     const matched = VOUCHER_NAMES.find((v) => v.name === name);
     if (matched) {
       setActiveType(matched.type);
+      if (VOUCHER_TYPE_CONFIG[matched.type].hasHeaderAccount && !headerAccountId) {
+        setHeaderAccountId(MOCK_COA_BANK_ACCOUNTS[0]?.id || '');
+      }
     }
   };
+
+  useEffect(() => {
+    if (initialVoucherName) {
+      setSelectedVoucherName(initialVoucherName);
+      const matched = VOUCHER_NAMES.find((v) => v.name === initialVoucherName);
+      if (matched) {
+        setActiveType(matched.type);
+      }
+    } else if (voucherType) {
+      setActiveType(voucherType);
+      setSelectedVoucherName(VOUCHER_TYPE_CONFIG[voucherType].label);
+    }
+  }, [initialVoucherName, voucherType]);
 
   // Form states
   const [voucherDate, setVoucherDate] = useState(
@@ -127,6 +147,13 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
     ]
   );
 
+  const [attachments, setAttachments] = useState<Attachment[]>(
+    initialData?.attachments || []
+  );
+
+  // Column visibility for line items
+  const { columns: visibleColumns, updateColumns: setVisibleColumns } = useLineColumnVisibility();
+
   // Presets
   const [presets, setPresets] = useState<FormPreset[]>([]);
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
@@ -135,9 +162,16 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Subledger lists
-  const costCenters = MOCK_SUBLEDGER.filter((s) => s.type === 'cost-center');
-  const vehicles = MOCK_SUBLEDGER.filter((s) => s.type === 'vehicle');
+  // Subledger lists from store & mock
+  const { entries: subledgerEntries, load: loadSubledger } = useSubledgerStore();
+  useEffect(() => {
+    loadSubledger();
+  }, [loadSubledger]);
+
+  const allSubledger = subledgerEntries.length > 0 ? subledgerEntries : MOCK_SUBLEDGER;
+  const costCenters = allSubledger.filter((s) => s.type === 'cost-center' && s.activeStatus !== 'Inactive');
+  const vehicles = allSubledger.filter((s) => s.type === 'vehicle' && s.activeStatus !== 'Inactive');
+  const referenceCenters = allSubledger.filter((s) => s.type === 'reference-center' && s.activeStatus !== 'Inactive');
 
   // Load presets for this type
   useEffect(() => {
@@ -313,7 +347,7 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
         headerAccountName: cfg.hasHeaderAccount ? headerAcc?.accountName || headerAccountId : undefined,
         headerCostCenterId: cfg.hasHeaderAccount ? headerCostCenterId : undefined,
         lines,
-        attachments: initialData?.attachments || [],
+        attachments: attachments,
         voided: initialData?.voided || false,
       };
 
@@ -458,7 +492,7 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
             </div>
 
             {/* Voucher Date */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 sm:col-span-2">
               <label className="text-xs font-bold text-foreground">
                 Voucher Date <span className="text-rose-500">*</span>
               </label>
@@ -475,67 +509,82 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
               )}
             </div>
 
-            {/* Approval Status (#35) */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground">Approval Status</label>
+            {/* Payment Accounts (Cash / Bank) */}
+            <div className="space-y-1.5 sm:col-span-2">
+              <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                <span>
+                  Payment Accounts (Cash / Bank) <span className="text-rose-500">*</span>
+                </span>
+                <span className="text-[10px] text-muted-foreground font-normal">
+                  Cash / Bank Only
+                </span>
+              </label>
               <select
-                value={approvalStatus}
-                onChange={(e) => setApprovalStatus(e.target.value as ApprovalStatus)}
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs font-bold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer"
+                value={headerAccountId}
+                onChange={(e) => setHeaderAccountId(e.target.value)}
+                className={`w-full h-9 px-3 rounded-xl border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer ${
+                  errors.headerAccountId ? 'border-rose-400' : 'border-border'
+                }`}
               >
-                <option value="Approved">Approved</option>
-                <option value="Pending">Pending</option>
-                <option value="Draft">Draft</option>
-                <option value="Rejected">Rejected</option>
+                <option value="">Select Cash or Bank Account...</option>
+                {MOCK_COA_BANK_ACCOUNTS.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.bankName} - {b.accountName} ({b.accountsNumber})
+                  </option>
+                ))}
               </select>
+              {errors.headerAccountId && (
+                <p className="text-[11px] text-rose-500 font-bold">{errors.headerAccountId}</p>
+              )}
             </div>
 
-            {/* Header Account (Only Receive & Payment) */}
-            {cfg.hasHeaderAccount && (
-              <div className="space-y-1.5 sm:col-span-2">
-                <label className="text-xs font-bold text-foreground flex items-center justify-between">
-                  <span>
-                    {cfg.headerAccountLabel} <span className="text-rose-500">*</span>
-                  </span>
-                  <span className="text-[10px] text-muted-foreground font-normal">
-                    Cash / Bank Only
-                  </span>
-                </label>
-                <select
-                  value={headerAccountId}
-                  onChange={(e) => setHeaderAccountId(e.target.value)}
-                  className={`w-full h-9 px-3 rounded-xl border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer ${
-                    errors.headerAccountId ? 'border-rose-400' : 'border-border'
-                  }`}
-                >
-                  <option value="">Select Cash or Bank Account...</option>
-                  {MOCK_COA_BANK_ACCOUNTS.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.bankName} - {b.accountName} ({b.accountsNumber})
-                    </option>
-                  ))}
-                </select>
-                {errors.headerAccountId && (
-                  <p className="text-[11px] text-rose-500 font-bold">{errors.headerAccountId}</p>
-                )}
-              </div>
-            )}
+            {/* Cost Center */}
+            <div className="space-y-1.5 sm:col-span-2">
+              <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                <span>Cost Center</span>
+                <span className="text-[10px] text-muted-foreground font-normal">
+                  Cost center only for payment and receive voucher
+                </span>
+              </label>
+              <select
+                value={headerCostCenterId}
+                onChange={(e) => setHeaderCostCenterId(e.target.value)}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer"
+              >
+                <option value="">Select Cost Center...</option>
+                {costCenters.map((cc) => (
+                  <option key={cc.id} value={cc.id}>
+                    {cc.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
         {/* Line Items Table Card */}
         <div className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-xs space-y-0">
-          <div className="p-4 border-b border-border/80 flex items-center justify-between">
-            <h3 className="text-xs font-black uppercase tracking-wider text-foreground">
-              Voucher Line Items ({lines.length})
-            </h3>
-            <span className="text-xs text-muted-foreground">
-              {activeType === 'Payment'
-                ? 'Debit lines against header account'
-                : activeType === 'Receive'
-                ? 'Credit lines against header account'
-                : 'Double-entry debit & credit lines'}
-            </span>
+          <div className="p-4 border-b border-border/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-xs font-black uppercase tracking-wider text-foreground">
+                Voucher Line Items ({lines.length})
+              </h3>
+              <span className="text-xs text-muted-foreground">
+                {activeType === 'Payment'
+                  ? 'Debit lines against header account'
+                  : activeType === 'Receive'
+                  ? 'Credit lines against header account'
+                  : 'Double-entry debit & credit lines'}
+              </span>
+            </div>
+
+            {/* Column Hide & Show Button */}
+            <div className="flex items-center gap-2">
+              <LineColumnToggle
+                columns={visibleColumns}
+                onChange={setVisibleColumns}
+              />
+            </div>
           </div>
 
           <div className="overflow-x-auto sidebar-scroll">
@@ -543,14 +592,30 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
               <thead className="bg-muted/40 border-b border-border text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 <tr>
                   <th className="py-2.5 px-3 min-w-[220px]">Accounts Head *</th>
-                  <th className="py-2.5 px-3 min-w-[140px]">Cost Center</th>
-                  <th className="py-2.5 px-3 min-w-[160px]">Subsidiary (Customer/Vendor)</th>
-                  <th className="py-2.5 px-3 min-w-[140px]">Employee</th>
-                  <th className="py-2.5 px-3 min-w-[130px]">Vehicles</th>
-                  <th className="py-2.5 px-3 min-w-[110px]">Reference</th>
-                  <th className="py-2.5 px-3 min-w-[150px]">Description</th>
-                  <th className="py-2.5 px-3 w-20 text-center">Curr.</th>
-                  <th className="py-2.5 px-3 w-20 text-center">Rate</th>
+                  {visibleColumns.costCenter && (
+                    <th className="py-2.5 px-3 min-w-[140px]">Cost Center</th>
+                  )}
+                  {visibleColumns.subsidiary && (
+                    <th className="py-2.5 px-3 min-w-[160px]">Subsidiary (Customer/Vendor)</th>
+                  )}
+                  {visibleColumns.employee && (
+                    <th className="py-2.5 px-3 min-w-[140px]">Employee</th>
+                  )}
+                  {visibleColumns.vehicle && (
+                    <th className="py-2.5 px-3 min-w-[130px]">Vehicles</th>
+                  )}
+                  {visibleColumns.reference && (
+                    <th className="py-2.5 px-3 min-w-[140px]">Reference</th>
+                  )}
+                  {visibleColumns.description && (
+                    <th className="py-2.5 px-3 min-w-[150px]">Description</th>
+                  )}
+                  {visibleColumns.currency && (
+                    <>
+                      <th className="py-2.5 px-3 w-20 text-center">Curr.</th>
+                      <th className="py-2.5 px-3 w-20 text-center">Rate</th>
+                    </>
+                  )}
 
                   {/* Per-type Dr/Cr columns with Base Currency (#38) */}
                   {cfg.showDebit && (
@@ -593,131 +658,154 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
                     </td>
 
                     {/* Cost Center */}
-                    <td className="py-2 px-2">
-                      <select
-                        value={line.costCenterId || ''}
-                        onChange={(e) => handleUpdateLine(line.id, { costCenterId: e.target.value })}
-                        className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-                      >
-                        <option value="">None</option>
-                        {costCenters.map((cc) => (
-                          <option key={cc.id} value={cc.id}>
-                            {cc.name}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
+                    {visibleColumns.costCenter && (
+                      <td className="py-2 px-2">
+                        <select
+                          value={line.costCenterId || ''}
+                          onChange={(e) => handleUpdateLine(line.id, { costCenterId: e.target.value })}
+                          className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
+                        >
+                          <option value="">None</option>
+                          {costCenters.map((cc) => (
+                            <option key={cc.id} value={cc.id}>
+                              {cc.name}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                    )}
 
                     {/* Subsidiary (Customer / Vendor) */}
-                    <td className="py-2 px-2">
-                      <select
-                        value={line.subsidiaryId || ''}
-                        onChange={(e) => handleUpdateLine(line.id, { subsidiaryId: e.target.value })}
-                        className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-                      >
-                        <option value="">None</option>
-                        <optgroup label="Suppliers / Vendors">
-                          {MOCK_SUPPLIERS.map((s) => (
-                            <option key={s.id} value={s.id}>
-                              [Vendor] {s.name}
-                            </option>
-                          ))}
-                        </optgroup>
-                        <optgroup label="Customers / Buyers">
-                          {MOCK_CUSTOMERS.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              [Customer] {c.customerName}
-                            </option>
-                          ))}
-                        </optgroup>
-                      </select>
-                    </td>
+                    {visibleColumns.subsidiary && (
+                      <td className="py-2 px-2">
+                        <select
+                          value={line.subsidiaryId || ''}
+                          onChange={(e) => handleUpdateLine(line.id, { subsidiaryId: e.target.value })}
+                          className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
+                        >
+                          <option value="">None</option>
+                          <optgroup label="Suppliers / Vendors">
+                            {MOCK_SUPPLIERS.map((s) => (
+                              <option key={s.id} value={s.id}>
+                                [Vendor] {s.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                          <optgroup label="Customers / Buyers">
+                            {MOCK_CUSTOMERS.map((c) => (
+                              <option key={c.id} value={c.id}>
+                                [Customer] {c.customerName}
+                              </option>
+                            ))}
+                          </optgroup>
+                        </select>
+                      </td>
+                    )}
 
                     {/* Employee */}
-                    <td className="py-2 px-2">
-                      <select
-                        value={line.employeeId || ''}
-                        onChange={(e) => handleUpdateLine(line.id, { employeeId: e.target.value })}
-                        className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-                      >
-                        <option value="">None</option>
-                        {MOCK_EMPLOYEES.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.name} ({emp.designation})
-                          </option>
-                        ))}
-                      </select>
-                    </td>
+                    {visibleColumns.employee && (
+                      <td className="py-2 px-2">
+                        <select
+                          value={line.employeeId || ''}
+                          onChange={(e) => handleUpdateLine(line.id, { employeeId: e.target.value })}
+                          className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
+                        >
+                          <option value="">None</option>
+                          {MOCK_EMPLOYEES.map((emp) => (
+                            <option key={emp.id} value={emp.id}>
+                              {emp.name} ({emp.designation})
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                    )}
 
                     {/* Vehicles */}
-                    <td className="py-2 px-2">
-                      <select
-                        value={line.vehicleId || ''}
-                        onChange={(e) => handleUpdateLine(line.id, { vehicleId: e.target.value })}
-                        className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-                      >
-                        <option value="">None</option>
-                        {vehicles.map((v) => (
-                          <option key={v.id} value={v.id}>
-                            {v.name}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
+                    {visibleColumns.vehicle && (
+                      <td className="py-2 px-2">
+                        <select
+                          value={line.vehicleId || ''}
+                          onChange={(e) => handleUpdateLine(line.id, { vehicleId: e.target.value })}
+                          className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
+                        >
+                          <option value="">None</option>
+                          {vehicles.map((v) => (
+                            <option key={v.id} value={v.id}>
+                              {v.name}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                    )}
 
-                    {/* Reference */}
-                    <td className="py-2 px-2">
-                      <input
-                        type="text"
-                        placeholder="Ref #"
-                        value={line.reference || ''}
-                        onChange={(e) => handleUpdateLine(line.id, { reference: e.target.value })}
-                        className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-                      >
-                      </input>
-                    </td>
+                    {/* Reference (List from setup) */}
+                    {visibleColumns.reference && (
+                      <td className="py-2 px-2">
+                        <select
+                          value={line.reference || ''}
+                          onChange={(e) => handleUpdateLine(line.id, { reference: e.target.value })}
+                          className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
+                        >
+                          <option value="">None</option>
+                          {referenceCenters.map((rc) => (
+                            <option key={rc.id} value={rc.name}>
+                              {rc.name}
+                            </option>
+                          ))}
+                          {line.reference &&
+                            !referenceCenters.some((rc) => rc.name === line.reference) && (
+                              <option value={line.reference}>{line.reference}</option>
+                            )}
+                        </select>
+                      </td>
+                    )}
 
                     {/* Description */}
-                    <td className="py-2 px-2">
-                      <input
-                        type="text"
-                        placeholder="Line note..."
-                        value={line.description || ''}
-                        onChange={(e) => handleUpdateLine(line.id, { description: e.target.value })}
-                        className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </td>
+                    {visibleColumns.description && (
+                      <td className="py-2 px-2">
+                        <input
+                          type="text"
+                          placeholder="Line note..."
+                          value={line.description || ''}
+                          onChange={(e) => handleUpdateLine(line.id, { description: e.target.value })}
+                          className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </td>
+                    )}
 
-                    {/* Currency */}
-                    <td className="py-2 px-1 text-center">
-                      <select
-                        value={line.currency}
-                        onChange={(e) => handleUpdateLine(line.id, { currency: e.target.value })}
-                        className="h-8 px-1.5 rounded-lg border border-border bg-background text-xs font-bold text-foreground outline-none focus:ring-1 focus:ring-primary"
-                      >
-                        {MOCK_CURRENCY_SETUPS.map((c) => (
-                          <option key={c.code} value={c.code}>
-                            {c.code}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
+                    {/* Currency & Rate */}
+                    {visibleColumns.currency && (
+                      <>
+                        <td className="py-2 px-1 text-center">
+                          <select
+                            value={line.currency}
+                            onChange={(e) => handleUpdateLine(line.id, { currency: e.target.value })}
+                            className="h-8 px-1.5 rounded-lg border border-border bg-background text-xs font-bold text-foreground outline-none focus:ring-1 focus:ring-primary"
+                          >
+                            {MOCK_CURRENCY_SETUPS.map((c) => (
+                              <option key={c.code} value={c.code}>
+                                {c.code}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
 
-                    {/* Exchange Rate */}
-                    <td className="py-2 px-1 text-center">
-                      <input
-                        type="number"
-                        step="any"
-                        min={0.0001}
-                        value={line.exchangeRate || 1}
-                        onChange={(e) =>
-                          handleUpdateLine(line.id, {
-                            exchangeRate: parseFloat(e.target.value) || 1,
-                          })
-                        }
-                        className="w-16 h-8 px-1 text-center rounded-lg border border-border bg-background text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </td>
+                        <td className="py-2 px-1 text-center">
+                          <input
+                            type="number"
+                            step="any"
+                            min={0.0001}
+                            value={line.exchangeRate || 1}
+                            onChange={(e) =>
+                              handleUpdateLine(line.id, {
+                                exchangeRate: parseFloat(e.target.value) || 1,
+                              })
+                            }
+                            className="w-16 h-8 px-1 text-center rounded-lg border border-border bg-background text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-primary"
+                          />
+                        </td>
+                      </>
+                    )}
 
                     {/* Debit Input */}
                     {cfg.showDebit && (
@@ -788,61 +876,91 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
 
               {/* Table Footer Totals & Difference */}
               <tfoot className="bg-muted/30 border-t-2 border-border/80 font-bold text-xs">
-                <tr>
-                  <td colSpan={9} className="py-3 px-4 text-right uppercase tracking-wider text-muted-foreground">
-                    Total:
-                  </td>
+                {(() => {
+                  const activeNonAmountCols =
+                    1 + // Accounts Head
+                    (visibleColumns.costCenter ? 1 : 0) +
+                    (visibleColumns.subsidiary ? 1 : 0) +
+                    (visibleColumns.employee ? 1 : 0) +
+                    (visibleColumns.vehicle ? 1 : 0) +
+                    (visibleColumns.reference ? 1 : 0) +
+                    (visibleColumns.description ? 1 : 0) +
+                    (visibleColumns.currency ? 2 : 0);
 
-                  {cfg.showDebit && (
-                    <td className="py-3 px-2 text-right font-mono font-black text-foreground bg-indigo-500/5">
-                      {baseSymbol} {totalDebitBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </td>
-                  )}
+                  const totalAmountCols =
+                    (cfg.showDebit ? 2 : 0) + (cfg.showCredit ? 2 : 0) + 1;
 
-                  {cfg.showCredit && (
-                    <td className="py-3 px-2 text-right font-mono font-black text-foreground bg-emerald-500/5">
-                      {baseSymbol} {totalCreditBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </td>
-                  )}
+                  return (
+                    <>
+                      <tr>
+                        <td
+                          colSpan={activeNonAmountCols}
+                          className="py-3 px-4 text-right uppercase tracking-wider text-muted-foreground"
+                        >
+                          Total:
+                        </td>
 
-                  {cfg.showDebit && (
-                    <td className="py-3 px-2 text-right font-mono font-black text-indigo-700 dark:text-indigo-300 bg-indigo-500/15">
-                      {baseSymbol} {totalDebitBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </td>
-                  )}
+                        {cfg.showDebit && (
+                          <td className="py-3 px-2 text-right font-mono font-black text-foreground bg-indigo-500/5">
+                            {baseSymbol}{' '}
+                            {totalDebitBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          </td>
+                        )}
 
-                  {cfg.showCredit && (
-                    <td className="py-3 px-2 text-right font-mono font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/15">
-                      {baseSymbol} {totalCreditBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </td>
-                  )}
+                        {cfg.showCredit && (
+                          <td className="py-3 px-2 text-right font-mono font-black text-foreground bg-emerald-500/5">
+                            {baseSymbol}{' '}
+                            {totalCreditBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          </td>
+                        )}
 
-                  <td></td>
-                </tr>
+                        {cfg.showDebit && (
+                          <td className="py-3 px-2 text-right font-mono font-black text-indigo-700 dark:text-indigo-300 bg-indigo-500/15">
+                            {baseSymbol}{' '}
+                            {totalDebitBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          </td>
+                        )}
 
-                {/* Double-Entry Difference Row */}
-                {cfg.showDifference && (
-                  <tr className="bg-muted/50 border-t border-border/60">
-                    <td colSpan={9} className="py-2.5 px-4 text-right text-xs font-bold text-muted-foreground">
-                      Difference (Dr − Cr):
-                    </td>
-                    <td colSpan={5} className="py-2.5 px-4 text-right">
-                      {isBalanced ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">
-                          <Check className="size-3.5 stroke-[3]" />
-                          <span>Balanced ✓</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-500/15 text-rose-600 border border-rose-500/30">
-                          <AlertCircle className="size-3.5" />
-                          <span>
-                            Difference: {baseSymbol} {difference > 0 ? `+${difference.toFixed(2)}` : difference.toFixed(2)}
-                          </span>
-                        </span>
+                        {cfg.showCredit && (
+                          <td className="py-3 px-2 text-right font-mono font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/15">
+                            {baseSymbol}{' '}
+                            {totalCreditBDT.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          </td>
+                        )}
+
+                        <td></td>
+                      </tr>
+
+                      {/* Double-Entry Difference Row */}
+                      {cfg.showDifference && (
+                        <tr className="bg-muted/50 border-t border-border/60">
+                          <td
+                            colSpan={activeNonAmountCols}
+                            className="py-2.5 px-4 text-right text-xs font-bold text-muted-foreground"
+                          >
+                            Difference (Dr − Cr):
+                          </td>
+                          <td colSpan={totalAmountCols} className="py-2.5 px-4 text-right">
+                            {isBalanced ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">
+                                <Check className="size-3.5 stroke-[3]" />
+                                <span>Balanced ✓</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-500/15 text-rose-600 border border-rose-500/30">
+                                <AlertCircle className="size-3.5" />
+                                <span>
+                                  Difference: {baseSymbol}{' '}
+                                  {difference > 0 ? `+${difference.toFixed(2)}` : difference.toFixed(2)}
+                                </span>
+                              </span>
+                            )}
+                          </td>
+                        </tr>
                       )}
-                    </td>
-                  </tr>
-                )}
+                    </>
+                  );
+                })()}
               </tfoot>
             </table>
           </div>
@@ -860,23 +978,31 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
           </div>
         </div>
 
-        {/* Narration Field */}
-        <div className="p-5 sm:p-6 rounded-2xl border border-border/80 bg-card shadow-xs space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-foreground">
-              Voucher Narration / Remarks
-            </label>
-            <span className="text-[11px] text-muted-foreground">
-              {narration.length}/500 chars
-            </span>
+        {/* Narration & Attachment Field */}
+        <div className="p-5 sm:p-6 rounded-2xl border border-border/80 bg-card shadow-xs space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-foreground">
+                Voucher Narration / Remarks
+              </label>
+              <span className="text-[11px] text-muted-foreground">
+                {narration.length}/500 chars
+              </span>
+            </div>
+            <textarea
+              rows={3}
+              maxLength={500}
+              value={narration}
+              onChange={(e) => setNarration(e.target.value)}
+              placeholder="Enter comprehensive narrative description for this financial transaction entry..."
+              className="w-full p-3 rounded-xl border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs resize-none"
+            />
           </div>
-          <textarea
-            rows={3}
-            maxLength={500}
-            value={narration}
-            onChange={(e) => setNarration(e.target.value)}
-            placeholder="Enter comprehensive narrative description for this financial transaction entry..."
-            className="w-full p-3 rounded-xl border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs resize-none"
+
+          {/* Attachment Section directly inside card */}
+          <AttachmentUploadSection
+            attachments={attachments}
+            onChange={setAttachments}
           />
         </div>
 
