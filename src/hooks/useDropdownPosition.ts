@@ -9,12 +9,20 @@ interface DropdownPositionOptions {
 export interface DropdownPositionResult {
   openUpward: boolean;
   maxHeight: number;
+  coords: {
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+    width: number;
+  };
 }
 
 /**
  * Smart dropdown positioning hook.
  * Detects viewport collision: if space below the trigger element is insufficient
  * (e.g. near the bottom of the page/screen), it flips the dropdown to open upwards.
+ * Also returns accurate screen coordinates for React Portal rendering to avoid clipping.
  */
 export function useDropdownPosition({
   triggerRef,
@@ -23,6 +31,13 @@ export function useDropdownPosition({
 }: DropdownPositionOptions): DropdownPositionResult {
   const [openUpward, setOpenUpward] = useState(false);
   const [maxHeight, setMaxHeight] = useState(240);
+  const [coords, setCoords] = useState({
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: 0,
+  });
 
   useEffect(() => {
     if (!isOpen || !triggerRef.current) return;
@@ -41,7 +56,15 @@ export function useDropdownPosition({
       setOpenUpward(shouldOpenUp);
 
       const availableSpace = shouldOpenUp ? spaceAbove - 16 : spaceBelow - 16;
-      setMaxHeight(Math.max(140, Math.min(320, availableSpace)));
+      setMaxHeight(Math.max(140, Math.min(340, availableSpace)));
+
+      setCoords({
+        top: rect.top,
+        bottom: rect.bottom,
+        left: rect.left,
+        right: rect.right,
+        width: rect.width,
+      });
     };
 
     checkPosition();
@@ -56,5 +79,5 @@ export function useDropdownPosition({
     };
   }, [isOpen, triggerRef, minMenuHeight]);
 
-  return { openUpward, maxHeight };
+  return { openUpward, maxHeight, coords };
 }

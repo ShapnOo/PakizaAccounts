@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useCoa } from '../../context/CoaContext';
 import { formatAccountCode } from '../../lib/accountCode';
 import { Search, ChevronDown, Check, X, Landmark, Wallet, FolderTree } from 'lucide-react';
@@ -26,8 +27,9 @@ export const AccountHeadPicker: React.FC<AccountHeadPickerProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const popoverRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const { openUpward, maxHeight } = useDropdownPosition({
+  const { openUpward, maxHeight, coords } = useDropdownPosition({
     triggerRef: popoverRef,
     isOpen,
     minMenuHeight: 250,
@@ -35,12 +37,18 @@ export const AccountHeadPicker: React.FC<AccountHeadPickerProps> = ({
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(target) &&
+        menuRef.current &&
+        !menuRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside, true);
+    return () => document.removeEventListener('mousedown', handleClickOutside, true);
   }, []);
 
   const filteredAccounts = accounts.filter((acc) => {
@@ -85,11 +93,10 @@ export const AccountHeadPicker: React.FC<AccountHeadPickerProps> = ({
           )}
           {selectedAccount ? (
             <div className="flex items-center gap-1.5 truncate">
-              <span className="font-mono text-[10.5px] font-bold text-muted-foreground/80">
+              <span className="font-mono text-[10px] text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-normal border border-slate-200/80 dark:border-slate-700 shrink-0">
                 {selectedAccount.manualCode || formatAccountCode(selectedAccount.code)}
               </span>
-              <span className="text-muted-foreground/50">::</span>
-              <span className="font-bold text-foreground truncate">{selectedAccount.name}</span>
+              <span className="font-semibold text-foreground truncate">{selectedAccount.name}</span>
             </div>
           ) : (
             <span className="text-muted-foreground/60">{placeholder}</span>
@@ -103,76 +110,87 @@ export const AccountHeadPicker: React.FC<AccountHeadPickerProps> = ({
         />
       </button>
 
-      {isOpen && (
-        <div
-          style={{ maxHeight }}
-          className={`absolute z-50 left-0 w-full min-w-[300px] max-w-[420px] bg-popover rounded-xl border border-border shadow-2xl p-1.5 overflow-hidden transition-all ${
-            openUpward
-              ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-50 zoom-in-95'
-              : 'top-full mt-1.5 origin-top animate-in fade-in-50 zoom-in-95'
-          }`}
-        >
-          <div className="relative mb-1.5">
-            <Search className="size-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              autoFocus
-              placeholder={
-                onlyCashAndBank ? 'Search Cash & Bank accounts...' : 'Search accounts head...'
-              }
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-7.5 pl-7 pr-2.5 rounded-md bg-card border border-border/80 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-muted-foreground/60"
-            />
-          </div>
-
-          {onlyCashAndBank && (
-            <div className="px-2 py-1 mb-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 rounded flex items-center gap-1">
-              <span>Restricted: Cash & Bank accounts only</span>
+      {isOpen &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              position: 'fixed',
+              top: openUpward ? undefined : coords.bottom + 4,
+              bottom: openUpward ? Math.max(8, window.innerHeight - coords.top + 4) : undefined,
+              left: Math.max(8, Math.min(coords.left, window.innerWidth - Math.max(coords.width, 420) - 16)),
+              width: Math.max(coords.width, 420),
+              maxWidth: Math.min(680, window.innerWidth - 16),
+              maxHeight,
+              zIndex: 99999,
+            }}
+            className="bg-popover rounded-xl border border-border shadow-2xl p-1.5 overflow-hidden transition-all animate-in fade-in-50 zoom-in-95"
+          >
+            <div className="relative mb-1.5">
+              <Search className="size-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                autoFocus
+                placeholder={
+                  onlyCashAndBank ? 'Search Cash & Bank accounts...' : 'Search accounts head...'
+                }
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full h-7.5 pl-7 pr-2.5 rounded-md bg-card border border-border/80 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-muted-foreground/60"
+              />
             </div>
-          )}
 
-          <div className="max-h-56 overflow-y-auto space-y-0.5 sidebar-scroll">
-            {filteredAccounts.length === 0 ? (
-              <div className="py-4 text-center text-xs text-muted-foreground">
-                No matching accounts found
+            {onlyCashAndBank && (
+              <div className="px-2 py-1 mb-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 rounded flex items-center gap-1">
+                <span>Restricted: Cash & Bank accounts only</span>
               </div>
-            ) : (
-              filteredAccounts.map((acc) => {
-                const isSelected = acc.id === value;
-                return (
-                  <button
-                    key={acc.id}
-                    type="button"
-                    onClick={() => {
-                      onChange(acc.id, acc.name);
-                      setIsOpen(false);
-                    }}
-                    className={`w-full text-left px-2 py-1.5 rounded-md flex items-center justify-between text-xs transition-colors cursor-pointer ${
-                      isSelected
-                        ? 'bg-primary/10 text-primary font-bold'
-                        : 'hover:bg-muted text-foreground'
-                    }`}
-                  >
-                    <div className="truncate pr-2">
-                      <div className="flex items-center gap-1.5 truncate">
-                        <span className="font-mono text-[10px] text-muted-foreground font-semibold">
-                          {acc.manualCode || formatAccountCode(acc.code)}
-                        </span>
-                        <span className="font-medium truncate">{acc.name}</span>
-                      </div>
-                      <div className="text-[9.5px] text-muted-foreground truncate pl-1">
-                        {acc.path.slice(0, -1).join(' > ')}
-                      </div>
-                    </div>
-                    {isSelected && <Check className="size-3 text-primary stroke-[2.5] shrink-0" />}
-                  </button>
-                );
-              })
             )}
-          </div>
-        </div>
-      )}
+
+            <div className="max-h-56 overflow-y-auto space-y-0.5 sidebar-scroll">
+              {filteredAccounts.length === 0 ? (
+                <div className="py-4 text-center text-xs text-muted-foreground">
+                  No matching accounts found
+                </div>
+              ) : (
+                filteredAccounts.map((acc) => {
+                  const isSelected = acc.id === value;
+                  return (
+                    <button
+                      key={acc.id}
+                      type="button"
+                      onClick={() => {
+                        onChange(acc.id, acc.name);
+                        setIsOpen(false);
+                      }}
+                      className={`w-full text-left px-2 py-1.5 rounded-md flex items-center justify-between text-xs transition-colors cursor-pointer ${
+                        isSelected
+                          ? 'bg-primary/10 text-primary font-bold'
+                          : 'hover:bg-muted text-foreground'
+                      }`}
+                    >
+                      <div className="truncate pr-2 min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 truncate">
+                          <span className="font-mono text-[10px] text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-normal border border-slate-200/80 dark:border-slate-700 shrink-0">
+                            {acc.manualCode || formatAccountCode(acc.code)}
+                          </span>
+                          <span className="font-semibold text-foreground truncate">{acc.name}</span>
+                        </div>
+                        {acc.path && acc.path.length > 0 && (
+                          <div className="text-[10px] text-muted-foreground/80 truncate mt-0.5 flex items-center gap-1">
+                            <FolderTree className="size-2.5 text-slate-400 shrink-0" />
+                            <span className="truncate">{acc.path.join(' › ')}</span>
+                          </div>
+                        )}
+                      </div>
+                      {isSelected && <Check className="size-3 text-primary stroke-[2.5] shrink-0" />}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

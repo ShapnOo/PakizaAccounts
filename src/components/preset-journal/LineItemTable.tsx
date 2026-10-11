@@ -132,6 +132,7 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
                       value: a.id,
                       label: a.name,
                       code: a.code,
+                      path: a.path && a.path.length > 0 ? a.path.join(' › ') : undefined,
                     }))}
                     placeholder="Select Account Head..."
                     searchPlaceholder="Search account name or code..."

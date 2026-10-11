@@ -25,8 +25,8 @@ export const ValueReferencePicker: React.FC<ValueReferencePickerProps> = ({
         return INITIAL_ACCOUNTS.map((acc) => ({
           value: acc.name, // Using name for direct readable match (also compatible if user matches by name)
           label: acc.name,
-          code: acc.code || acc.manualCode,
-          subLabel: acc.accountsType || acc.nature,
+          code: acc.manualCode || acc.code,
+          path: acc.path && acc.path.length > 0 ? acc.path.join(' › ') : [acc.nature, acc.accountsType, acc.name].filter(Boolean).join(' › '),
           group: acc.nature,
         }));
 

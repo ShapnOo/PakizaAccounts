@@ -215,9 +215,12 @@ export const ParentAccountPicker: React.FC<ParentAccountPickerProps> = ({
                           </span>
                         )}
                       </div>
-                      <div className="text-[10px] text-muted-foreground truncate pl-1">
-                        {acc.path.join(' > ')}
-                      </div>
+                      {acc.path && acc.path.length > 0 && (
+                        <div className="text-[10px] text-muted-foreground/80 truncate mt-0.5 flex items-center gap-1">
+                          <FolderTree className="size-2.5 text-slate-400 shrink-0" />
+                          <span className="truncate">{acc.path.join(' › ')}</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">

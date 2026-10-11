@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useCoa } from '../../context/CoaContext';
 import { INITIAL_ACCOUNTS } from '../../mock/accounts';
 import { filterForReceivable } from '../../lib/coa/filterForReceivable';
-import { Landmark, ChevronDown, Check, Search, X } from 'lucide-react';
+import { Landmark, ChevronDown, Check, Search, X, FolderTree } from 'lucide-react';
 import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface AccountsReceivablePickerProps {
@@ -147,11 +147,19 @@ export const AccountsReceivablePicker: React.FC<AccountsReceivablePickerProps> =
                       : 'text-foreground hover:bg-muted'
                   }`}
                 >
-                  <div className="truncate">
-                    <span className="font-mono text-muted-foreground mr-1.5">
-                      {acc.code}
-                    </span>
-                    <span>{acc.name}</span>
+                  <div className="truncate pr-2 min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <span className="font-mono text-[10px] text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-normal border border-slate-200/80 dark:border-slate-700 shrink-0">
+                        {acc.manualCode || acc.code}
+                      </span>
+                      <span className="font-semibold text-foreground truncate">{acc.name}</span>
+                    </div>
+                    {acc.path && acc.path.length > 0 && (
+                      <div className="text-[10px] text-muted-foreground/80 truncate mt-0.5 flex items-center gap-1">
+                        <FolderTree className="size-2.5 text-slate-400 shrink-0" />
+                        <span className="truncate">{acc.path.join(' › ')}</span>
+                      </div>
+                    )}
                   </div>
                   {value === acc.id && (
                     <Check className="size-3.5 text-indigo-600 shrink-0" />

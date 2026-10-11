@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { AccountOption } from '../../types/openingBalance';
 import { listAccounts } from '../../services/accountsService';
 import { Search, ChevronDown, Check, FolderTree, X } from 'lucide-react';
@@ -22,9 +23,10 @@ export const AccountHeadPicker: React.FC<AccountHeadPickerProps> = ({
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const { openUpward, maxHeight } = useDropdownPosition({
+  const { openUpward, maxHeight, coords } = useDropdownPosition({
     triggerRef: containerRef,
     isOpen,
     minMenuHeight: 250,
@@ -46,12 +48,18 @@ export const AccountHeadPicker: React.FC<AccountHeadPickerProps> = ({
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(target) &&
+        menuRef.current &&
+        !menuRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside, true);
+    return () => document.removeEventListener('mousedown', handleClickOutside, true);
   }, []);
 
   useEffect(() => {
@@ -117,74 +125,82 @@ export const AccountHeadPicker: React.FC<AccountHeadPickerProps> = ({
       </button>
 
       {/* Dropdown Menu with Search and Breadcrumb Paths */}
-      {isOpen && (
-        <div
-          style={{ maxHeight }}
-          className={`absolute z-50 left-0 w-full min-w-[280px] max-w-[420px] bg-popover rounded-xl border border-border shadow-2xl p-1.5 overflow-hidden transition-all ${
-            openUpward
-              ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-50 zoom-in-95'
-              : 'top-full mt-1.5 origin-top animate-in fade-in-50 zoom-in-95'
-          }`}
-        >
-          <div className="relative mb-1.5">
-            <Search className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search account name, code, or hierarchy..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-8 pl-8 pr-2.5 text-xs bg-muted/40 rounded-lg border border-border/80 outline-none focus:ring-1 focus:ring-indigo-500 text-foreground"
-            />
-          </div>
+      {isOpen &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              position: 'fixed',
+              top: openUpward ? undefined : coords.bottom + 4,
+              bottom: openUpward ? Math.max(8, window.innerHeight - coords.top + 4) : undefined,
+              left: Math.max(8, Math.min(coords.left, window.innerWidth - Math.max(coords.width, 420) - 16)),
+              width: Math.max(coords.width, 420),
+              maxWidth: Math.min(680, window.innerWidth - 16),
+              maxHeight,
+              zIndex: 99999,
+            }}
+            className="bg-popover rounded-xl border border-border shadow-2xl p-1.5 overflow-hidden transition-all animate-in fade-in-50 zoom-in-95"
+          >
+            <div className="relative mb-1.5">
+              <Search className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search account name, code, or hierarchy..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full h-8 pl-8 pr-2.5 text-xs bg-muted/40 rounded-lg border border-border/80 outline-none focus:ring-1 focus:ring-indigo-500 text-foreground"
+              />
+            </div>
 
-          <div className="max-h-56 overflow-y-auto sidebar-scroll space-y-0.5">
-            {loading ? (
-              <div className="py-4 text-center text-xs text-muted-foreground">Loading accounts...</div>
-            ) : filteredAccounts.length === 0 ? (
-              <div className="py-4 text-center text-xs text-muted-foreground">No accounts match search</div>
-            ) : (
-              filteredAccounts.map((acc) => {
-                const isSelected = acc.id === value;
-                return (
-                  <button
-                    key={acc.id}
-                    type="button"
-                    onClick={() => {
-                      onChange(acc.id, acc.name);
-                      setIsOpen(false);
-                      setSearch('');
-                    }}
-                    className={`w-full p-2 rounded-lg text-left text-xs transition-colors flex items-start justify-between gap-2 cursor-pointer ${
-                      isSelected
-                        ? 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-bold'
-                        : 'hover:bg-muted/50 text-foreground'
-                    }`}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        {acc.code && (
-                          <span className="font-mono text-[10px] text-muted-foreground bg-muted px-1 rounded font-normal">
-                            {acc.code}
-                          </span>
-                        )}
-                        <span className="font-medium text-foreground truncate">{acc.name}</span>
-                      </div>
-                      {acc.path && acc.path.length > 0 && (
-                        <div className="text-[10px] text-muted-foreground/75 truncate mt-0.5 flex items-center gap-1">
-                          <FolderTree className="size-2.5 shrink-0 opacity-60" />
-                          <span>{acc.path.join(' › ')}</span>
+            <div className="max-h-56 overflow-y-auto sidebar-scroll space-y-0.5">
+              {loading ? (
+                <div className="py-4 text-center text-xs text-muted-foreground">Loading accounts...</div>
+              ) : filteredAccounts.length === 0 ? (
+                <div className="py-4 text-center text-xs text-muted-foreground">No accounts match search</div>
+              ) : (
+                filteredAccounts.map((acc) => {
+                  const isSelected = acc.id === value;
+                  return (
+                    <button
+                      key={acc.id}
+                      type="button"
+                      onClick={() => {
+                        onChange(acc.id, acc.name);
+                        setIsOpen(false);
+                        setSearch('');
+                      }}
+                      className={`w-full p-2 rounded-lg text-left text-xs transition-colors flex items-start justify-between gap-2 cursor-pointer ${
+                        isSelected
+                          ? 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-bold'
+                          : 'hover:bg-muted/50 text-foreground'
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 truncate">
+                          {acc.code && (
+                            <span className="font-mono text-[10px] text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-normal border border-slate-200/80 dark:border-slate-700 shrink-0">
+                              {acc.code}
+                            </span>
+                          )}
+                          <span className="font-semibold text-foreground truncate">{acc.name}</span>
                         </div>
-                      )}
-                    </div>
-                    {isSelected && <Check className="size-3.5 text-indigo-600 shrink-0 mt-0.5" />}
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </div>
-      )}
+                        {acc.path && acc.path.length > 0 && (
+                          <div className="text-[10px] text-muted-foreground/75 truncate mt-0.5 flex items-center gap-1">
+                            <FolderTree className="size-2.5 shrink-0 opacity-60" />
+                            <span>{acc.path.join(' › ')}</span>
+                          </div>
+                        )}
+                      </div>
+                      {isSelected && <Check className="size-3.5 text-indigo-600 shrink-0 mt-0.5" />}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

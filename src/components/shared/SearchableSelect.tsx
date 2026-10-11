@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, ChevronDown, Check, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Search, ChevronDown, Check, X, FolderTree } from 'lucide-react';
 import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 export interface SearchableSelectOption {
@@ -7,6 +8,7 @@ export interface SearchableSelectOption {
   label: string;
   subLabel?: string;
   code?: string;
+  path?: string | string[];
   group?: string;
   disabled?: boolean;
 }
@@ -43,9 +45,10 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const { openUpward, maxHeight } = useDropdownPosition({
+  const { openUpward, maxHeight, coords } = useDropdownPosition({
     triggerRef: containerRef,
     isOpen,
     minMenuHeight: 200,
@@ -57,12 +60,18 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   // Close on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(target) &&
+        menuRef.current &&
+        !menuRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside, true);
+    return () => document.removeEventListener('mousedown', handleClickOutside, true);
   }, []);
 
   // Autofocus search input on open
@@ -94,7 +103,10 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
     const codeMatch = opt.code ? opt.code.toLowerCase().includes(q) : false;
     const valueMatch = opt.value.toLowerCase().includes(q);
     const groupMatch = opt.group ? opt.group.toLowerCase().includes(q) : false;
-    return labelMatch || subMatch || codeMatch || valueMatch || groupMatch;
+    const pathMatch = opt.path
+      ? (Array.isArray(opt.path) ? opt.path.join(' ') : opt.path).toLowerCase().includes(q)
+      : false;
+    return labelMatch || subMatch || codeMatch || valueMatch || groupMatch || pathMatch;
   });
 
   // Grouping if any options have group
@@ -118,13 +130,13 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
       >
         <span className="truncate flex-1">
           {selectedOption ? (
-            <span className="truncate font-medium text-foreground">
-              {selectedOption.label}
+            <span className="truncate font-medium text-foreground flex items-center gap-1.5">
               {selectedOption.code && !selectedOption.label.includes(selectedOption.code) && (
-                <span className="font-mono text-[10.5px] text-primary ml-1 font-semibold">
-                  ({selectedOption.code})
+                <span className="font-mono text-[10px] text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-normal border border-slate-200/80 dark:border-slate-700 shrink-0">
+                  {selectedOption.code}
                 </span>
               )}
+              <span className="truncate">{selectedOption.label}</span>
             </span>
           ) : (
             <span className="text-muted-foreground/60 font-normal">{placeholder}</span>
@@ -150,85 +162,101 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
         </div>
       </button>
 
-      {isOpen && (
-        <div
-          style={{ maxHeight }}
-          className={`absolute z-50 left-0 ${popoverWidth} bg-popover rounded-xl border border-border shadow-2xl p-1.5 overflow-hidden transition-all ${
-            openUpward
-              ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-50 zoom-in-95'
-              : 'top-full mt-1.5 origin-top animate-in fade-in-50 zoom-in-95'
-          }`}
-        >
-          {/* Search bar */}
-          <div className="relative mb-1.5">
-            <Search className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder={searchPlaceholder}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-7.5 pl-8 pr-2.5 text-xs bg-muted/40 rounded-md border border-border/80 outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground/60"
-            />
-          </div>
+      {isOpen &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              position: 'fixed',
+              top: openUpward ? undefined : coords.bottom + 4,
+              bottom: openUpward ? Math.max(8, window.innerHeight - coords.top + 4) : undefined,
+              left: Math.max(8, Math.min(coords.left, window.innerWidth - Math.max(coords.width, 380) - 16)),
+              width: Math.max(coords.width, 380),
+              maxWidth: Math.min(640, window.innerWidth - 16),
+              maxHeight,
+              zIndex: 99999,
+            }}
+            className="bg-popover rounded-xl border border-border shadow-2xl p-1.5 overflow-hidden transition-all animate-in fade-in-50 zoom-in-95"
+          >
+            {/* Search bar */}
+            <div className="relative mb-1.5">
+              <Search className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder={searchPlaceholder}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full h-7.5 pl-8 pr-2.5 text-xs bg-muted/40 rounded-md border border-border/80 outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground/60"
+              />
+            </div>
 
-          {/* Items */}
-          <div className="max-h-52 overflow-y-auto sidebar-scroll space-y-0.5">
-            {filteredOptions.length === 0 ? (
-              <div className="py-3 text-center text-xs text-muted-foreground">
-                {emptyMessage}
-              </div>
-            ) : (
-              filteredOptions.map((opt) => {
-                const isSelected = opt.value === stringValue;
+            {/* Items */}
+            <div className="max-h-52 overflow-y-auto sidebar-scroll space-y-0.5">
+              {filteredOptions.length === 0 ? (
+                <div className="py-3 text-center text-xs text-muted-foreground">
+                  {emptyMessage}
+                </div>
+              ) : (
+                filteredOptions.map((opt) => {
+                  const isSelected = opt.value === stringValue;
 
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    disabled={opt.disabled}
-                    onClick={() => {
-                      if (opt.disabled) return;
-                      onChange(opt.value);
-                      setIsOpen(false);
-                      setSearch('');
-                    }}
-                    className={`w-full px-2.5 py-1.5 rounded-md text-left text-xs transition-colors flex items-center justify-between gap-2 cursor-pointer ${
-                      opt.disabled
-                        ? 'opacity-40 cursor-not-allowed bg-transparent'
-                        : isSelected
-                        ? 'bg-primary/10 text-primary font-semibold'
-                        : 'hover:bg-muted/50 text-foreground'
-                    }`}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 truncate">
-                        {opt.group && (
-                          <span className="text-[9.5px] uppercase font-bold text-muted-foreground/70 bg-muted px-1 py-0.2 rounded shrink-0">
-                            {opt.group}
-                          </span>
-                        )}
-                        <span className="font-medium text-foreground truncate">{opt.label}</span>
-                        {opt.code && !opt.label.includes(opt.code) && (
-                          <span className="font-mono text-[10.5px] text-primary bg-primary/10 px-1 py-0.2 rounded font-semibold border border-primary/20 shrink-0">
-                            ({opt.code})
-                          </span>
-                        )}
-                      </div>
-                      {opt.subLabel && (
-                        <div className="text-[10px] text-muted-foreground/80 truncate mt-0.5">
-                          {opt.subLabel}
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      disabled={opt.disabled}
+                      onClick={() => {
+                        if (opt.disabled) return;
+                        onChange(opt.value);
+                        setIsOpen(false);
+                        setSearch('');
+                      }}
+                      className={`w-full px-2.5 py-1.5 rounded-md text-left text-xs transition-colors flex items-center justify-between gap-2 cursor-pointer ${
+                        opt.disabled
+                          ? 'opacity-40 cursor-not-allowed bg-transparent'
+                          : isSelected
+                          ? 'bg-primary/10 text-primary font-semibold'
+                          : 'hover:bg-muted/50 text-foreground'
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 truncate">
+                          {opt.group && (
+                            <span className="text-[9.5px] uppercase font-bold text-muted-foreground/70 bg-muted px-1 py-0.2 rounded shrink-0">
+                              {opt.group}
+                            </span>
+                          )}
+                          {opt.code && (
+                            <span className="font-mono text-[10px] text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-normal border border-slate-200/80 dark:border-slate-700 shrink-0">
+                              {opt.code}
+                            </span>
+                          )}
+                          <span className="font-semibold text-foreground truncate">{opt.label}</span>
                         </div>
-                      )}
-                    </div>
-                    {isSelected && <Check className="size-3.5 text-primary shrink-0" />}
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </div>
-      )}
+                        {opt.path ? (
+                          <div className="text-[10px] text-muted-foreground/80 truncate mt-0.5 flex items-center gap-1">
+                            <FolderTree className="size-2.5 text-slate-400 shrink-0" />
+                            <span className="truncate">{Array.isArray(opt.path) ? opt.path.join(' › ') : opt.path}</span>
+                          </div>
+                        ) : opt.subLabel ? (
+                          <div className="text-[10px] text-muted-foreground/80 truncate mt-0.5 flex items-center gap-1">
+                            {opt.subLabel.includes('›') && (
+                              <FolderTree className="size-2.5 text-slate-400 shrink-0" />
+                            )}
+                            <span className="truncate">{opt.subLabel}</span>
+                          </div>
+                        ) : null}
+                      </div>
+                      {isSelected && <Check className="size-3.5 text-primary shrink-0" />}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };
