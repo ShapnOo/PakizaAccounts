@@ -7,6 +7,7 @@ import { listSuppliers, listEmployees, listCustomers } from '../../services/mast
 import { Supplier } from '../../mock/suppliers';
 import { Employee } from '../../mock/employees';
 import { Customer } from '../../mock/customers';
+import { SearchableSelect } from '../shared/SearchableSelect';
 
 interface BankInfoBlockProps {
   sourceType: SourceType;
@@ -165,43 +166,36 @@ export const BankInfoBlock: React.FC<BankInfoBlockProps> = ({
             </div>
 
             {sourceType === 'bill' ? (
-              <select
-                value={partyName}
-                onChange={(e) => {
-                  const selName = e.target.value;
+              <SearchableSelect
+                value={partyName || ''}
+                onChange={(selName) => {
                   const sup = suppliers.find((s) => s.name === selName);
                   onPartyNameChange?.(selName, { supplierId: sup?.id });
                 }}
-                className={`w-full h-9 px-3 rounded-lg border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer ${
-                  errors.name ? 'border-rose-400 focus:ring-rose-500' : 'border-border'
-                }`}
-              >
-                <option value="">-- Select Supplier --</option>
-                {suppliers.map((s) => (
-                  <option key={s.id} value={s.name}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
+                options={suppliers.map((s) => ({ value: s.name, label: s.name }))}
+                placeholder="-- Select Supplier --"
+                searchPlaceholder="Search supplier..."
+                error={!!errors.name}
+                buttonClassName="h-9 px-3 rounded-lg text-xs font-semibold"
+              />
             ) : (
-              <select
-                value={partyName}
-                onChange={(e) => {
-                  const selName = e.target.value;
+              <SearchableSelect
+                value={partyName || ''}
+                onChange={(selName) => {
                   const emp = employees.find((em) => em.name === selName);
                   onPartyNameChange?.(selName, { employeeId: emp?.id });
                 }}
-                className={`w-full h-9 px-3 rounded-lg border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer ${
-                  errors.name ? 'border-rose-400 focus:ring-rose-500' : 'border-border'
-                }`}
-              >
-                <option value="">-- Select Employee --</option>
-                {employees.map((em) => (
-                  <option key={em.id} value={em.name}>
-                    {em.name}
-                  </option>
-                ))}
-              </select>
+                options={employees.map((em) => ({
+                  value: em.name,
+                  label: `${em.name} (${em.code || em.id})`,
+                  subLabel: em.designation,
+                  code: em.code || em.id,
+                }))}
+                placeholder="-- Select Employee --"
+                searchPlaceholder="Search by name or employee ID..."
+                error={!!errors.name}
+                buttonClassName="h-9 px-3 rounded-lg text-xs font-semibold"
+              />
             )}
 
             {errors.name && <p className="text-[11px] text-rose-500 font-medium">{errors.name}</p>}

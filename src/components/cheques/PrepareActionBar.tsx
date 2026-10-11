@@ -1,5 +1,5 @@
 import React from 'react';
-import { Printer, Save, CheckCircle2, FileText, Loader2, RotateCcw } from 'lucide-react';
+import { Printer, Save, CheckCircle2, FileText, Loader2, RotateCcw, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface PrepareActionBarProps {
@@ -11,6 +11,8 @@ interface PrepareActionBarProps {
   onRegenerateJournal?: () => void;
   hasJournal?: boolean;
   onReset?: () => void;
+  isLocked?: boolean;
+  isEditMode?: boolean;
 }
 
 export const PrepareActionBar: React.FC<PrepareActionBarProps> = ({
@@ -22,6 +24,8 @@ export const PrepareActionBar: React.FC<PrepareActionBarProps> = ({
   onRegenerateJournal,
   hasJournal = true,
   onReset,
+  isLocked = false,
+  isEditMode = false,
 }) => {
   const navigate = useNavigate();
 
@@ -29,7 +33,17 @@ export const PrepareActionBar: React.FC<PrepareActionBarProps> = ({
     <div className="sticky bottom-0 z-30 bg-card/95 backdrop-blur-md border border-border/80 rounded-xl p-3 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3">
       {/* Left status indicator */}
       <div className="flex items-center gap-2">
-        {lastSavedChequeId ? (
+        {isLocked ? (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-xs font-bold">
+            <Lock className="size-3.5" />
+            <span>Voucher Generated · Locked from Editing</span>
+          </div>
+        ) : isEditMode ? (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20 text-xs font-bold">
+            <CheckCircle2 className="size-3.5" />
+            <span>Editing Non-Generated Cheque</span>
+          </div>
+        ) : lastSavedChequeId ? (
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold">
             <CheckCircle2 className="size-3.5" />
             <span>Cheque Prepared & Saved</span>
@@ -111,26 +125,36 @@ export const PrepareActionBar: React.FC<PrepareActionBarProps> = ({
         <button
           type="button"
           onClick={onSave}
-          disabled={isSaving}
+          disabled={isSaving || isLocked}
           className="inline-flex items-center gap-1.5 h-8.5 px-4 rounded-lg border border-border/80 bg-card hover:bg-muted/70 text-foreground text-xs font-bold shadow-2xs transition-all cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          title={isLocked ? 'Cannot edit: voucher has already been generated' : undefined}
         >
-          {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
-          <span>Save</span>
+          {isSaving ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : isLocked ? (
+            <Lock className="size-3.5 text-muted-foreground" />
+          ) : (
+            <Save className="size-3.5" />
+          )}
+          <span>{isEditMode ? 'Update Cheque' : 'Save'}</span>
         </button>
 
         {/* 5. Save & Journal */}
         <button
           type="button"
           onClick={onSaveAndJournal}
-          disabled={isSaving}
+          disabled={isSaving || isLocked}
           className="inline-flex items-center gap-2 h-8.5 px-4.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-sm shadow-primary/20 transition-all cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          title={isLocked ? 'Voucher already generated' : undefined}
         >
           {isSaving ? (
             <Loader2 className="size-3.5 animate-spin" />
+          ) : isLocked ? (
+            <Lock className="size-3.5" />
           ) : (
             <CheckCircle2 className="size-3.5" />
           )}
-          <span>Save & Journal</span>
+          <span>{isLocked ? 'Voucher Generated' : isEditMode ? 'Update & Generate Voucher' : 'Save & Journal'}</span>
         </button>
       </div>
     </div>

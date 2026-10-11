@@ -111,11 +111,16 @@ export const LineItemRow: React.FC<LineItemRowProps> = ({
       </td>
 
       {/* ── 5. Employee ── */}
-      <td className="py-2.5 px-2.5 min-w-[120px] text-muted-foreground">
+      <td className="py-2.5 px-2.5 min-w-[140px] text-muted-foreground">
         {employee ? (
           <div className="flex items-center gap-1 text-foreground font-medium">
             <Users className="size-3 text-slate-400 shrink-0" />
-            <span className="truncate max-w-[120px]">{employee.name}</span>
+            <span className="truncate max-w-[150px]" title={`${employee.name} (${employee.code || employee.id})`}>
+              {employee.name}{' '}
+              <span className="font-mono text-[10.5px] text-muted-foreground">
+                ({employee.code || employee.id})
+              </span>
+            </span>
           </div>
         ) : (
           <span className="text-slate-300 dark:text-muted-foreground/40">—</span>

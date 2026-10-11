@@ -43,6 +43,8 @@ export interface SimpleMasterOption {
   id: string;
   name: string;
   code?: string;
+  designation?: string;
+  department?: string;
 }
 
 export const DEFAULT_CURRENCY = 'BDT';

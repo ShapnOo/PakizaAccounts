@@ -8,6 +8,7 @@ import { MOCK_SUPPLIERS } from '../../mock/suppliers';
 import { MOCK_CUSTOMERS } from '../../mock/customers';
 import { MOCK_CURRENCY_SETUPS } from '../../mock/currencySetup';
 import { DifferenceBadge } from './DifferenceBadge';
+import { SearchableSelect } from '../shared/SearchableSelect';
 
 interface LineItemTableProps {
   voucherType: VoucherType;
@@ -124,91 +125,82 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
               <tr key={line.id} className="hover:bg-muted/30 transition-colors">
                 {/* 1. Accounts Head */}
                 <td className="py-2 px-3">
-                  <select
+                  <SearchableSelect
                     value={line.accountHeadId}
-                    onChange={(e) => handleLineAccountChange(line.id, e.target.value)}
-                    className="w-full h-8 px-2 rounded-lg border border-border bg-card text-xs font-semibold text-foreground focus:ring-1 focus:ring-primary truncate"
-                  >
-                    <option value="">Select Account Head...</option>
-                    {lineAccounts.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.code} - {a.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => handleLineAccountChange(line.id, val)}
+                    options={lineAccounts.map((a) => ({
+                      value: a.id,
+                      label: a.name,
+                      code: a.code,
+                    }))}
+                    placeholder="Select Account Head..."
+                    searchPlaceholder="Search account name or code..."
+                    buttonClassName="h-8 rounded-lg text-xs font-semibold"
+                  />
                 </td>
 
                 {/* 2. Cost Center */}
                 <td className="py-2 px-2.5">
-                  <select
+                  <SearchableSelect
                     value={line.costCenterId || ''}
-                    onChange={(e) => onUpdateLine(line.id, { costCenterId: e.target.value })}
-                    className="w-full h-8 px-2 rounded-lg border border-border bg-card text-xs text-foreground truncate"
-                  >
-                    <option value="">None</option>
-                    {costCenters.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => onUpdateLine(line.id, { costCenterId: val })}
+                    options={costCenters.map((c) => ({ value: c.id, label: c.name }))}
+                    placeholder="None"
+                    searchPlaceholder="Filter cost center..."
+                    buttonClassName="h-8 rounded-lg text-xs"
+                  />
                 </td>
 
                 {/* 3. Subsidiary */}
                 <td className="py-2 px-2.5">
-                  <select
+                  <SearchableSelect
                     value={line.subsidiaryId || ''}
-                    onChange={(e) => onUpdateLine(line.id, { subsidiaryId: e.target.value })}
-                    className="w-full h-8 px-2 rounded-lg border border-border bg-card text-xs text-foreground truncate"
-                  >
-                    <option value="">None</option>
-                    <optgroup label="Suppliers">
-                      {MOCK_SUPPLIERS.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name} (Vendor)
-                        </option>
-                      ))}
-                    </optgroup>
-                    <optgroup label="Customers">
-                      {MOCK_CUSTOMERS.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.customerName} (Client)
-                        </option>
-                      ))}
-                    </optgroup>
-                  </select>
+                    onChange={(val) => onUpdateLine(line.id, { subsidiaryId: val })}
+                    options={[
+                      ...MOCK_SUPPLIERS.map((s) => ({
+                        value: s.id,
+                        label: s.name,
+                        group: 'Vendor',
+                      })),
+                      ...MOCK_CUSTOMERS.map((c) => ({
+                        value: c.id,
+                        label: c.customerName,
+                        group: 'Customer',
+                      })),
+                    ]}
+                    placeholder="None"
+                    searchPlaceholder="Filter vendor or customer..."
+                    buttonClassName="h-8 rounded-lg text-xs"
+                  />
                 </td>
 
                 {/* 4. Employee */}
                 <td className="py-2 px-2.5">
-                  <select
+                  <SearchableSelect
                     value={line.employeeId || ''}
-                    onChange={(e) => onUpdateLine(line.id, { employeeId: e.target.value })}
-                    className="w-full h-8 px-2 rounded-lg border border-border bg-card text-xs text-foreground truncate"
-                  >
-                    <option value="">None</option>
-                    {MOCK_EMPLOYEES.map((emp) => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.name} ({emp.designation})
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => onUpdateLine(line.id, { employeeId: val })}
+                    options={MOCK_EMPLOYEES.map((emp) => ({
+                      value: emp.id,
+                      label: `${emp.name} (${emp.code || emp.id})`,
+                      subLabel: emp.designation,
+                      code: emp.code || emp.id,
+                    }))}
+                    placeholder="None"
+                    searchPlaceholder="Search by name or employee ID..."
+                    buttonClassName="h-8 rounded-lg text-xs font-medium"
+                  />
                 </td>
 
                 {/* 5. Vehicles */}
                 <td className="py-2 px-2.5">
-                  <select
+                  <SearchableSelect
                     value={line.vehicleId || ''}
-                    onChange={(e) => onUpdateLine(line.id, { vehicleId: e.target.value })}
-                    className="w-full h-8 px-2 rounded-lg border border-border bg-card text-xs text-foreground truncate"
-                  >
-                    <option value="">None</option>
-                    {vehicles.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => onUpdateLine(line.id, { vehicleId: val })}
+                    options={vehicles.map((v) => ({ value: v.id, label: v.name }))}
+                    placeholder="None"
+                    searchPlaceholder="Filter vehicle..."
+                    buttonClassName="h-8 rounded-lg text-xs"
+                  />
                 </td>
 
                 {/* 6. Reference */}

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Landmark, CreditCard, Building, Info, UserCheck, Calculator, Plus, Check } from 'lucide-react';
 import { BankDetails } from '../../types/coa';
 import { BANK_ACCOUNT_TYPES } from '../../constants/accountsTypeTree';
+import { SearchableSelect } from '../shared/SearchableSelect';
 
 const DEFAULT_MASTER_BANKS = [
   'Dutch Bangla Bank Lt.',
@@ -113,22 +114,16 @@ export const BankDetailsSection: React.FC<BankDetailsSectionProps> = ({
                 </label>
 
                 <div className="flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <Building className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground z-10" />
-                    <select
+                  <div className="flex-1">
+                    <SearchableSelect
                       value={bankDetails.bankName || ''}
-                      onChange={(e) => updateField('bankName', e.target.value)}
-                      className={`w-full h-8.5 pl-8 pr-8 rounded-lg bg-card border text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer ${
-                        errors.bankName ? 'border-rose-500 ring-2 ring-rose-500/10' : 'border-border/80'
-                      }`}
-                    >
-                      <option value="">-- Select Master Bank Name --</option>
-                      {bankOptions.map((b) => (
-                        <option key={b} value={b}>
-                          {b}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => updateField('bankName', val)}
+                      options={bankOptions.map((b) => ({ value: b, label: b }))}
+                      placeholder="-- Select Master Bank Name --"
+                      searchPlaceholder="Search bank name..."
+                      error={!!errors.bankName}
+                      buttonClassName="h-8.5 rounded-lg text-xs font-semibold"
+                    />
                   </div>
 
                   <button

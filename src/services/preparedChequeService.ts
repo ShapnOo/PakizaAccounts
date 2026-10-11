@@ -45,7 +45,21 @@ export async function listPreparedCheques(): Promise<ChequePrepare[]> {
       localStorage.setItem(LS_PREP, JSON.stringify(normalized));
       return normalized;
     }
-    return normalizePreparedList(parsed);
+    const mockMap = new Map(MOCK_PREPARED_CHEQUES.map((m) => [m.id, m]));
+    const merged = (Array.isArray(parsed) ? parsed : []).map((p) => {
+      const m = mockMap.get(p.id);
+      if (m && m.voucherNo && !p.voucherNo) {
+        return {
+          ...p,
+          voucherId: m.voucherId,
+          voucherNo: m.voucherNo,
+          voucherType: m.voucherType,
+          voucherDate: m.voucherDate,
+        };
+      }
+      return p;
+    });
+    return normalizePreparedList(merged);
   } catch (e) {
     const normalized = normalizePreparedList(MOCK_PREPARED_CHEQUES);
     return normalized;

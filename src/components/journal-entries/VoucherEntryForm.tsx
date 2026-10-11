@@ -42,6 +42,7 @@ import { MOCK_CURRENCY_SETUPS } from '../../mock/currencySetup';
 import { SaveAsPresetDialog } from './SaveAsPresetDialog';
 import { LineColumnToggle, useLineColumnVisibility } from './LineColumnToggle';
 import { AttachmentUploadSection } from './AttachmentUploadSection';
+import { SearchableSelect } from '../shared/SearchableSelect';
 
 export interface VoucherEntryFormProps {
   voucherType: VoucherType;
@@ -133,17 +134,6 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
         debitBDT: 0,
         creditBDT: 0,
       },
-      {
-        id: 'l-2',
-        accountHeadId: '',
-        accountHeadName: '',
-        currency: 'BDT',
-        exchangeRate: 1,
-        debit: 0,
-        credit: 0,
-        debitBDT: 0,
-        creditBDT: 0,
-      },
     ]
   );
 
@@ -224,9 +214,8 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
 
   // Remove Line
   const handleRemoveLine = (id: string) => {
-    const minLines = voucherType === 'Journal' || voucherType === 'Contra' ? 2 : 1;
-    if (lines.length <= minLines) {
-      toast.error(`Minimum ${minLines} line(s) required for ${voucherType} voucher.`);
+    if (lines.length <= 1) {
+      toast.error('Minimum 1 line is required in the voucher.');
       return;
     }
     setLines(lines.filter((l) => l.id !== id));
@@ -478,17 +467,20 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
                   Configured Definition
                 </span>
               </label>
-              <select
+              <SearchableSelect
                 value={selectedVoucherName}
-                onChange={(e) => handleVoucherNameChange(e.target.value)}
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs font-bold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer"
-              >
-                {VOUCHER_NAMES.map((vn) => (
-                  <option key={vn.name} value={vn.name}>
-                    {vn.name} ({vn.shortCode} - {vn.type})
-                  </option>
-                ))}
-              </select>
+                onChange={(name) => handleVoucherNameChange(name)}
+                options={VOUCHER_NAMES.map((vn) => ({
+                  value: vn.name,
+                  label: vn.name,
+                  subLabel: `${vn.shortCode} · ${vn.type}`,
+                  code: vn.shortCode,
+                }))}
+                placeholder="Select Voucher Name..."
+                searchPlaceholder="Search voucher definitions..."
+                allowClear={false}
+                buttonClassName="h-9 rounded-xl text-xs font-bold"
+              />
             </div>
 
             {/* Voucher Date */}
@@ -509,56 +501,64 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
               )}
             </div>
 
-            {/* Payment Accounts (Cash / Bank) */}
-            <div className="space-y-1.5 sm:col-span-2">
-              <label className="text-xs font-bold text-foreground flex items-center justify-between">
-                <span>
-                  Payment Accounts (Cash / Bank) <span className="text-rose-500">*</span>
-                </span>
-                <span className="text-[10px] text-muted-foreground font-normal">
-                  Cash / Bank Only
-                </span>
-              </label>
-              <select
-                value={headerAccountId}
-                onChange={(e) => setHeaderAccountId(e.target.value)}
-                className={`w-full h-9 px-3 rounded-xl border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer ${
-                  errors.headerAccountId ? 'border-rose-400' : 'border-border'
-                }`}
-              >
-                <option value="">Select Cash or Bank Account...</option>
-                {MOCK_COA_BANK_ACCOUNTS.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.bankName} - {b.accountName} ({b.accountsNumber})
-                  </option>
-                ))}
-              </select>
-              {errors.headerAccountId && (
-                <p className="text-[11px] text-rose-500 font-bold">{errors.headerAccountId}</p>
-              )}
-            </div>
+            {/* Payment Accounts (Cash / Bank) & Cost Center (only for Payment and Receive) */}
+            {(activeType === 'Payment' || activeType === 'Receive') && (
+              <>
+                {/* Payment / Receive Accounts (Cash / Bank) */}
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                    <span>
+                      {activeType === 'Receive' ? 'Receive Accounts (Cash / Bank)' : 'Payment Accounts (Cash / Bank)'}{' '}
+                      <span className="text-rose-500">*</span>
+                    </span>
+                    <span className="text-[10px] text-muted-foreground font-normal">
+                      Cash / Bank Only
+                    </span>
+                  </label>
+                  <SearchableSelect
+                    value={headerAccountId}
+                    onChange={(val) => setHeaderAccountId(val)}
+                    options={MOCK_COA_BANK_ACCOUNTS.map((b) => ({
+                      value: b.id,
+                      label: `${b.bankName} - ${b.accountName}`,
+                      subLabel: `A/C: ${b.accountsNumber}`,
+                      code: b.accountsNumber,
+                    }))}
+                    placeholder="Select Cash or Bank Account..."
+                    searchPlaceholder="Search bank or cash accounts..."
+                    error={Boolean(errors.headerAccountId)}
+                    allowClear={false}
+                    buttonClassName="h-9 rounded-xl text-xs font-semibold"
+                  />
+                  {errors.headerAccountId && (
+                    <p className="text-[11px] text-rose-500 font-bold">{errors.headerAccountId}</p>
+                  )}
+                </div>
 
-            {/* Cost Center */}
-            <div className="space-y-1.5 sm:col-span-2">
-              <label className="text-xs font-bold text-foreground flex items-center justify-between">
-                <span>Cost Center</span>
-                <span className="text-[10px] text-muted-foreground font-normal">
-                  Cost center only for payment and receive voucher
-                </span>
-              </label>
-              <select
-                value={headerCostCenterId}
-                onChange={(e) => setHeaderCostCenterId(e.target.value)}
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer"
-              >
-                <option value="">Select Cost Center...</option>
-                {costCenters.map((cc) => (
-                  <option key={cc.id} value={cc.id}>
-                    {cc.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+                {/* Cost Center */}
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                    <span>Cost Center</span>
+                    <span className="text-[10px] text-muted-foreground font-normal">
+                      Cost center only for payment and receive voucher
+                    </span>
+                  </label>
+                  <SearchableSelect
+                    value={headerCostCenterId}
+                    onChange={(val) => setHeaderCostCenterId(val)}
+                    options={costCenters.map((cc) => ({
+                      value: cc.id,
+                      label: cc.name,
+                      code: cc.code,
+                    }))}
+                    placeholder="Select Cost Center..."
+                    searchPlaceholder="Search cost centers..."
+                    allowClear
+                    buttonClassName="h-9 rounded-xl text-xs font-semibold"
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -640,123 +640,114 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
                   <tr key={line.id} className="hover:bg-muted/20 transition-colors">
                     {/* Accounts Head */}
                     <td className="py-2 px-2.5">
-                      <select
+                      <SearchableSelect
                         value={line.accountHeadId}
-                        onChange={(e) => handleUpdateLine(line.id, { accountHeadId: e.target.value })}
-                        className={`w-full h-8 px-2 rounded-lg border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary ${
-                          errors[`line_${idx}_account`] ? 'border-rose-400' : 'border-border'
-                        }`}
-                      >
-                        <option value="">Select Account Head...</option>
-                        {lineAccounts.map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.code ? `${a.code} - ` : ''}
-                            {a.name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => handleUpdateLine(line.id, { accountHeadId: val })}
+                        options={lineAccounts.map((a) => ({
+                          value: a.id,
+                          label: a.name,
+                          code: a.code,
+                        }))}
+                        placeholder="Select Account Head..."
+                        searchPlaceholder="Search account name or code..."
+                        error={!!errors[`line_${idx}_account`]}
+                        buttonClassName="h-8 rounded-lg text-xs font-semibold"
+                      />
                     </td>
 
                     {/* Cost Center */}
                     {visibleColumns.costCenter && (
                       <td className="py-2 px-2">
-                        <select
+                        <SearchableSelect
                           value={line.costCenterId || ''}
-                          onChange={(e) => handleUpdateLine(line.id, { costCenterId: e.target.value })}
-                          className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-                        >
-                          <option value="">None</option>
-                          {costCenters.map((cc) => (
-                            <option key={cc.id} value={cc.id}>
-                              {cc.name}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(val) => handleUpdateLine(line.id, { costCenterId: val })}
+                          options={costCenters.map((cc) => ({ value: cc.id, label: cc.name }))}
+                          placeholder="None"
+                          searchPlaceholder="Filter cost center..."
+                          buttonClassName="h-8 rounded-lg text-xs"
+                        />
                       </td>
                     )}
 
                     {/* Subsidiary (Customer / Vendor) */}
                     {visibleColumns.subsidiary && (
                       <td className="py-2 px-2">
-                        <select
+                        <SearchableSelect
                           value={line.subsidiaryId || ''}
-                          onChange={(e) => handleUpdateLine(line.id, { subsidiaryId: e.target.value })}
-                          className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-                        >
-                          <option value="">None</option>
-                          <optgroup label="Suppliers / Vendors">
-                            {MOCK_SUPPLIERS.map((s) => (
-                              <option key={s.id} value={s.id}>
-                                [Vendor] {s.name}
-                              </option>
-                            ))}
-                          </optgroup>
-                          <optgroup label="Customers / Buyers">
-                            {MOCK_CUSTOMERS.map((c) => (
-                              <option key={c.id} value={c.id}>
-                                [Customer] {c.customerName}
-                              </option>
-                            ))}
-                          </optgroup>
-                        </select>
+                          onChange={(val) => handleUpdateLine(line.id, { subsidiaryId: val })}
+                          options={[
+                            ...MOCK_SUPPLIERS.map((s) => ({
+                              value: s.id,
+                              label: `[Vendor] ${s.name}`,
+                              category: 'Suppliers / Vendors',
+                            })),
+                            ...MOCK_CUSTOMERS.map((c) => ({
+                              value: c.id,
+                              label: `[Customer] ${c.customerName}`,
+                              category: 'Customers / Buyers',
+                            })),
+                          ]}
+                          placeholder="None"
+                          searchPlaceholder="Filter subsidiary..."
+                          buttonClassName="h-8 rounded-lg text-xs"
+                        />
                       </td>
                     )}
 
                     {/* Employee */}
                     {visibleColumns.employee && (
                       <td className="py-2 px-2">
-                        <select
+                        <SearchableSelect
                           value={line.employeeId || ''}
-                          onChange={(e) => handleUpdateLine(line.id, { employeeId: e.target.value })}
-                          className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-                        >
-                          <option value="">None</option>
-                          {MOCK_EMPLOYEES.map((emp) => (
-                            <option key={emp.id} value={emp.id}>
-                              {emp.name} ({emp.designation})
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(val) => handleUpdateLine(line.id, { employeeId: val })}
+                          options={MOCK_EMPLOYEES.map((emp) => ({
+                            value: emp.id,
+                            label: `${emp.name} (${emp.code || emp.id})`,
+                            sublabel: emp.designation,
+                          }))}
+                          placeholder="None"
+                          searchPlaceholder="Search employee by name or ID..."
+                          buttonClassName="h-8 rounded-lg text-xs"
+                        />
                       </td>
                     )}
 
                     {/* Vehicles */}
                     {visibleColumns.vehicle && (
                       <td className="py-2 px-2">
-                        <select
+                        <SearchableSelect
                           value={line.vehicleId || ''}
-                          onChange={(e) => handleUpdateLine(line.id, { vehicleId: e.target.value })}
-                          className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-                        >
-                          <option value="">None</option>
-                          {vehicles.map((v) => (
-                            <option key={v.id} value={v.id}>
-                              {v.name}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(val) => handleUpdateLine(line.id, { vehicleId: val })}
+                          options={vehicles.map((v) => ({
+                            value: v.id,
+                            label: v.name,
+                          }))}
+                          placeholder="None"
+                          searchPlaceholder="Filter vehicle..."
+                          buttonClassName="h-8 rounded-lg text-xs"
+                        />
                       </td>
                     )}
 
                     {/* Reference (List from setup) */}
                     {visibleColumns.reference && (
                       <td className="py-2 px-2">
-                        <select
+                        <SearchableSelect
                           value={line.reference || ''}
-                          onChange={(e) => handleUpdateLine(line.id, { reference: e.target.value })}
-                          className="w-full h-8 px-2 rounded-lg border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-                        >
-                          <option value="">None</option>
-                          {referenceCenters.map((rc) => (
-                            <option key={rc.id} value={rc.name}>
-                              {rc.name}
-                            </option>
-                          ))}
-                          {line.reference &&
-                            !referenceCenters.some((rc) => rc.name === line.reference) && (
-                              <option value={line.reference}>{line.reference}</option>
-                            )}
-                        </select>
+                          onChange={(val) => handleUpdateLine(line.id, { reference: val })}
+                          options={[
+                            ...referenceCenters.map((rc) => ({
+                              value: rc.name,
+                              label: rc.name,
+                            })),
+                            ...(line.reference && !referenceCenters.some((rc) => rc.name === line.reference)
+                              ? [{ value: line.reference, label: line.reference }]
+                              : []),
+                          ]}
+                          placeholder="None"
+                          searchPlaceholder="Filter reference..."
+                          buttonClassName="h-8 rounded-lg text-xs"
+                        />
                       </td>
                     )}
 

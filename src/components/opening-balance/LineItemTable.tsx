@@ -68,7 +68,10 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
 
         const matchesCostCenter = costCenter?.name.toLowerCase().includes(q);
         const matchesSubsidiary = subsidiary?.name.toLowerCase().includes(q);
-        const matchesEmployee = employee?.name.toLowerCase().includes(q);
+        const matchesEmployee =
+          employee?.name.toLowerCase().includes(q) ||
+          employee?.code?.toLowerCase().includes(q) ||
+          employee?.id?.toLowerCase().includes(q);
         const matchesVehicle = vehicle?.name.toLowerCase().includes(q);
         const matchesRef = line.reference?.toLowerCase().includes(q);
         const matchesDesc = line.description?.toLowerCase().includes(q);

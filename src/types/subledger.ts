@@ -7,6 +7,7 @@ export interface SubledgerEntry {
   id: string;
   type: SubledgerType;
   name: string;
+  code?: string;
   effectiveCompanyIds: string[]; // "PSL" | "PKCL" | ...
   activeStatus: 'Active' | 'Inactive';
   createdAt: string;

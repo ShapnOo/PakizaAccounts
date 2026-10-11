@@ -9,6 +9,7 @@ import {
   CURRENCIES,
 } from '../../constants/voucherTypeConfig';
 import { AccountHeadPicker } from './AccountHeadPicker';
+import { SearchableSelect } from '../shared/SearchableSelect';
 import { Plus, Trash2, Info } from 'lucide-react';
 import { useCustomFields } from '../../hooks/useCustomFields';
 import { CustomFieldCell } from '../shared/CustomFieldCell';
@@ -170,74 +171,54 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
 
                     {/* Cost Center */}
                     <td className="py-1.5 px-2.5">
-                      <select
+                      <SearchableSelect
                         value={line.costCenterId || ''}
-                        onChange={(e) =>
-                          handleUpdateLine(line.id, { costCenterId: e.target.value })
-                        }
-                        className="w-full h-8.5 px-2 rounded-lg bg-card border border-border/70 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary cursor-pointer shadow-2xs"
-                      >
-                        <option value="">None</option>
-                        {COST_CENTERS.map((cc) => (
-                          <option key={cc.id} value={cc.id}>
-                            {cc.name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => handleUpdateLine(line.id, { costCenterId: val })}
+                        options={COST_CENTERS.map((cc) => ({ value: cc.id, label: cc.name }))}
+                        placeholder="None"
+                        searchPlaceholder="Filter cost center..."
+                        buttonClassName="h-8.5 rounded-lg border-border/70 text-xs"
+                      />
                     </td>
 
                     {/* Subsidiary */}
                     <td className="py-1.5 px-2.5">
-                      <select
+                      <SearchableSelect
                         value={line.subsidiaryId || ''}
-                        onChange={(e) =>
-                          handleUpdateLine(line.id, { subsidiaryId: e.target.value })
-                        }
-                        className="w-full h-8.5 px-2 rounded-lg bg-card border border-border/70 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary cursor-pointer shadow-2xs"
-                      >
-                        <option value="">None</option>
-                        {SUBSIDIARIES.map((sub) => (
-                          <option key={sub.id} value={sub.id}>
-                            {sub.name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => handleUpdateLine(line.id, { subsidiaryId: val })}
+                        options={SUBSIDIARIES.map((sub) => ({ value: sub.id, label: sub.name }))}
+                        placeholder="None"
+                        searchPlaceholder="Filter subsidiary..."
+                        buttonClassName="h-8.5 rounded-lg border-border/70 text-xs"
+                      />
                     </td>
 
                     {/* Employee */}
                     <td className="py-1.5 px-2.5">
-                      <select
+                      <SearchableSelect
                         value={line.employeeId || ''}
-                        onChange={(e) =>
-                          handleUpdateLine(line.id, { employeeId: e.target.value })
-                        }
-                        className="w-full h-8.5 px-2 rounded-lg bg-card border border-border/70 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary cursor-pointer shadow-2xs"
-                      >
-                        <option value="">None</option>
-                        {EMPLOYEES.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => handleUpdateLine(line.id, { employeeId: val })}
+                        options={EMPLOYEES.map((emp) => ({
+                          value: emp.id,
+                          label: emp.name,
+                          code: emp.code,
+                        }))}
+                        placeholder="None"
+                        searchPlaceholder="Search by name or employee ID..."
+                        buttonClassName="h-8.5 rounded-lg border-border/70 text-xs"
+                      />
                     </td>
 
                     {/* Vehicles */}
                     <td className="py-1.5 px-2.5">
-                      <select
+                      <SearchableSelect
                         value={line.vehicleId || ''}
-                        onChange={(e) =>
-                          handleUpdateLine(line.id, { vehicleId: e.target.value })
-                        }
-                        className="w-full h-8.5 px-2 rounded-lg bg-card border border-border/70 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary cursor-pointer shadow-2xs"
-                      >
-                        <option value="">None</option>
-                        {VEHICLES.map((v) => (
-                          <option key={v.id} value={v.id}>
-                            {v.name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => handleUpdateLine(line.id, { vehicleId: val })}
+                        options={VEHICLES.map((v) => ({ value: v.id, label: v.name }))}
+                        placeholder="None"
+                        searchPlaceholder="Filter vehicle..."
+                        buttonClassName="h-8.5 rounded-lg border-border/70 text-xs"
+                      />
                     </td>
 
                     {/* Reference */}

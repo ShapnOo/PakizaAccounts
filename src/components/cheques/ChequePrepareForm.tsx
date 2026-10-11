@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Lock, Edit3, ArrowLeft } from 'lucide-react';
 import {
   SourceType,
   ChequeFor,
@@ -36,6 +37,10 @@ interface ChequePrepareFormProps {
 
 export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+
   const { books, loadBooks } = useChequeBookStore();
   const { add: addPreparedCheque, update: updatePreparedCheque } = useChequePrepareStore();
   const { postVoucherEntry } = useVouchers();
@@ -44,6 +49,11 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
   const [lastSavedChequeId, setLastSavedChequeId] = useState<string | null>(null);
   const [lastVoucherId, setLastVoucherId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
+
+  // Edit & Lock Status (Rules: Once a voucher is generated, it cannot be edited)
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockedVoucherNo, setLockedVoucherNo] = useState<string | null>(null);
 
   // Column visibility hook (persisted in localStorage per sourceType)
   const { columns, updateColumns } = useColumnVisibility(sourceType);
@@ -92,6 +102,76 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
   useEffect(() => {
     loadBooks();
   }, [loadBooks]);
+
+  // Load record when editId is present in query parameters
+  useEffect(() => {
+    if (!editId) {
+      setIsEditMode(false);
+      setIsLocked(false);
+      setLockedVoucherNo(null);
+      return;
+    }
+
+    const loadEditRecord = async () => {
+      const item = await useChequePrepareStore.getState().getById(editId);
+      if (!item) {
+        toast.error(`Prepared cheque "${editId}" not found`);
+        return;
+      }
+
+      setIsEditMode(true);
+      setLastSavedChequeId(item.id);
+
+      const hasVoucher = Boolean(item.voucherId || (item.voucherNo && item.voucherNo !== '—'));
+      if (hasVoucher) {
+        setIsLocked(true);
+        setLockedVoucherNo(item.voucherNo || item.voucherId || 'Posted');
+        setLastVoucherId(item.voucherId || null);
+      } else {
+        setIsLocked(false);
+        setLockedVoucherNo(null);
+        setLastVoucherId(null);
+      }
+
+      setAccountsBankId(item.accountsBankId || '');
+      setBankName(item.bankName || '');
+      if (item.chequeBookId) setBookId(item.chequeBookId);
+      if (item.chequeFor) setChequeFor(item.chequeFor);
+      if (item.name) setPartyName(item.name);
+
+      if (item.bill) {
+        setBillNo(item.bill.billNo || '');
+        setBillDate(item.bill.billDate || '');
+        setBillValue(item.bill.billValue || 0);
+        setPrevPaid(item.bill.prevPaid || 0);
+        setBalance(item.bill.balance || 0);
+        setPayAmount(item.bill.payAmount || 0);
+      }
+
+      if (item.iou) {
+        setBillNo(item.iou.requisitionNo || '');
+        setBillDate(item.iou.reqDate || '');
+        setBillValue(item.iou.reqValue || 0);
+        setPrevPaid(item.iou.prevPaid || 0);
+        setBalance(item.iou.balance || 0);
+        setPayAmount(item.iou.payAmount || 0);
+      }
+
+      if (item.lines && item.lines.length > 0) {
+        setLines(item.lines);
+      }
+
+      if (item.narration) {
+        setNarration(item.narration);
+        setIsAutoNarrationOverridden(true);
+      }
+
+      if (item.voucherDate) setVoucherDate(item.voucherDate);
+      if (item.voucherType) setVoucherType(item.voucherType);
+    };
+
+    loadEditRecord();
+  }, [editId]);
 
   // Selected book reference
   const currentBook = books.find((b) => b.id === bookId) || null;
@@ -345,17 +425,24 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
     }
 
     setErrors({});
+    if (isLocked) {
+      toast.error('This prepared cheque has a generated voucher and is locked against modifications');
+      return;
+    }
+
     setIsSaving(true);
 
     try {
       let createdVoucherId: string | undefined;
+      let generatedVoucherNumber: string | undefined;
 
       // If Save & Journal is clicked, create linked voucher entry
       if (withJournal) {
         const totalAmount = lines.reduce((sum, l) => sum + (l.amount || 0), 0);
+        generatedVoucherNumber = `VCH-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
         const posted = postVoucherEntry({
           id: `vch-${Date.now()}`,
-          voucherNumber: `VCH-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+          voucherNumber: generatedVoucherNumber,
           voucherType:
             voucherType === 'Contra'
               ? 'Contra Voucher'
@@ -387,22 +474,46 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
           createdAt: new Date().toISOString(),
         });
         createdVoucherId = posted.id;
+        generatedVoucherNumber = posted.voucherNumber;
         setLastVoucherId(posted.id);
       }
 
-      const created = await addPreparedCheque({
-        ...rawPayload,
-        voucherId: createdVoucherId,
-        voucherNo: createdVoucherId ? `VCH-${new Date().getFullYear()}-001` : undefined,
-      });
+      if (isEditMode && editId) {
+        const updated = await updatePreparedCheque(editId, {
+          ...rawPayload,
+          voucherId: createdVoucherId,
+          voucherNo: generatedVoucherNumber,
+          voucherDate: withJournal ? voucherDate : undefined,
+          voucherType: withJournal ? voucherType : undefined,
+        });
 
-      setLastSavedChequeId(created.id);
-      await loadBooks(); // refresh consumed cheque leafs
-
-      if (withJournal) {
-        toast.success(`Cheque prepared · Linked ${voucherType} voucher posted!`);
+        setLastSavedChequeId(updated.id);
+        if (withJournal) {
+          setIsLocked(true);
+          setLockedVoucherNo(generatedVoucherNumber || null);
+          toast.success(`Voucher ${generatedVoucherNumber} generated and cheque updated!`);
+        } else {
+          toast.success('Prepared cheque updated successfully (without voucher)!');
+        }
       } else {
-        toast.success('Cheque prepared and saved to register successfully!');
+        const created = await addPreparedCheque({
+          ...rawPayload,
+          voucherId: createdVoucherId,
+          voucherNo: generatedVoucherNumber,
+          voucherDate: withJournal ? voucherDate : undefined,
+          voucherType: withJournal ? voucherType : undefined,
+        });
+
+        setLastSavedChequeId(created.id);
+        await loadBooks(); // refresh consumed cheque leafs
+
+        if (withJournal) {
+          setIsLocked(true);
+          setLockedVoucherNo(generatedVoucherNumber || null);
+          toast.success(`Cheque prepared · Linked ${voucherType} voucher posted!`);
+        } else {
+          toast.success('Cheque prepared and saved to register successfully (without voucher)!');
+        }
       }
     } catch (err: any) {
       toast.error(err?.message || 'Failed to prepare cheque');
@@ -416,6 +527,54 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
       {/* Sub-Nav sticky pills */}
       <PrepareSubNav activeType={sourceType} />
 
+      {/* Locked / Edit Mode Banner */}
+      {isLocked && (
+        <div className="p-4 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-500/10 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
+              <Lock className="size-5" />
+            </div>
+            <div>
+              <div className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                <span>Locked from Editing</span>
+                <span className="font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-[11px] font-bold">
+                  Voucher: {lockedVoucherNo}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Once a voucher is generated, this cheque cannot be edited to maintain accounting integrity.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/cheque-prepare/register')}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-border bg-card text-xs font-bold hover:bg-muted shrink-0 text-foreground shadow-2xs cursor-pointer"
+          >
+            <ArrowLeft className="size-3.5" />
+            <span>Back to Register</span>
+          </button>
+        </div>
+      )}
+
+      {isEditMode && !isLocked && (
+        <div className="p-3.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/30 text-blue-950 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <Edit3 className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
+            <div className="text-xs">
+              <span className="font-bold">Editing Cheque:</span> Non-generated voucher cheque #{lines[0]?.chequeNo || editId}. You can make changes and click <strong>Save</strong> or <strong>Save & Journal</strong> to generate a voucher.
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate(location.pathname)}
+            className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline shrink-0 cursor-pointer"
+          >
+            Cancel Edit
+          </button>
+        </div>
+      )}
+
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -423,103 +582,107 @@ export const ChequePrepareForm: React.FC<ChequePrepareFormProps> = ({ sourceType
         }}
         className="space-y-5"
       >
-        {/* 1. Bank & Source Information Card */}
-        <BankInfoBlock
-          sourceType={sourceType}
-          accountsBankId={accountsBankId}
-          bankName={bankName}
-          bookId={bookId}
-          chequeFor={chequeFor}
-          partyName={partyName}
-          books={books}
-          onAccountChange={handleAccountChange}
-          onBookChange={(id) => {
-            setBookId(id);
-            setLines((prev) => prev.map((l) => ({ ...l, chequeNo: '' })));
-          }}
-          onChequeForChange={setChequeFor}
-          onPartyNameChange={handlePartyNameChange}
-          errors={errors}
-        />
-
-        {/* 2. Middle Block (Bill / IOU / None) */}
-        {sourceType === 'bill' && (
-          <BillInfoBlock
-            supplierId={selectedSupplierId}
-            billNo={billNo}
-            billDate={billDate}
-            billValue={billValue}
-            prevPaid={prevPaid}
-            balance={balance}
-            payAmount={payAmount}
-            onBillSelect={handleBillSelect}
-            onPayAmountChange={handlePayAmountChange}
+        <fieldset disabled={isLocked} className="space-y-5 disabled:opacity-80">
+          {/* 1. Bank & Source Information Card */}
+          <BankInfoBlock
+            sourceType={sourceType}
+            accountsBankId={accountsBankId}
+            bankName={bankName}
+            bookId={bookId}
+            chequeFor={chequeFor}
+            partyName={partyName}
+            books={books}
+            onAccountChange={handleAccountChange}
+            onBookChange={(id) => {
+              setBookId(id);
+              setLines((prev) => prev.map((l) => ({ ...l, chequeNo: '' })));
+            }}
+            onChequeForChange={setChequeFor}
+            onPartyNameChange={handlePartyNameChange}
             errors={errors}
           />
-        )}
 
-        {sourceType === 'iou' && (
-          <IouInfoBlock
-            employeeId={selectedEmployeeId}
-            requisitionNo={billNo}
-            reqDate={billDate}
-            reqValue={billValue}
-            prevPaid={prevPaid}
-            balance={balance}
-            payAmount={payAmount}
-            onIouSelect={handleIouSelect}
-            onPayAmountChange={handlePayAmountChange}
+          {/* 2. Middle Block (Bill / IOU / None) */}
+          {sourceType === 'bill' && (
+            <BillInfoBlock
+              supplierId={selectedSupplierId}
+              billNo={billNo}
+              billDate={billDate}
+              billValue={billValue}
+              prevPaid={prevPaid}
+              balance={balance}
+              payAmount={payAmount}
+              onBillSelect={handleBillSelect}
+              onPayAmountChange={handlePayAmountChange}
+              errors={errors}
+            />
+          )}
+
+          {sourceType === 'iou' && (
+            <IouInfoBlock
+              employeeId={selectedEmployeeId}
+              requisitionNo={billNo}
+              reqDate={billDate}
+              reqValue={billValue}
+              prevPaid={prevPaid}
+              balance={balance}
+              payAmount={payAmount}
+              onIouSelect={handleIouSelect}
+              onPayAmountChange={handlePayAmountChange}
+              errors={errors}
+            />
+          )}
+
+          {/* 3. Prepare Cheque Block (Multi-line for Direct, single for Bill/IOU) */}
+          <PrepareChequeTable
+            sourceType={sourceType}
+            book={currentBook}
+            lines={lines}
+            onLinesChange={setLines}
+            columns={columns}
+            onColumnsChange={updateColumns}
+            isAmountLocked={sourceType !== 'direct'}
             errors={errors}
           />
-        )}
 
-        {/* 3. Prepare Cheque Block (Multi-line for Direct, single for Bill/IOU) */}
-        <PrepareChequeTable
-          sourceType={sourceType}
-          book={currentBook}
-          lines={lines}
-          onLinesChange={setLines}
-          columns={columns}
-          onColumnsChange={updateColumns}
-          isAmountLocked={sourceType !== 'direct'}
-          errors={errors}
-        />
-
-        {/* 4. Build Journal Block */}
-        <BuildJournalBlock
-          sourceType={sourceType}
-          voucherDate={voucherDate}
-          voucherType={voucherType}
-          narration={narration}
-          isAutoNarrationOverridden={isAutoNarrationOverridden}
-          onVoucherDateChange={setVoucherDate}
-          onVoucherTypeChange={setVoucherType}
-          onNarrationChange={(val) => {
-            setNarration(val);
-            if (sourceType === 'direct') {
-              setIsAutoNarrationOverridden(true);
-            }
-          }}
-          onResetAutoNarration={() => {
-            setIsAutoNarrationOverridden(false);
-            if (lines[0]) {
-              setNarration(
-                buildAutoNarration({
-                  name: lines[0].name,
-                  chequeFor: lines[0].chequeFor,
-                  chequeNo: lines[0].chequeNo,
-                  chequeDate: lines[0].chequeDate,
-                })
-              );
-            }
-          }}
-        />
+          {/* 4. Build Journal Block */}
+          <BuildJournalBlock
+            sourceType={sourceType}
+            voucherDate={voucherDate}
+            voucherType={voucherType}
+            narration={narration}
+            isAutoNarrationOverridden={isAutoNarrationOverridden}
+            onVoucherDateChange={setVoucherDate}
+            onVoucherTypeChange={setVoucherType}
+            onNarrationChange={(val) => {
+              setNarration(val);
+              if (sourceType === 'direct') {
+                setIsAutoNarrationOverridden(true);
+              }
+            }}
+            onResetAutoNarration={() => {
+              setIsAutoNarrationOverridden(false);
+              if (lines[0]) {
+                setNarration(
+                  buildAutoNarration({
+                    name: lines[0].name,
+                    chequeFor: lines[0].chequeFor,
+                    chequeNo: lines[0].chequeNo,
+                    chequeDate: lines[0].chequeDate,
+                  })
+                );
+              }
+            }}
+          />
+        </fieldset>
 
         {/* 5. Sticky Footer Action Bar */}
         <PrepareActionBar
           lastSavedChequeId={lastSavedChequeId}
           lastVoucherId={lastVoucherId}
           isSaving={isSaving}
+          isLocked={isLocked}
+          isEditMode={isEditMode}
           onSave={() => executeSave(false)}
           onSaveAndJournal={() => executeSave(true)}
           onRegenerateJournal={handleRegenerateJournal}

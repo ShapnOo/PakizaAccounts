@@ -17,6 +17,7 @@ import { DetailsTypeSelect } from './DetailsTypeSelect';
 import { BankDetailsSection } from './BankDetailsSection';
 import { AuxiliaryDimensions } from './AuxiliaryDimensions';
 import { CompanyMultiSelectPicker } from './CompanyMultiSelectPicker';
+import { SearchableSelect } from '../shared/SearchableSelect';
 import {
   Info,
   Check,
@@ -216,24 +217,25 @@ export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
                   Taxonomy Category
                 </span>
               </label>
-              <select
-                {...register('accountsType')}
-                className={`w-full h-9 px-3 rounded-lg bg-card border text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer ${
-                  errors.accountsType
-                    ? 'border-rose-500 ring-2 ring-rose-500/10'
-                    : 'border-border/80'
-                }`}
-              >
-                {Object.entries(groupedTaxonomy).map(([groupName, items]) => (
-                  <optgroup key={groupName} label={groupName}>
-                    {items.map((it) => (
-                      <option key={`${it.nature}-${it.type}`} value={it.type}>
-                        {it.type} {it.detailsMandatory ? '(Details Req.)' : ''}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
+              <Controller
+                control={control}
+                name="accountsType"
+                render={({ field }) => (
+                  <SearchableSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={ACCOUNTS_TYPE_TREE.map((it) => ({
+                      value: it.type,
+                      label: `${it.type}${it.detailsMandatory ? ' (Details Req.)' : ''}`,
+                      group: `${it.nature}${it.category ? ` · ${it.category}` : ''}`,
+                    }))}
+                    placeholder="-- Select Accounts Type --"
+                    searchPlaceholder="Search account taxonomy type..."
+                    error={!!errors.accountsType}
+                    buttonClassName="h-9 rounded-lg text-xs font-semibold"
+                  />
+                )}
+              />
               {errors.accountsType && (
                 <p className="text-[10.5px] font-medium text-rose-500">
                   {errors.accountsType.message}
@@ -432,25 +434,27 @@ export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
                     control={control}
                     name="defaultCurrency"
                     render={({ field }) => (
-                      <select
+                      <SearchableSelect
                         value={field.value || ''}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        className="w-full h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-2xs cursor-pointer"
-                      >
-                        <option value="">-- Select Currency (Optional) --</option>
-                        <option value="BDT">BDT (Bangladeshi Taka)</option>
-                        <option value="USD">USD (US Dollar)</option>
-                        <option value="EUR">EUR (Euro)</option>
-                        <option value="GBP">GBP (British Pound)</option>
-                        <option value="INR">INR (Indian Rupee)</option>
-                        <option value="CAD">CAD (Canadian Dollar)</option>
-                        <option value="AUD">AUD (Australian Dollar)</option>
-                        <option value="SAR">SAR (Saudi Riyal)</option>
-                        <option value="AED">AED (UAE Dirham)</option>
-                        <option value="SGD">SGD (Singapore Dollar)</option>
-                        <option value="CNY">CNY (Chinese Yuan)</option>
-                        <option value="JPY">JPY (Japanese Yen)</option>
-                      </select>
+                        onChange={field.onChange}
+                        options={[
+                          { value: 'BDT', label: 'BDT (Bangladeshi Taka)', code: 'BDT' },
+                          { value: 'USD', label: 'USD (US Dollar)', code: 'USD' },
+                          { value: 'EUR', label: 'EUR (Euro)', code: 'EUR' },
+                          { value: 'GBP', label: 'GBP (British Pound)', code: 'GBP' },
+                          { value: 'INR', label: 'INR (Indian Rupee)', code: 'INR' },
+                          { value: 'CAD', label: 'CAD (Canadian Dollar)', code: 'CAD' },
+                          { value: 'AUD', label: 'AUD (Australian Dollar)', code: 'AUD' },
+                          { value: 'SAR', label: 'SAR (Saudi Riyal)', code: 'SAR' },
+                          { value: 'AED', label: 'AED (UAE Dirham)', code: 'AED' },
+                          { value: 'SGD', label: 'SGD (Singapore Dollar)', code: 'SGD' },
+                          { value: 'CNY', label: 'CNY (Chinese Yuan)', code: 'CNY' },
+                          { value: 'JPY', label: 'JPY (Japanese Yen)', code: 'JPY' },
+                        ]}
+                        placeholder="-- Select Currency (Optional) --"
+                        searchPlaceholder="Search currency..."
+                        buttonClassName="h-8.5 rounded-lg text-xs font-mono font-bold"
+                      />
                     )}
                   />
                 </div>

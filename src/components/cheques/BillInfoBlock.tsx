@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FileText, Calculator, AlertCircle } from 'lucide-react';
 import { listBillsBySupplier } from '../../services/mastersService';
 import { Bill } from '../../mock/bills';
+import { SearchableSelect } from '../shared/SearchableSelect';
 
 interface BillInfoBlockProps {
   supplierId?: string;
@@ -76,27 +77,27 @@ export const BillInfoBlock: React.FC<BillInfoBlockProps> = ({
             <span>Bill No</span>
             <span className="text-rose-500 font-bold">*</span>
           </label>
-          <select
+          <SearchableSelect
             value={billNo}
-            onChange={(e) => handleBillChange(e.target.value)}
+            onChange={(val) => handleBillChange(val)}
             disabled={!supplierId || bills.length === 0}
-            className={`w-full h-9 px-3 rounded-lg border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-amber-500 shadow-2xs cursor-pointer ${
-              !supplierId || bills.length === 0 ? 'bg-muted/40 text-muted-foreground' : ''
-            } ${errors['bill.billNo'] || errors.bill ? 'border-rose-400 focus:ring-rose-500' : 'border-border'}`}
-          >
-            <option value="">
-              {!supplierId
+            options={bills.map((b) => ({
+              value: b.billNo,
+              label: b.billNo,
+              sublabel: `Amount: ${b.billValue.toLocaleString()} | Date: ${b.billDate}`,
+            }))}
+            placeholder={
+              !supplierId
                 ? '-- Select Supplier First --'
                 : bills.length === 0
                 ? '-- No pending bills --'
-                : '-- Select Bill No --'}
-            </option>
-            {bills.map((b) => (
-              <option key={b.id} value={b.billNo}>
-                {b.billNo}
-              </option>
-            ))}
-          </select>
+                : '-- Select Bill No --'
+            }
+            searchPlaceholder="Search bill no..."
+            buttonClassName={`h-9 rounded-lg text-xs font-semibold ${
+              !supplierId || bills.length === 0 ? 'bg-muted/40 text-muted-foreground' : ''
+            } ${errors['bill.billNo'] || errors.bill ? 'border-rose-400 focus:ring-rose-500' : ''}`}
+          />
         </div>
 
         {/* 2. Bill Date */}

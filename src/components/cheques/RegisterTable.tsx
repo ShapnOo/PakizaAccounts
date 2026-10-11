@@ -13,10 +13,17 @@ import {
   ChevronDown,
   Calendar,
   Plus,
+  Sparkles,
+  Edit3,
+  Lock,
+  CheckCircle2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { ChequePrepare, PrepareLine, SourceType, ChequeFor } from '../../types/chequePrepare';
 import { SourceTypeChip } from './SourceTypeChip';
 import { VoidConfirmDialog } from './VoidConfirmDialog';
+import { useVouchers } from '../../context/VoucherContext';
+import { useChequePrepareStore } from '../../stores/preparedChequeStore';
 
 interface FlatRegisterRow {
   preparedId: string;
@@ -31,8 +38,10 @@ interface FlatRegisterRow {
   chequeDate: string;
   payTo: string;
   amount: number;
+  voucherId?: string;
   voucherNo?: string;
   voucherDate?: string;
+  isVoucherGenerated: boolean;
   rawRecord: ChequePrepare;
 }
 
@@ -48,11 +57,14 @@ export const RegisterTable: React.FC<RegisterTableProps> = ({
   isLoading = false,
 }) => {
   const navigate = useNavigate();
+  const { postVoucherEntry } = useVouchers();
+  const { update: updatePreparedCheque } = useChequePrepareStore();
 
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState('');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
   const [chequeForFilter, setChequeForFilter] = useState<string>('all');
+  const [voucherStatusFilter, setVoucherStatusFilter] = useState<'all' | 'generated' | 'non-generated'>('all');
   const [pageSize, setPageSize] = useState<number>(25);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
@@ -63,10 +75,60 @@ export const RegisterTable: React.FC<RegisterTableProps> = ({
   // Active kebab row
   const [activeMenuIdx, setActiveMenuIdx] = useState<number | null>(null);
 
+  // Quick action: Generate Voucher for non-generated cheque
+  const handleGenerateVoucher = async (rec: ChequePrepare) => {
+    try {
+      const totalAmount = rec.lines.reduce((sum, l) => sum + (l.amount || 0), 0);
+      const voucherNo = `VCH-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const voucherDate = new Date().toISOString().split('T')[0];
+
+      const posted = postVoucherEntry({
+        id: `vch-${Date.now()}`,
+        voucherNumber: voucherNo,
+        voucherType: 'Payment Voucher',
+        date: voucherDate,
+        headerAccountId: rec.accountsBankId,
+        headerAccountName: rec.bankName,
+        lines: rec.lines.map((line, idx) => ({
+          id: `line-${idx + 1}`,
+          accountHeadId: line.glAccountId,
+          accountHeadName: line.name || line.payTo || 'Accounts Payable',
+          currency: 'BDT',
+          exchangeRate: 1,
+          debit: line.amount,
+          credit: 0,
+          debitBDT: line.amount,
+          creditBDT: 0,
+          description: `CQ No: ${line.chequeNo} | Pay to: ${line.payTo}`,
+        })),
+        narration: rec.narration || `Cheque disbursement for ${rec.sourceType} payment`,
+        totals: {
+          debit: totalAmount,
+          credit: totalAmount,
+          debitBDT: totalAmount,
+          creditBDT: totalAmount,
+        },
+        createdAt: new Date().toISOString(),
+      });
+
+      await updatePreparedCheque(rec.id, {
+        voucherId: posted.id,
+        voucherNo: posted.voucherNumber,
+        voucherDate: voucherDate,
+        voucherType: 'Payment Voucher',
+      });
+
+      toast.success(`Voucher ${posted.voucherNumber} generated successfully!`);
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to generate voucher');
+    }
+  };
+
   // Flatten multi-line records into single table rows
   const flatRows = useMemo<FlatRegisterRow[]>(() => {
     const list: FlatRegisterRow[] = [];
     records.forEach((rec) => {
+      const isVoucherGenerated = Boolean(rec.voucherId || (rec.voucherNo && rec.voucherNo !== '—'));
       if (rec.lines && rec.lines.length > 0) {
         rec.lines.forEach((line) => {
           list.push({
@@ -82,8 +144,10 @@ export const RegisterTable: React.FC<RegisterTableProps> = ({
             chequeDate: line.chequeDate,
             payTo: line.payTo,
             amount: line.amount,
-            voucherNo: rec.voucherNo || (rec.voucherType ? `VCH-2026-${rec.id.slice(-4).toUpperCase()}` : '—'),
-            voucherDate: rec.voucherDate || rec.createdAt.split('T')[0],
+            voucherId: rec.voucherId,
+            voucherNo: isVoucherGenerated ? (rec.voucherNo || `VCH-2026-${rec.id.slice(-4).toUpperCase()}`) : undefined,
+            voucherDate: isVoucherGenerated ? (rec.voucherDate || rec.createdAt.split('T')[0]) : undefined,
+            isVoucherGenerated,
             rawRecord: rec,
           });
         });
@@ -104,10 +168,14 @@ export const RegisterTable: React.FC<RegisterTableProps> = ({
 
       const matchSource = sourceFilter === 'all' || r.sourceType === sourceFilter;
       const matchFor = chequeForFilter === 'all' || r.chequeFor === chequeForFilter;
+      const matchVoucherStatus =
+        voucherStatusFilter === 'all' ||
+        (voucherStatusFilter === 'generated' && r.isVoucherGenerated) ||
+        (voucherStatusFilter === 'non-generated' && !r.isVoucherGenerated);
 
-      return matchSearch && matchSource && matchFor;
+      return matchSearch && matchSource && matchFor && matchVoucherStatus;
     });
-  }, [flatRows, searchTerm, sourceFilter, chequeForFilter]);
+  }, [flatRows, searchTerm, sourceFilter, chequeForFilter, voucherStatusFilter]);
 
   // Paginated slice
   const paginatedRows = useMemo(() => {
@@ -195,6 +263,20 @@ export const RegisterTable: React.FC<RegisterTableProps> = ({
 
         {/* Right: Filters & Export */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* Voucher Status Filter */}
+          <select
+            value={voucherStatusFilter}
+            onChange={(e) => {
+              setVoucherStatusFilter(e.target.value as any);
+              setCurrentPage(1);
+            }}
+            className="h-9 px-3 rounded-lg border border-border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer"
+          >
+            <option value="all">All Voucher Status</option>
+            <option value="generated">Generated Voucher</option>
+            <option value="non-generated">Non-Generated Voucher</option>
+          </select>
+
           {/* Source Type Filter */}
           <select
             value={sourceFilter}
@@ -345,16 +427,34 @@ export const RegisterTable: React.FC<RegisterTableProps> = ({
                   </td>
 
                   <td className="py-2.5 px-3 whitespace-nowrap">
-                    {row.voucherNo && row.voucherNo !== '—' ? (
-                      <button
-                        type="button"
-                        onClick={() => navigate('/accounts-report/journal')}
-                        className="font-mono text-[11px] font-bold text-primary hover:underline cursor-pointer"
-                      >
-                        {row.voucherNo}
-                      </button>
+                    {row.isVoucherGenerated ? (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => navigate('/accounts-report/journal')}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer"
+                          title="View generated voucher in journal"
+                        >
+                          <FileText className="size-3" />
+                          <span>{row.voucherNo}</span>
+                        </button>
+                        <span className="text-[10px] text-muted-foreground" title="Voucher Generated (Editing Locked)">🔒</span>
+                      </div>
                     ) : (
-                      <span className="text-muted-foreground/60">—</span>
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                          Non-Generated
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleGenerateVoucher(row.rawRecord)}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-[10.5px] font-bold shadow-2xs transition-all cursor-pointer active:scale-95"
+                          title="Generate Voucher for this cheque"
+                        >
+                          <Sparkles className="size-3" />
+                          <span>Generate</span>
+                        </button>
+                      </div>
                     )}
                   </td>
 
@@ -376,8 +476,53 @@ export const RegisterTable: React.FC<RegisterTableProps> = ({
                       {activeMenuIdx === idx && (
                         <div
                           onMouseLeave={() => setActiveMenuIdx(null)}
-                          className="absolute right-3 z-30 mt-1 w-36 rounded-lg bg-card border border-border shadow-lg py-1 animate-in fade-in-50 zoom-in-95 text-left"
+                          className="absolute right-3 z-30 mt-1 w-44 rounded-lg bg-card border border-border shadow-lg py-1 animate-in fade-in-50 zoom-in-95 text-left"
                         >
+                          {/* 1. Generate Voucher (if non-generated) */}
+                          {!row.isVoucherGenerated && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveMenuIdx(null);
+                                handleGenerateVoucher(row.rawRecord);
+                              }}
+                              className="w-full px-3 py-1.5 flex items-center gap-2 text-xs font-bold text-primary hover:bg-primary/10 cursor-pointer"
+                            >
+                              <Sparkles className="size-3.5 text-primary" />
+                              <span>Generate Voucher</span>
+                            </button>
+                          )}
+
+                          {/* 2. Edit Cheque (Editable if non-generated, Locked if generated) */}
+                          {!row.isVoucherGenerated ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveMenuIdx(null);
+                                const targetPath =
+                                  row.sourceType === 'bill'
+                                    ? '/cheque-prepare/bill'
+                                    : row.sourceType === 'iou'
+                                    ? '/cheque-prepare/iou'
+                                    : '/cheque-prepare/direct';
+                                navigate(`${targetPath}?edit=${row.preparedId}`);
+                              }}
+                              className="w-full px-3 py-1.5 flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted/60 cursor-pointer"
+                            >
+                              <Edit3 className="size-3.5 text-blue-600" />
+                              <span>Edit Cheque</span>
+                            </button>
+                          ) : (
+                            <div
+                              className="w-full px-3 py-1.5 flex items-center gap-2 text-xs font-medium text-muted-foreground/50 cursor-not-allowed select-none bg-muted/20"
+                              title="Once a voucher is generated, it cannot be edited"
+                            >
+                              <Lock className="size-3.5 text-muted-foreground/40" />
+                              <span>Edit (Locked)</span>
+                            </div>
+                          )}
+
+                          {/* 3. Cheque Print */}
                           <button
                             type="button"
                             onClick={() => {
@@ -390,18 +535,30 @@ export const RegisterTable: React.FC<RegisterTableProps> = ({
                             <span>Cheque Print</span>
                           </button>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setActiveMenuIdx(null);
-                              navigate('/accounts-report/journal');
-                            }}
-                            className="w-full px-3 py-1.5 flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted/60 cursor-pointer"
-                          >
-                            <FileText className="size-3.5 text-emerald-600" />
-                            <span>Voucher Print</span>
-                          </button>
+                          {/* 4. Voucher Print */}
+                          {row.isVoucherGenerated ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveMenuIdx(null);
+                                navigate('/accounts-report/journal');
+                              }}
+                              className="w-full px-3 py-1.5 flex items-center gap-2 text-xs font-semibold text-foreground hover:bg-muted/60 cursor-pointer"
+                            >
+                              <FileText className="size-3.5 text-emerald-600" />
+                              <span>Voucher Print</span>
+                            </button>
+                          ) : (
+                            <div
+                              className="w-full px-3 py-1.5 flex items-center gap-2 text-xs font-medium text-muted-foreground/40 cursor-not-allowed select-none"
+                              title="Generate voucher first before printing"
+                            >
+                              <FileText className="size-3.5 text-muted-foreground/30" />
+                              <span>Voucher Print</span>
+                            </div>
+                          )}
 
+                          {/* 5. Void Cheque */}
                           <button
                             type="button"
                             onClick={() => {

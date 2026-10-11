@@ -38,6 +38,7 @@ export interface ChequePrepare {
   accountsBankId: string;
   bankName: string;
   bookName: string;
+  chequeBookId?: string;
 
   chequeFor?: ChequeFor; // Bill/IOU only (single)
   name?: string; // Bill/IOU only (single)

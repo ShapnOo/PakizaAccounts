@@ -72,7 +72,7 @@ export const OpeningBalanceEntryPage: React.FC = () => {
         'Account Code': acc ? acc.code : '',
         'Cost Center': cc ? cc.name : l.costCenterId || '',
         'Subsidiary (Vendor/Customer)': sub ? sub.name : l.subsidiaryId || '',
-        Employee: emp ? emp.name : l.employeeId || '',
+        Employee: emp ? `${emp.name} (${emp.code || emp.id})` : l.employeeId || '',
         Vehicle: veh ? veh.name : l.vehicleId || '',
         Reference: l.reference || '',
         Description: l.description || '',

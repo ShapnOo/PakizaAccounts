@@ -107,11 +107,12 @@ export const SUBSIDIARIES = [
 ];
 
 export const EMPLOYEES = [
-  { id: 'emp-1', name: 'Tahmid Afsar (Accounts & Finance)' },
-  { id: 'emp-2', name: 'Rahim Ullah (Procurement Officer)' },
-  { id: 'emp-3', name: 'Kamal Hossain (Production Manager)' },
-  { id: 'emp-4', name: 'Salma Khatun (Commercial Executive)' },
+  { id: 'emp-1', code: 'EMP-001', name: 'Tahmid Afsar (EMP-001)' },
+  { id: 'emp-2', code: 'EMP-002', name: 'Rahim Ullah (EMP-002)' },
+  { id: 'emp-3', code: 'EMP-003', name: 'Kamal Hossain (EMP-003)' },
+  { id: 'emp-4', code: 'EMP-004', name: 'Salma Khatun (EMP-004)' },
 ];
+
 
 export const VEHICLES = [
   { id: 'veh-1', name: 'DM-TA-11-2099 (Covered Van 3.5T)' },

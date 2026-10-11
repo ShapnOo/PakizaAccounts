@@ -11,6 +11,7 @@ import { VoucherTypeChip } from './VoucherTypeChip';
 import { LineItemTable } from './LineItemTable';
 import { VoucherFooterTotals } from './VoucherFooterTotals';
 import { AccountHeadPicker } from './AccountHeadPicker';
+import { SearchableSelect } from '../shared/SearchableSelect';
 import {
   Calendar,
   Save,
@@ -224,18 +225,14 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({ type, onSave
             {/* Cost Center Picker */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-foreground/85">Header Cost Center</label>
-              <select
+              <SearchableSelect
                 value={headerCostCenterId}
-                onChange={(e) => setHeaderCostCenterId(e.target.value)}
-                className="w-full h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary cursor-pointer shadow-2xs"
-              >
-                <option value="">Select Cost Center...</option>
-                {COST_CENTERS.map((cc) => (
-                  <option key={cc.id} value={cc.id}>
-                    {cc.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setHeaderCostCenterId}
+                options={COST_CENTERS.map((cc) => ({ value: cc.id, label: cc.name }))}
+                placeholder="Select Cost Center..."
+                searchPlaceholder="Filter cost center..."
+                buttonClassName="h-8.5 rounded-lg border-border/80 text-xs font-semibold"
+              />
             </div>
           </div>
         )}

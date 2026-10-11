@@ -29,7 +29,7 @@ const AUX_DIMENSIONS = [
     label: 'Employee',
     icon: User,
     placeholder: 'Select fixed employee...',
-    samples: ['EMP-001 (Tahmid Afsar)', 'EMP-002 (Rahim Ullah)'],
+    samples: ['Tahmid Afsar (EMP-001)', 'Rahim Ullah (EMP-002)', 'Ayesha Khatun (EMP-003)'],
   },
   {
     key: 'reference' as const,

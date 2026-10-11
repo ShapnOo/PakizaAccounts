@@ -7,6 +7,7 @@ import { MOCK_VEHICLES } from '../../mock/vehicles';
 import { Account } from '../../types/coa';
 import { Employee } from '../../mock/employees';
 import { WizardStepIndicator } from './WizardStepIndicator';
+import { SearchableSelect } from '../shared/SearchableSelect';
 
 export const FilterModal: React.FC = () => {
   const { step, criteria, setCriteria, resetCriteria, runFilter, closeWizard, filtering } =
@@ -219,22 +220,19 @@ export const FilterModal: React.FC = () => {
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Employee
               </label>
-              <select
+              <SearchableSelect
                 value={criteria.employee || ''}
-                onChange={(e) => setCriteria({ employee: e.target.value })}
-                className="w-full px-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
-              >
-                <option value="">-- All Employees --</option>
-                <option value="Riazul Islam">Riazul Islam</option>
-                <option value="Tanvir Ahmed">Tanvir Ahmed</option>
-                <option value="Ayesha Khatun">Ayesha Khatun</option>
-                <option value="Sadia Rahman">Sadia Rahman</option>
-                {employees.map((emp) => (
-                  <option key={emp.id} value={emp.name}>
-                    {emp.name} ({emp.designation})
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setCriteria({ employee: val })}
+                options={employees.map((emp) => ({
+                  value: emp.name,
+                  label: `${emp.name} (${emp.code || emp.id})`,
+                  subLabel: emp.designation,
+                  code: emp.code || emp.id,
+                }))}
+                placeholder="-- All Employees --"
+                searchPlaceholder="Search by name or employee ID..."
+                buttonClassName="h-9.5 px-3 rounded-lg text-xs sm:text-sm font-medium bg-slate-50 border-slate-200"
+              />
             </div>
 
             {/* Vehicle */}

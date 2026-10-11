@@ -9,6 +9,7 @@ import { MOCK_VEHICLES } from '../../mock/vehicles';
 import { Account } from '../../types/coa';
 import { Employee } from '../../mock/employees';
 import { WizardStepIndicator } from './WizardStepIndicator';
+import { SearchableSelect } from '../shared/SearchableSelect';
 
 interface UpdateModalProps {
   onSuccess?: (msg: string) => void;
@@ -156,25 +157,22 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ onSuccess }) => {
 
       case 'employee':
         return (
-          <select
+          <SearchableSelect
             value={newValue}
-            onChange={(e) => {
-              setNewValue(e.target.value);
+            onChange={(val) => {
+              setNewValue(val);
               setErrorMsg(null);
             }}
-            className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-medium"
-          >
-            <option value="">-- Select Employee --</option>
-            <option value="Riazul Islam">Riazul Islam (Chief Accountant)</option>
-            <option value="Tanvir Ahmed">Tanvir Ahmed (Senior Accounts Officer)</option>
-            <option value="Ayesha Khatun">Ayesha Khatun (Accounts Executive)</option>
-            <option value="Sadia Rahman">Sadia Rahman (Accounts Assistant)</option>
-            {employees.map((emp) => (
-              <option key={emp.id} value={emp.name}>
-                {emp.name} ({emp.designation})
-              </option>
-            ))}
-          </select>
+            options={employees.map((emp) => ({
+              value: emp.name,
+              label: `${emp.name} (${emp.code || emp.id})`,
+              subLabel: emp.designation,
+              code: emp.code || emp.id,
+            }))}
+            placeholder="-- Select Employee --"
+            searchPlaceholder="Search by name or employee ID..."
+            buttonClassName="h-10 px-3.5 rounded-lg text-xs sm:text-sm font-medium"
+          />
         );
 
       case 'vehicle':

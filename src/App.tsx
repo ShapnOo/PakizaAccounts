@@ -41,6 +41,7 @@ import { PresetJournalFormPage } from "./pages/preset-journal/Form";
 import { BulkUploadPage } from "./pages/bulk-upload/Index";
 import { BulkUpdatePage } from "./pages/bulk-update/Index";
 import { FinancialPeriodSetupPage } from "./pages/financial-period/FinancialPeriodSetup";
+import { GeneralLedgerPage } from "./pages/reports/GeneralLedgerPage";
 import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen, Repeat, UploadCloud, RefreshCw, CalendarDays } from "lucide-react";
 import { Toaster } from "sonner";
 
@@ -324,6 +325,11 @@ export default function App() {
                   <Route path="/bank-management/cheque-setup" element={<Navigate to="/cheque-setup" replace />} />
                   <Route path="/bank-management/cheque-preparation-payment" element={<Navigate to="/cheque-prepare/direct" replace />} />
                   <Route path="/bank-management/cheque-book-register" element={<Navigate to="/cheque-prepare/register" replace />} />
+
+                  {/* General Ledger Report Routes */}
+                  <Route path="/reports/ledger/general-ledger" element={<GeneralLedgerPage />} />
+                  <Route path="/accounts-report/general-ledger" element={<GeneralLedgerPage />} />
+                  <Route path="/general-ledger" element={<Navigate to="/reports/ledger/general-ledger" replace />} />
 
                   <Route path="*" element={<ContentArea />} />
                 </Routes>

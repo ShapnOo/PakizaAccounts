@@ -27,6 +27,7 @@ import { listSuppliers, listEmployees, listCustomers } from '../../services/mast
 import { Supplier } from '../../mock/suppliers';
 import { Employee } from '../../mock/employees';
 import { Customer } from '../../mock/customers';
+import { SearchableSelect } from '../shared/SearchableSelect';
 
 interface PrepareChequeTableProps {
   sourceType: SourceType;
@@ -332,50 +333,43 @@ export const PrepareChequeTable: React.FC<PrepareChequeTableProps> = ({
                   {isDirect && columns.name && (
                     <td className="py-2 px-2">
                       {line.chequeFor === 'Supplier' ? (
-                        <select
+                        <SearchableSelect
                           value={line.name || ''}
-                          onChange={(e) => handleUpdateLine(idx, { name: e.target.value })}
-                          className={`w-full h-8 px-2 rounded-md border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer ${
-                            errors[`lines.${idx}.name`] ? 'border-rose-400' : 'border-border/80'
-                          }`}
-                        >
-                          <option value="">-- Select Supplier --</option>
-                          {suppliers.map((s) => (
-                            <option key={s.id} value={s.name}>
-                              {s.name}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(val) => handleUpdateLine(idx, { name: val })}
+                          options={suppliers.map((s) => ({ value: s.name, label: s.name }))}
+                          placeholder="-- Select Supplier --"
+                          searchPlaceholder="Search supplier..."
+                          error={!!errors[`lines.${idx}.name`]}
+                          buttonClassName="h-8 rounded-md text-xs font-semibold"
+                        />
                       ) : line.chequeFor === 'Employee' ? (
-                        <select
+                        <SearchableSelect
                           value={line.name || ''}
-                          onChange={(e) => handleUpdateLine(idx, { name: e.target.value })}
-                          className={`w-full h-8 px-2 rounded-md border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer ${
-                            errors[`lines.${idx}.name`] ? 'border-rose-400' : 'border-border/80'
-                          }`}
-                        >
-                          <option value="">-- Select Employee --</option>
-                          {employees.map((em) => (
-                            <option key={em.id} value={em.name}>
-                              {em.name}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(val) => handleUpdateLine(idx, { name: val })}
+                          options={employees.map((em) => ({
+                            value: em.name,
+                            label: `${em.name} (${em.code || em.id})`,
+                            subLabel: em.designation,
+                            code: em.code || em.id,
+                          }))}
+                          placeholder="-- Select Employee --"
+                          searchPlaceholder="Search by name or employee ID..."
+                          error={!!errors[`lines.${idx}.name`]}
+                          buttonClassName="h-8 rounded-md text-xs font-semibold"
+                        />
                       ) : line.chequeFor === 'Customer' ? (
-                        <select
+                        <SearchableSelect
                           value={line.name || ''}
-                          onChange={(e) => handleUpdateLine(idx, { name: e.target.value })}
-                          className={`w-full h-8 px-2 rounded-md border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer ${
-                            errors[`lines.${idx}.name`] ? 'border-rose-400' : 'border-border/80'
-                          }`}
-                        >
-                          <option value="">-- Select Customer --</option>
-                          {customers.map((c) => (
-                            <option key={c.id} value={c.customerName}>
-                              {c.customerName}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(val) => handleUpdateLine(idx, { name: val })}
+                          options={customers.map((c) => ({
+                            value: c.customerName,
+                            label: c.customerName,
+                          }))}
+                          placeholder="-- Select Customer --"
+                          searchPlaceholder="Search customer..."
+                          error={!!errors[`lines.${idx}.name`]}
+                          buttonClassName="h-8 rounded-md text-xs font-semibold"
+                        />
                       ) : (
                         <input
                           type="text"

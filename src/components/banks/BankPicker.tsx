@@ -3,6 +3,7 @@ import { Bank } from '../../types/bank';
 import { useBankStore } from '../../stores/bankStore';
 import { BankModal } from './BankModal';
 import { Landmark, Plus } from 'lucide-react';
+import { SearchableSelect } from '../shared/SearchableSelect';
 
 interface BankPickerProps {
   value?: string;
@@ -50,22 +51,20 @@ export const BankPicker: React.FC<BankPickerProps> = ({
         </button>
       </div>
 
-      <select
+      <SearchableSelect
         value={currentBankId}
-        onChange={(e) => onChange(e.target.value)}
-        className={`w-full h-9 px-3 rounded-lg border bg-background text-xs font-medium text-foreground outline-none transition-all cursor-pointer shadow-2xs ${
-          error
-            ? 'border-rose-400 focus:ring-1 focus:ring-rose-500'
-            : 'border-border focus:ring-1 focus:ring-indigo-500'
+        onChange={(val) => onChange(val)}
+        options={banks.map((b) => ({
+          value: b.id,
+          label: `${b.name} (${b.alias})`,
+          sublabel: b.alias ? `Alias: ${b.alias}` : undefined,
+        }))}
+        placeholder="-- Select Bank Entity --"
+        searchPlaceholder="Search bank by name or alias..."
+        buttonClassName={`h-9 rounded-lg text-xs font-medium ${
+          error ? 'border-rose-400 focus:ring-rose-500' : ''
         }`}
-      >
-        <option value="">-- Select Bank Entity --</option>
-        {banks.map((b) => (
-          <option key={b.id} value={b.id}>
-            {b.name} ({b.alias})
-          </option>
-        ))}
-      </select>
+      />
 
       {error && <p className="text-[11px] text-rose-500 font-medium">{error}</p>}
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { CustomField } from '../../types/customField';
 import { Check, Calendar, ChevronDown } from 'lucide-react';
+import { SearchableSelect } from './SearchableSelect';
 
 interface CustomFieldCellProps {
   field: CustomField;
@@ -104,24 +105,19 @@ export const CustomFieldCell: React.FC<CustomFieldCellProps> = ({
 
     case 'Dropdown':
       return (
-        <div className="relative">
-          <select
-            value={value ?? ''}
-            onChange={(e) => onChange(e.target.value)}
-            disabled={disabled}
-            className={`${baseInputStyles} appearance-none pr-7 cursor-pointer ${className}`}
-          >
-            <option value="">
-              {placeholder || (field.mandatory ? 'Select *' : 'Select option')}
-            </option>
-            {field.options?.map((opt, i) => (
-              <option key={i} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="size-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
-        </div>
+        <SearchableSelect
+          value={value ?? ''}
+          onChange={(val) => onChange(val)}
+          disabled={disabled}
+          options={(field.options || []).map((opt) => ({
+            value: opt,
+            label: opt,
+          }))}
+          placeholder={placeholder || (field.mandatory ? 'Select *' : 'Select option')}
+          searchPlaceholder={`Search ${field.label || 'option'}...`}
+          className={className}
+          buttonClassName="h-8 rounded-lg text-xs"
+        />
       );
 
     case 'YesNo':

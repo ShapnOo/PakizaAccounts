@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check, CheckSquare, Square, X } from 'lucide-react';
+import { ChevronDown, Check, CheckSquare, Square, X, Search } from 'lucide-react';
 import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 
 interface AuxMultiSelectPickerProps {
@@ -18,7 +18,9 @@ export const AuxMultiSelectPicker: React.FC<AuxMultiSelectPickerProps> = ({
   disabled = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { openUpward, maxHeight } = useDropdownPosition({
     triggerRef: containerRef,
@@ -46,6 +48,14 @@ export const AuxMultiSelectPicker: React.FC<AuxMultiSelectPickerProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => searchInputRef.current?.focus(), 50);
+    } else {
+      setSearch('');
+    }
+  }, [isOpen]);
+
   const handleToggleItem = (item: string) => {
     let next: string[];
     if (selectedArray.includes(item)) {
@@ -57,6 +67,11 @@ export const AuxMultiSelectPicker: React.FC<AuxMultiSelectPickerProps> = ({
   };
 
   const isAllSelected = samples.length > 0 && samples.every((c) => selectedArray.includes(c));
+
+  const filteredSamples = samples.filter((s) => {
+    if (!search.trim()) return true;
+    return s.toLowerCase().includes(search.toLowerCase().trim());
+  });
 
   const handleSelectAll = () => {
     if (isAllSelected) {
@@ -123,6 +138,19 @@ export const AuxMultiSelectPicker: React.FC<AuxMultiSelectPickerProps> = ({
               : 'top-full mt-1 origin-top animate-in fade-in-50 zoom-in-95'
           }`}
         >
+          {/* Search Bar */}
+          <div className="relative mb-1">
+            <Search className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder={`Search ${label}...`}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full h-7 pl-8 pr-2.5 text-xs bg-muted/40 rounded-md border border-border/80 outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground/60"
+            />
+          </div>
+
           {/* Select All */}
           <div
             onClick={handleSelectAll}
@@ -142,34 +170,40 @@ export const AuxMultiSelectPicker: React.FC<AuxMultiSelectPickerProps> = ({
           </div>
 
           {/* Sample items list */}
-          <div className="space-y-0.5 pt-0.5">
-            {samples.map((item) => {
-              const isSelected = selectedArray.includes(item);
-              return (
-                <div
-                  key={item}
-                  onClick={() => handleToggleItem(item)}
-                  className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                    isSelected
-                      ? 'bg-primary/10 text-primary font-bold'
-                      : 'hover:bg-muted/50 text-foreground font-medium'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div
-                      className={`size-4 rounded border grid place-items-center shrink-0 ${
-                        isSelected
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-muted-foreground/40 bg-background'
-                      }`}
-                    >
-                      {isSelected && <Check className="size-3 stroke-[3]" />}
+          <div className="space-y-0.5 pt-0.5 max-h-48 overflow-y-auto sidebar-scroll">
+            {filteredSamples.length === 0 ? (
+              <div className="py-2.5 text-center text-xs text-muted-foreground">
+                No {label.toLowerCase()}s found matching &ldquo;{search}&rdquo;
+              </div>
+            ) : (
+              filteredSamples.map((item) => {
+                const isSelected = selectedArray.includes(item);
+                return (
+                  <div
+                    key={item}
+                    onClick={() => handleToggleItem(item)}
+                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors ${
+                      isSelected
+                        ? 'bg-primary/10 text-primary font-bold'
+                        : 'hover:bg-muted/50 text-foreground font-medium'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div
+                        className={`size-4 rounded border grid place-items-center shrink-0 ${
+                          isSelected
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-muted-foreground/40 bg-background'
+                        }`}
+                      >
+                        {isSelected && <Check className="size-3 stroke-[3]" />}
+                      </div>
+                      <span className="truncate">{item}</span>
                     </div>
-                    <span className="truncate">{item}</span>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       )}

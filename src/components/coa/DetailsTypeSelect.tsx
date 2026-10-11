@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Check, ChevronDown, Sparkles, X } from 'lucide-react';
 import { DEFAULT_DETAILS_TYPE_OPTIONS } from '../../constants/accountsTypeTree';
+import { SearchableSelect } from '../shared/SearchableSelect';
 
 interface DetailsTypeSelectProps {
   value?: string;
@@ -48,24 +49,20 @@ export const DetailsTypeSelect: React.FC<DetailsTypeSelectProps> = ({
   return (
     <div className={`space-y-1.5 ${className}`}>
       <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <select
+        <div className="flex-1">
+          <SearchableSelect
             value={value || ''}
-            onChange={(e) => onChange(e.target.value)}
-            className={`w-full h-9 px-3 pr-8 rounded-lg bg-card border text-xs font-medium text-foreground appearance-none transition-all cursor-pointer shadow-2xs hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 ${
-              error ? 'border-rose-500/80 ring-2 ring-rose-500/10' : 'border-border/80'
-            }`}
-          >
-            <option value="">
-              {isMandatory ? '-- Select Details Type (Mandatory) --' : '-- Select Details Type (Optional) --'}
-            </option>
-            {allOptions.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="size-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            onChange={(val) => onChange(val)}
+            options={allOptions.map((opt) => ({ value: opt, label: opt }))}
+            placeholder={
+              isMandatory
+                ? '-- Select Details Type (Mandatory) --'
+                : '-- Select Details Type (Optional) --'
+            }
+            searchPlaceholder="Search details type..."
+            error={!!error}
+            buttonClassName="h-9 px-3 rounded-lg text-xs font-medium"
+          />
         </div>
 
         {/* Add+ Button */}

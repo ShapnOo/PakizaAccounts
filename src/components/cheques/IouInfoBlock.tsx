@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Receipt, Calculator, AlertCircle } from 'lucide-react';
 import { listIousByEmployee } from '../../services/mastersService';
 import { IouRequisition } from '../../mock/ious';
+import { SearchableSelect } from '../shared/SearchableSelect';
 
 interface IouInfoBlockProps {
   employeeId?: string;
@@ -76,27 +77,27 @@ export const IouInfoBlock: React.FC<IouInfoBlockProps> = ({
             <span>Requisition No</span>
             <span className="text-rose-500 font-bold">*</span>
           </label>
-          <select
+          <SearchableSelect
             value={requisitionNo}
-            onChange={(e) => handleIouChange(e.target.value)}
+            onChange={(val) => handleIouChange(val)}
             disabled={!employeeId || ious.length === 0}
-            className={`w-full h-9 px-3 rounded-lg border bg-background text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-violet-500 shadow-2xs cursor-pointer ${
-              !employeeId || ious.length === 0 ? 'bg-muted/40 text-muted-foreground' : ''
-            } ${errors['iou.requisitionNo'] || errors.iou ? 'border-rose-400 focus:ring-rose-500' : 'border-border'}`}
-          >
-            <option value="">
-              {!employeeId
+            options={ious.map((i) => ({
+              value: i.requisitionNo,
+              label: i.requisitionNo,
+              sublabel: `Amount: ${i.reqValue.toLocaleString()} | Date: ${i.reqDate}`,
+            }))}
+            placeholder={
+              !employeeId
                 ? '-- Select Employee First --'
                 : ious.length === 0
                 ? '-- No pending requisitions --'
-                : '-- Select Requisition No --'}
-            </option>
-            {ious.map((i) => (
-              <option key={i.id} value={i.requisitionNo}>
-                {i.requisitionNo}
-              </option>
-            ))}
-          </select>
+                : '-- Select Requisition No --'
+            }
+            searchPlaceholder="Search requisition no..."
+            buttonClassName={`h-9 rounded-lg text-xs font-semibold ${
+              !employeeId || ious.length === 0 ? 'bg-muted/40 text-muted-foreground' : ''
+            } ${errors['iou.requisitionNo'] || errors.iou ? 'border-rose-400 focus:ring-rose-500' : ''}`}
+          />
         </div>
 
         {/* 2. Req. Date */}
