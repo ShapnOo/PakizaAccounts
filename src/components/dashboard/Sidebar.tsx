@@ -118,18 +118,6 @@ export const nav: NavItem[] = [
     ],
   },
   {
-    label: "Voucher Management",
-    icon: Receipt,
-    subitems: [
-      { label: "Voucher Setup (List)", to: "/vouchers" },
-      { label: "New Voucher Definition", to: "/vouchers/new" },
-      { label: "Journal Voucher (JV)", to: "/vouchers/entry/journal" },
-      { label: "Payment Voucher (PV)", to: "/vouchers/entry/payment" },
-      { label: "Receive Voucher (RV)", to: "/vouchers/entry/receive" },
-      { label: "Contra Voucher (CV)", to: "/vouchers/entry/contra" },
-    ],
-  },
-  {
     label: "Journal Books",
     icon: BookOpen,
     subitems: [
@@ -240,6 +228,8 @@ export const nav: NavItem[] = [
 const READY_ROUTE_PATTERNS = [
   '/',
   '/accounts-config/master-config',
+  '/accounts-config/financial-period-setup',
+  '/financial-period-setup',
   '/accounts-config/chart-of-accounts',
   '/chart-of-accounts',
   '/accounts-config/opening-balance',

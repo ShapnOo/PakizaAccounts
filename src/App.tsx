@@ -40,7 +40,8 @@ import { PresetJournalListPage } from "./pages/preset-journal/List";
 import { PresetJournalFormPage } from "./pages/preset-journal/Form";
 import { BulkUploadPage } from "./pages/bulk-upload/Index";
 import { BulkUpdatePage } from "./pages/bulk-update/Index";
-import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen, Repeat, UploadCloud, RefreshCw } from "lucide-react";
+import { FinancialPeriodSetupPage } from "./pages/financial-period/FinancialPeriodSetup";
+import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen, Repeat, UploadCloud, RefreshCw, CalendarDays } from "lucide-react";
 import { Toaster } from "sonner";
 
 function ContentArea() {
@@ -82,6 +83,14 @@ function ContentArea() {
             >
               <Settings className="size-3.5" />
               <span>Master Configuration (F&A)</span>
+            </Link>
+
+            <Link
+              to="/accounts-config/financial-period-setup"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-indigo-200 bg-indigo-50/50 text-indigo-700 text-xs font-bold shadow-sm hover:bg-indigo-100/60 transition-all cursor-pointer"
+            >
+              <CalendarDays className="size-3.5 text-indigo-600" />
+              <span>Financial Period Setup</span>
             </Link>
 
             <Link
@@ -198,6 +207,8 @@ export default function App() {
                   <Route path="/user-dashboard" element={<OverviewDashboardPage />} />
 
                   <Route path="/accounts-config/master-config" element={<MasterConfigPage />} />
+                  <Route path="/accounts-config/financial-period-setup" element={<FinancialPeriodSetupPage />} />
+                  <Route path="/financial-period-setup" element={<Navigate to="/accounts-config/financial-period-setup" replace />} />
                   
                   {/* Chart of Accounts Routes */}
                   <Route path="/chart-of-accounts" element={<CoaListPage />} />
