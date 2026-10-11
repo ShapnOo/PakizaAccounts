@@ -29,13 +29,26 @@ interface FinancialPeriodStore {
   batchUnlockAllPeriods: (fyCode: string) => void;
   
   createFiscalYear: (payload: {
-    startYear: number;
+    startYear?: number;
+    code?: string;
     name?: string;
     startDate: string;
     endDate: string;
+    isActive?: boolean;
+    isClosed?: boolean;
     retainedEarningsAccount?: string;
     effectiveCompanies?: string[];
   }) => boolean;
+  
+  updateFiscalYear: (code: string, payload: {
+    name?: string;
+    startDate?: string;
+    endDate?: string;
+    isActive?: boolean;
+    isClosed?: boolean;
+  }) => void;
+
+  deleteFiscalYear: (code: string) => void;
   
   closeFiscalYear: (fyCode: string, retainedEarningsAccount: string, closedBy: string) => void;
   reopenFiscalYear: (fyCode: string) => void;
@@ -196,22 +209,23 @@ export const useFinancialPeriodStore = create<FinancialPeriodStore>()(
       },
 
       createFiscalYear: (payload) => {
-        const fyCode = `${payload.startYear}-${payload.startYear + 1}`;
+        const fyCode = payload.code || (payload.startYear ? `${payload.startYear}-${payload.startYear + 1}` : payload.name || `FY-${Date.now()}`);
         const exists = get().fiscalYears.some((f) => f.code === fyCode);
         if (exists) {
-          toast.error(`Fiscal Year ${fyCode} already exists!`);
+          toast.error(`Financial Period "${fyCode}" already exists!`);
           return false;
         }
 
-        const newPeriods = generatePeriodsForFiscalYear(payload.startYear, fyCode);
+        const startY = payload.startYear || parseInt(payload.startDate?.split('-')[0] || '2026', 10);
+        const newPeriods = generatePeriodsForFiscalYear(startY, fyCode);
         const newFy: FiscalYear = {
-          id: `fy-${fyCode}`,
+          id: `fy-${fyCode}-${Date.now()}`,
           code: fyCode,
-          name: payload.name || `Fiscal Year ${fyCode}`,
+          name: payload.name || fyCode,
           startDate: payload.startDate,
           endDate: payload.endDate,
-          isActive: false,
-          isClosed: false,
+          isActive: payload.isActive ?? true,
+          isClosed: payload.isClosed ?? false,
           effectiveCompanies: payload.effectiveCompanies || [
             'Pakiza Software Ltd.',
             'Pakiza Knit Composite Ltd.',
@@ -223,12 +237,42 @@ export const useFinancialPeriodStore = create<FinancialPeriodStore>()(
         };
 
         set((state) => ({
-          fiscalYears: [...state.fiscalYears, newFy],
+          fiscalYears: [newFy, ...state.fiscalYears],
           selectedFyCode: fyCode,
         }));
 
-        toast.success(`Fiscal Year ${fyCode} created with 12 monthly periods!`);
+        toast.success(`Financial Period "${payload.name || fyCode}" created successfully!`);
         return true;
+      },
+
+      updateFiscalYear: (code: string, payload) => {
+        set((state) => {
+          const updated = state.fiscalYears.map((fy) => {
+            if (fy.code !== code) return fy;
+            return {
+              ...fy,
+              name: payload.name !== undefined ? payload.name : fy.name,
+              startDate: payload.startDate !== undefined ? payload.startDate : fy.startDate,
+              endDate: payload.endDate !== undefined ? payload.endDate : fy.endDate,
+              isActive: payload.isActive !== undefined ? payload.isActive : fy.isActive,
+              isClosed: payload.isClosed !== undefined ? payload.isClosed : fy.isClosed,
+            };
+          });
+          return { fiscalYears: updated };
+        });
+        toast.success(`Financial Period updated successfully!`);
+      },
+
+      deleteFiscalYear: (code: string) => {
+        set((state) => {
+          const remaining = state.fiscalYears.filter((fy) => fy.code !== code);
+          const nextSelected = remaining.length > 0 ? remaining[0].code : '';
+          return {
+            fiscalYears: remaining,
+            selectedFyCode: state.selectedFyCode === code ? nextSelected : state.selectedFyCode,
+          };
+        });
+        toast.success(`Financial Period deleted successfully.`);
       },
 
       closeFiscalYear: (fyCode: string, retainedEarningsAccount: string, closedBy: string) => {
