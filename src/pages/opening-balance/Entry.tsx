@@ -109,10 +109,10 @@ export const OpeningBalanceEntryPage: React.FC = () => {
     const exists = lines.some((l) => l.id === savedLine.id);
     if (exists) {
       updateLine(savedLine.id, savedLine);
-      toast.success('Opening balance entry updated');
+      toast.success('Updated Successfully');
     } else {
       appendLines([savedLine]);
-      toast.success('Opening balance entry added');
+      toast.success('Added Successfully');
     }
   };
 

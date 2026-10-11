@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   Plus,
@@ -19,6 +19,7 @@ import { CostCenterPicker } from './CostCenterPicker';
 import { SubsidiaryPicker } from './SubsidiaryPicker';
 import { EmployeePicker } from './EmployeePicker';
 import { VehiclePicker } from './VehiclePicker';
+import { ReferenceCenterPicker } from './ReferenceCenterPicker';
 import { formatNumber } from '../../lib/format';
 import { round2 } from '../../lib/math/openingBalance';
 import { useCustomFields } from '../../hooks/useCustomFields';
@@ -39,6 +40,7 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
   onSave,
 }) => {
   const isEditMode = !!line;
+  const formRef = useRef<HTMLFormElement>(null);
 
   const [accountHeadId, setAccountHeadId] = useState('');
   const [balanceType, setBalanceType] = useState<'debit' | 'credit'>('debit');
@@ -163,23 +165,6 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
     }
   };
 
-  const handleToggleBalanceType = (type: 'debit' | 'credit') => {
-    setBalanceType(type);
-    if (type === 'debit') {
-      if (creditAmount && !debitAmount) {
-        setDebitAmount(creditAmount);
-        setCreditAmount('');
-      }
-    } else {
-      if (debitAmount && !creditAmount) {
-        setCreditAmount(debitAmount);
-        setDebitAmount('');
-      }
-    }
-    if (errors.amount) {
-      setErrors((prev) => ({ ...prev, amount: '' }));
-    }
-  };
 
   const handleCurrencyChange = (newCurr: string) => {
     setCurrency(newCurr);
@@ -237,7 +222,7 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
       return;
     }
 
-    const isCredit = balanceType === 'credit';
+    const isCredit = numCredit > 0;
     const effectiveAmount = isCredit ? numCredit : numDebit;
     const effectiveBDT = round2(effectiveAmount * (currency === 'BDT' ? 1 : numRate));
     const isForeign = currency !== 'BDT';
@@ -261,7 +246,34 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
     };
 
     onSave(savedLine);
-    onClose();
+    if (isEditMode) {
+      onClose();
+    } else {
+      // Refresh modal form fields instead of closing
+      setAccountHeadId('');
+      setDebitAmount('');
+      setCreditAmount('');
+      setBalanceType('debit');
+      setCurrency(DEFAULT_CURRENCY);
+      setExchangeRate('1');
+      setCostCenterId('');
+      setSubsidiaryId('');
+      setEmployeeId('');
+      setVehicleId('');
+      setReference('');
+      setDescription('');
+
+      const initialCustom: Record<string, any> = {};
+      customFields.forEach((cf) => {
+        if (cf.defaultValue !== undefined && cf.defaultValue !== null) {
+          initialCustom[cf.id] = cf.defaultValue;
+        }
+      });
+      setCustomFieldsValues(initialCustom);
+      setErrors({});
+
+      formRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -297,7 +309,7 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
         </div>
 
         {/* Modal Body Form (Scrollable) */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
+        <form ref={formRef} onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
           {/* 1. Account Head Picker */}
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-slate-700 dark:text-foreground">
@@ -323,42 +335,6 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
 
           {/* 2. Balance Type & Amounts Section */}
           <div className="p-4 bg-slate-50/70 dark:bg-muted/30 rounded-xl border border-slate-200 dark:border-border space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <span className="text-xs font-bold text-slate-700 dark:text-foreground">
-                Balance Direction:
-              </span>
-
-              {/* Segmented Toggle: Debit vs Credit */}
-              <div className="inline-flex items-center p-1 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card">
-                <button
-                  type="button"
-                  onClick={() => handleToggleBalanceType('debit')}
-                  className={[
-                    'inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer select-none',
-                    balanceType === 'debit'
-                      ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-2xs'
-                      : 'text-slate-500 hover:text-slate-800 dark:text-muted-foreground',
-                  ].join(' ')}
-                >
-                  <span className="size-2 rounded-full bg-emerald-600" />
-                  <span>Debit (+)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleToggleBalanceType('credit')}
-                  className={[
-                    'inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer select-none',
-                    balanceType === 'credit'
-                      ? 'bg-rose-50 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800 shadow-2xs'
-                      : 'text-slate-500 hover:text-slate-800 dark:text-muted-foreground',
-                  ].join(' ')}
-                >
-                  <span className="size-2 rounded-full bg-rose-600" />
-                  <span>Credit (-)</span>
-                </button>
-              </div>
-            </div>
-
             {/* Amount & Currency Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {/* Debit Amount Input */}
@@ -558,6 +534,15 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
                 </label>
                 <VehiclePicker value={vehicleId} onChange={setVehicleId} />
               </div>
+
+              {/* Reference Center */}
+              <div className="space-y-1 sm:col-span-2">
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-muted-foreground flex items-center gap-1">
+                  <FileText className="size-3 text-slate-400" />
+                  <span>Reference Center</span>
+                </label>
+                <ReferenceCenterPicker value={reference} onChange={setReference} />
+              </div>
             </div>
           </div>
 
@@ -600,33 +585,18 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
             </div>
           )}
 
-          {/* 4. Reference & Description */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-            <div className="space-y-1">
-              <label className="block text-[11px] font-bold text-slate-600 dark:text-muted-foreground">
-                Reference
-              </label>
-              <input
-                type="text"
-                value={reference}
-                onChange={(e) => setReference(e.target.value)}
-                placeholder="e.g. PO-2026-091, CASH-MAIN"
-                className="w-full h-8.5 px-3 rounded-lg border border-slate-300 dark:border-border bg-white dark:bg-card text-xs text-slate-900 dark:text-foreground focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500/20 outline-none"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="block text-[11px] font-bold text-slate-600 dark:text-muted-foreground">
-                Line Description / Remarks
-              </label>
-              <input
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="e.g. Advance payment for packaging materials"
-                className="w-full h-8.5 px-3 rounded-lg border border-slate-300 dark:border-border bg-white dark:bg-card text-xs text-slate-900 dark:text-foreground focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500/20 outline-none"
-              />
-            </div>
+          {/* 4. Description / Remarks */}
+          <div className="space-y-1 pt-1">
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-muted-foreground">
+              Line Description / Remarks
+            </label>
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="e.g. Advance payment for packaging materials"
+              className="w-full h-8.5 px-3 rounded-lg border border-slate-300 dark:border-border bg-white dark:bg-card text-xs text-slate-900 dark:text-foreground focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500/20 outline-none"
+            />
           </div>
         </form>
 
