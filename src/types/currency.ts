@@ -39,6 +39,10 @@ export interface ExchangeRate {
   rate: number;            // 120.4
   effectiveDate: string;   // ISO date string e.g. "2026-09-29"
   isBase: boolean;         // only one true
+  scheduledRate?: {
+    rate: number;
+    effectiveDate: string;
+  };
 }
 
 export interface RateHistoryEntry {

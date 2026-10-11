@@ -8,6 +8,7 @@ import {
   deleteCurrencySetup,
   listExchangeRates,
   upsertRate as apiUpsertRate,
+  bulkUpsertRates as apiBulkUpsertRates,
   setBaseCurrency as apiSetBaseCurrency,
 } from '../services/currencyService';
 import { toast } from 'sonner';
@@ -28,6 +29,9 @@ export interface CurrencyStoreState {
   updateSetup: (id: string, patch: Partial<CurrencySetup>) => Promise<CurrencySetup>;
   deleteSetup: (id: string) => Promise<void>;
   upsertRate: (currencyId: string, rate: number, date: string) => Promise<void>;
+  bulkUpsertRates: (
+    updates: { currencyId: string; rate: number; effectiveDate: string }[]
+  ) => Promise<ExchangeRate[]>;
   setBase: (currencyId: string) => Promise<void>;
 }
 
@@ -122,6 +126,21 @@ export const useCurrencyStore = create<CurrencyStoreState>()(
           toast.success('Exchange rate updated');
         } catch (err: any) {
           toast.error(err.message || 'Failed to update rate');
+        }
+      },
+
+      bulkUpsertRates: async (
+        updates: { currencyId: string; rate: number; effectiveDate: string }[]
+      ) => {
+        set({ saving: true });
+        try {
+          const updatedRates = await apiBulkUpsertRates(updates);
+          set({ rates: updatedRates, saving: false });
+          return updatedRates;
+        } catch (err: any) {
+          set({ saving: false });
+          toast.error(err.message || 'Failed to bulk update rates');
+          throw err;
         }
       },
 

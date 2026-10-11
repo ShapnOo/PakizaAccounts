@@ -84,15 +84,70 @@ export async function deleteCurrencySetup(id: string): Promise<void> {
   localStorage.setItem(LS_RATES, JSON.stringify(updatedRates));
 }
 
+function computeRatesWithHistory(rates: ExchangeRate[]): ExchangeRate[] {
+  const today = new Date().toISOString().split('T')[0];
+  let allHistory: RateHistoryEntry[] = [];
+  try {
+    const raw = localStorage.getItem(LS_HISTORY);
+    allHistory = raw ? JSON.parse(raw) : MOCK_RATE_HISTORY;
+  } catch {
+    allHistory = MOCK_RATE_HISTORY;
+  }
+
+  return rates.map((r) => {
+    if (r.isBase) {
+      return { ...r, rate: 1, scheduledRate: undefined };
+    }
+
+    const curHistory = allHistory.filter((h) => h.currencyId === r.currencyId);
+    if (curHistory.length === 0) {
+      return r;
+    }
+
+    // Active entries where effectiveDate <= today
+    const activeEntries = curHistory
+      .filter((h) => h.effectiveDate <= today)
+      .sort((a, b) => {
+        if (b.effectiveDate !== a.effectiveDate) {
+          return b.effectiveDate.localeCompare(a.effectiveDate);
+        }
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+
+    // Scheduled upcoming entries where effectiveDate > today
+    const upcomingEntries = curHistory
+      .filter((h) => h.effectiveDate > today)
+      .sort((a, b) => {
+        if (a.effectiveDate !== b.effectiveDate) {
+          return a.effectiveDate.localeCompare(b.effectiveDate);
+        }
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+
+    const active = activeEntries[0];
+    const upcoming = upcomingEntries[0];
+
+    return {
+      ...r,
+      rate: active ? active.rate : r.rate,
+      effectiveDate: active ? active.effectiveDate : r.effectiveDate,
+      scheduledRate: upcoming
+        ? { rate: upcoming.rate, effectiveDate: upcoming.effectiveDate }
+        : undefined,
+    };
+  });
+}
+
 export async function listExchangeRates(): Promise<ExchangeRate[]> {
   await delay(250);
+  let baseRates: ExchangeRate[] = MOCK_RATES;
   try {
     const raw = localStorage.getItem(LS_RATES);
-    if (raw) return JSON.parse(raw);
+    if (raw) baseRates = JSON.parse(raw);
   } catch (err) {
     console.warn('Failed to parse rates', err);
   }
-  return MOCK_RATES;
+  return computeRatesWithHistory(baseRates);
 }
 
 export async function upsertRate(
@@ -101,35 +156,70 @@ export async function upsertRate(
   effectiveDate: string
 ): Promise<ExchangeRate> {
   await delay(300);
-  const rates = await listExchangeRates();
-  const existing = rates.find((r) => r.currencyId === currencyId);
+  const rawRates = await listExchangeRates();
+  const existing = rawRates.find((r) => r.currencyId === currencyId);
 
   // If this is the base currency, rate must be 1 (Rule C9)
   const finalRate = existing?.isBase ? 1 : rate;
 
+  // 1. Add historical/scheduled entry into history
+  await addRateHistoryEntry(currencyId, finalRate, effectiveDate);
+
+  // 2. Recompute rates against complete history
+  const today = new Date().toISOString().split('T')[0];
   let nextRates: ExchangeRate[];
-  let updatedRate: ExchangeRate;
 
   if (existing) {
-    updatedRate = { ...existing, rate: finalRate, effectiveDate };
-    nextRates = rates.map((r) => (r.currencyId === currencyId ? updatedRate : r));
+    nextRates = rawRates.map((r) => {
+      if (r.currencyId !== currencyId) return r;
+      if (effectiveDate > today) {
+        // Keep current active rate intact, attach scheduled rate
+        return {
+          ...r,
+          scheduledRate: { rate: finalRate, effectiveDate },
+        };
+      }
+      return {
+        ...r,
+        rate: finalRate,
+        effectiveDate,
+      };
+    });
   } else {
-    updatedRate = {
+    const isFuture = effectiveDate > today;
+    const newRate: ExchangeRate = {
+      id: `r-${Date.now()}`,
+      currencyId,
+      rate: isFuture ? 1 : finalRate,
+      effectiveDate: isFuture ? today : effectiveDate,
+      isBase: false,
+      scheduledRate: isFuture ? { rate: finalRate, effectiveDate } : undefined,
+    };
+    nextRates = [...rawRates, newRate];
+  }
+
+  const calculatedRates = computeRatesWithHistory(nextRates);
+  localStorage.setItem(LS_RATES, JSON.stringify(calculatedRates));
+
+  const updatedRate = calculatedRates.find((r) => r.currencyId === currencyId);
+  return (
+    updatedRate || {
       id: `r-${Date.now()}`,
       currencyId,
       rate: finalRate,
       effectiveDate,
       isBase: false,
-    };
-    nextRates = [...rates, updatedRate];
+    }
+  );
+}
+
+export async function bulkUpsertRates(
+  updates: { currencyId: string; rate: number; effectiveDate: string }[]
+): Promise<ExchangeRate[]> {
+  for (const item of updates) {
+    await upsertRate(item.currencyId, item.rate, item.effectiveDate);
   }
-
-  localStorage.setItem(LS_RATES, JSON.stringify(nextRates));
-
-  // Record historical entry (Rule C8)
-  await addRateHistoryEntry(currencyId, finalRate, effectiveDate);
-
-  return updatedRate;
+  return listExchangeRates();
 }
 
 export async function setBaseCurrency(currencyId: string): Promise<ExchangeRate[]> {

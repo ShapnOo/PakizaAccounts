@@ -3,7 +3,7 @@ import { CurrencySetup, ExchangeRate } from '../../types/currency';
 import { RateRow } from './RateRow';
 import { TableSkeleton } from './TableSkeleton';
 import { EmptyState } from './EmptyState';
-import { Search, Filter, SlidersHorizontal } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, Upload } from 'lucide-react';
 
 interface RateTableProps {
   setups: CurrencySetup[];
@@ -14,6 +14,8 @@ interface RateTableProps {
   onDelete: (currencyId: string) => Promise<void>;
   onOpenHistory: (setup: CurrencySetup) => void;
   onEdit?: (setup: CurrencySetup) => void;
+  onOpenRateModal?: (setup: CurrencySetup, rate?: ExchangeRate) => void;
+  onOpenBulkUpload?: () => void;
 }
 
 export const RateTable: React.FC<RateTableProps> = ({
@@ -25,6 +27,8 @@ export const RateTable: React.FC<RateTableProps> = ({
   onDelete,
   onOpenHistory,
   onEdit,
+  onOpenRateModal,
+  onOpenBulkUpload,
 }) => {
   const [search, setSearch] = useState('');
   const [baseFilter, setBaseFilter] = useState<'All' | 'Base' | 'NonBase'>('All');
@@ -73,8 +77,19 @@ export const RateTable: React.FC<RateTableProps> = ({
           />
         </div>
 
-        {/* Right: Filters & Density */}
+        {/* Right: Filters, Density & Bulk Upload */}
         <div className="flex flex-wrap items-center gap-2">
+          {onOpenBulkUpload && (
+            <button
+              type="button"
+              onClick={onOpenBulkUpload}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border/80 bg-background hover:bg-muted text-foreground text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
+            >
+              <Upload className="size-3 text-indigo-600 dark:text-indigo-400" />
+              <span>Bulk Upload</span>
+            </button>
+          )}
+
           {/* Base Filter */}
           <div className="flex items-center gap-1.5 bg-background border border-border/80 px-2.5 py-1 rounded-lg shadow-2xs">
             <Filter className="size-3 text-muted-foreground" />
@@ -155,6 +170,7 @@ export const RateTable: React.FC<RateTableProps> = ({
                     onDelete={onDelete}
                     onOpenHistory={onOpenHistory}
                     onEdit={onEdit}
+                    onOpenRateModal={onOpenRateModal}
                     density={density}
                   />
                 ))

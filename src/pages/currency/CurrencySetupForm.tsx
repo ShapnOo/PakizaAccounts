@@ -120,11 +120,16 @@ export const CurrencySetupFormPage: React.FC = () => {
       commaFormat,
     };
 
+    if (!isEdit && effectiveDate < today) {
+      toast.error('Backdating is not allowed. Effective date must be today or a future date.');
+      return;
+    }
+
     try {
       if (isEdit && id) {
         await updateSetup(id, payload);
       } else {
-        await addSetup(payload, initialRate > 0 ? initialRate : 1);
+        await addSetup(payload, initialRate > 0 ? initialRate : 1, effectiveDate);
       }
       navigate('/currency-setup');
     } catch (err) {
@@ -278,24 +283,45 @@ export const CurrencySetupFormPage: React.FC = () => {
                 />
               </div>
 
-              {/* Initial Exchange Rate (only on create) */}
+              {/* Initial Exchange Rate & Effective Date (only on create) */}
               {!isEdit && (
-                <div className="space-y-1.5 pt-2 border-t border-border/60">
-                  <label className="text-xs font-bold text-foreground flex items-center justify-between">
-                    <span>Initial Exchange Rate (vs Base Currency)</span>
-                    <span className="text-[10px] text-muted-foreground font-normal">Optional</span>
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    min={0.0001}
-                    value={initialRate}
-                    onChange={(e) => setInitialRate(parseFloat(e.target.value) || 1)}
-                    placeholder="1.00"
-                    className="w-44 h-9 px-3 rounded-lg border border-border/80 bg-background text-xs font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-indigo-500/20"
-                  />
+                <div className="space-y-3 pt-3 border-t border-border/60">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                        <span>Initial Exchange Rate (vs Base Currency)</span>
+                        <span className="text-[10px] text-muted-foreground font-normal">Optional</span>
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        min={0.0001}
+                        value={initialRate}
+                        onWheel={(e) => e.currentTarget.blur()}
+                        onChange={(e) => setInitialRate(parseFloat(e.target.value) || 1)}
+                        placeholder="1.00"
+                        className="w-full h-9 px-3 rounded-lg border border-border/80 bg-background text-xs font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                        <span>Effective Date</span>
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                          Future allowed
+                        </span>
+                      </label>
+                      <input
+                        type="date"
+                        min={today}
+                        value={effectiveDate}
+                        onChange={(e) => setEffectiveDate(e.target.value)}
+                        className="w-full h-9 px-3 rounded-lg border border-border/80 bg-background text-xs font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
+                      />
+                    </div>
+                  </div>
                   <p className="text-[11px] text-muted-foreground">
-                    Initial exchange rate relative to the system base currency. Can be updated anytime on the rate list.
+                    Initial exchange rate and effective date. Setting future/advance dates (e.g. 10 days ahead) is supported. Backdating before today is strictly restricted.
                   </p>
                 </div>
               )}

@@ -157,25 +157,48 @@ export const RateHistoryDrawer: React.FC<RateHistoryDrawerProps> = ({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/40">
-                    {history.map((entry, idx) => (
-                      <tr key={entry.id} className="hover:bg-muted/20">
-                        <td className="py-2 px-3 font-semibold text-foreground flex items-center gap-1.5">
-                          <Calendar className="size-3 text-muted-foreground" />
-                          <span>{entry.effectiveDate}</span>
-                          {idx === 0 && (
-                            <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-indigo-50 text-indigo-700 font-bold border border-indigo-200">
-                              Current
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-2 px-3 text-right font-mono font-bold tabular-nums text-foreground">
-                          {formatNumber(entry.rate, currency.decimalPlace || 2)}
-                        </td>
-                        <td className="py-2 px-3 text-[11px] text-muted-foreground">
-                          {entry.createdAt ? new Date(entry.createdAt).toLocaleDateString() : '—'}
-                        </td>
-                      </tr>
-                    ))}
+                    {history.map((entry) => {
+                      const today = new Date().toISOString().split('T')[0];
+                      const isScheduled = entry.effectiveDate > today;
+                      const currentActiveEntryId = history.find((h) => h.effectiveDate <= today)?.id;
+                      const isCurrentActive = entry.id === currentActiveEntryId;
+
+                      return (
+                        <tr
+                          key={entry.id}
+                          className={`hover:bg-muted/20 ${
+                            isCurrentActive
+                              ? 'bg-emerald-500/[0.04]'
+                              : isScheduled
+                              ? 'bg-amber-500/[0.04]'
+                              : ''
+                          }`}
+                        >
+                          <td className="py-2 px-3 font-semibold text-foreground">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <Calendar className="size-3 text-muted-foreground shrink-0" />
+                              <span>{entry.effectiveDate}</span>
+                              {isScheduled && (
+                                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/30">
+                                  Scheduled
+                                </span>
+                              )}
+                              {isCurrentActive && (
+                                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold border border-emerald-500/30">
+                                  Current Active
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-2 px-3 text-right font-mono font-bold tabular-nums text-foreground">
+                            {formatNumber(entry.rate, currency.decimalPlace || 2)}
+                          </td>
+                          <td className="py-2 px-3 text-[11px] text-muted-foreground">
+                            {entry.createdAt ? new Date(entry.createdAt).toLocaleDateString() : '—'}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

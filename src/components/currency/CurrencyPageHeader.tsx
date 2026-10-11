@@ -1,16 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Coins, Plus, ChevronRight } from 'lucide-react';
-import { CurrencyTabs } from './CurrencyTabs';
+import { Coins, Plus, ChevronRight, Upload } from 'lucide-react';
 
 interface CurrencyPageHeaderProps {
   showNewButton?: boolean;
   onOpenNew?: () => void;
+  onOpenBulkUpload?: () => void;
 }
 
 export const CurrencyPageHeader: React.FC<CurrencyPageHeaderProps> = ({
   showNewButton = true,
   onOpenNew,
+  onOpenBulkUpload,
 }) => {
   return (
     <div className="space-y-3 pb-2">
@@ -40,7 +41,16 @@ export const CurrencyPageHeader: React.FC<CurrencyPageHeaderProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <CurrencyTabs />
+          {onOpenBulkUpload && (
+            <button
+              type="button"
+              onClick={onOpenBulkUpload}
+              className="inline-flex items-center gap-1.5 h-8.5 px-3 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95 whitespace-nowrap"
+            >
+              <Upload className="size-3.5 text-indigo-600 dark:text-indigo-400" />
+              <span>Bulk Upload / Update</span>
+            </button>
+          )}
 
           {showNewButton && (
             onOpenNew ? (
