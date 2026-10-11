@@ -18,6 +18,9 @@ export interface VoucherDefinition {
   name: string; // "Cash Payment Voucher"
   shortName: string; // "CPV"
   voucherType: VoucherType;
+  prefix?: string;
+  resetFrequency?: 'Month' | 'Fiscal Year' | 'Calendar Year';
+  accountCategory?: 'Bank & Cash Both' | 'Cash Only' | 'Bank Only';
   activeStatus: 'Active' | 'Inactive';
   defaultAccounts: DefaultAccountRow[];
   createdAt?: string;

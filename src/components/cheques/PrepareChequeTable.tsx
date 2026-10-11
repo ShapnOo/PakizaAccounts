@@ -100,11 +100,9 @@ export const PrepareChequeTable: React.FC<PrepareChequeTableProps> = ({
     const updated = lines.map((l, i) => {
       if (i === idx) {
         const next = { ...l, ...patch };
-        // Auto-suggest payTo if name changes and payTo is empty or equal to previous name
+        // Default payTo to selected supplier or employee name
         if (patch.name !== undefined) {
-          if (!l.payTo || l.payTo === l.name) {
-            next.payTo = patch.name;
-          }
+          next.payTo = patch.name;
         }
         return next;
       }
@@ -195,12 +193,6 @@ export const PrepareChequeTable: React.FC<PrepareChequeTableProps> = ({
                 </th>
               )}
 
-              {columns.payTo && (
-                <th className="py-2.5 px-3 min-w-[160px]">
-                  <span>Pay to</span> <span className="text-rose-500">*</span>
-                </th>
-              )}
-
               {isDirect && columns.chequeFor && (
                 <th className="py-2.5 px-3 min-w-[130px]">
                   <span>Cheque for</span> <span className="text-rose-500">*</span>
@@ -210,6 +202,12 @@ export const PrepareChequeTable: React.FC<PrepareChequeTableProps> = ({
               {isDirect && columns.name && (
                 <th className="py-2.5 px-3 min-w-[160px]">
                   <span>Name</span> <span className="text-rose-500">*</span>
+                </th>
+              )}
+
+              {columns.payTo && (
+                <th className="py-2.5 px-3 min-w-[160px]">
+                  <span>Pay to</span> <span className="text-rose-500">*</span>
                 </th>
               )}
 
@@ -310,22 +308,7 @@ export const PrepareChequeTable: React.FC<PrepareChequeTableProps> = ({
                     </td>
                   )}
 
-                  {/* 4. Pay to */}
-                  {columns.payTo && (
-                    <td className="py-2 px-2">
-                      <input
-                        type="text"
-                        placeholder="Payee / Bearer name"
-                        value={line.payTo}
-                        onChange={(e) => handleUpdateLine(idx, { payTo: e.target.value })}
-                        className={`w-full h-8 px-2.5 rounded-md border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs ${
-                          errors[`lines.${idx}.payTo`] ? 'border-rose-400' : 'border-border/80'
-                        }`}
-                      />
-                    </td>
-                  )}
-
-                  {/* 5. Cheque for (Direct only) */}
+                  {/* 4. Cheque for (Direct only) */}
                   {isDirect && columns.chequeFor && (
                     <td className="py-2 px-2">
                       <select
@@ -345,7 +328,7 @@ export const PrepareChequeTable: React.FC<PrepareChequeTableProps> = ({
                     </td>
                   )}
 
-                  {/* 6. Name (Direct only - dynamic combobox based on Cheque for) */}
+                  {/* 5. Name (Direct only - dynamic combobox based on Cheque for) */}
                   {isDirect && columns.name && (
                     <td className="py-2 px-2">
                       {line.chequeFor === 'Supplier' ? (
@@ -404,6 +387,21 @@ export const PrepareChequeTable: React.FC<PrepareChequeTableProps> = ({
                           }`}
                         />
                       )}
+                    </td>
+                  )}
+
+                  {/* 6. Pay to */}
+                  {columns.payTo && (
+                    <td className="py-2 px-2">
+                      <input
+                        type="text"
+                        placeholder="Payee / Bearer name"
+                        value={line.payTo}
+                        onChange={(e) => handleUpdateLine(idx, { payTo: e.target.value })}
+                        className={`w-full h-8 px-2.5 rounded-md border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs ${
+                          errors[`lines.${idx}.payTo`] ? 'border-rose-400' : 'border-border/80'
+                        }`}
+                      />
                     </td>
                   )}
 

@@ -9,14 +9,15 @@ interface DefaultAccountsTableProps {
   voucherType: VoucherType;
   rows: DefaultAccountRow[];
   onChange: (rows: DefaultAccountRow[]) => void;
+  accountCategory?: 'Bank & Cash Both' | 'Cash Only' | 'Bank Only';
 }
 
 export const DefaultAccountsTable: React.FC<DefaultAccountsTableProps> = ({
   voucherType,
   rows,
   onChange,
+  accountCategory = 'Bank & Cash Both',
 }) => {
-  const [bankOrCashFilter, setBankOrCashFilter] = useState<'All' | 'Cash Only' | 'Bank Only'>('All');
 
   // Rule: Default accounts should be visible ONLY for Payment Voucher & Receive Voucher
   const isEligibleVoucherType =
@@ -120,23 +121,8 @@ export const DefaultAccountsTable: React.FC<DefaultAccountsTableProps> = ({
           </span>
         </div>
 
-        {/* Right Header Actions: Bank/Cash Filter & Populate All Companies Button */}
+        {/* Right Header Actions: Populate All Companies Button */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Bank or Cash Selection Dropdown */}
-          <div className="flex items-center gap-1.5 bg-muted/40 px-2.5 py-1 rounded-lg border border-border/80 text-xs">
-            <Landmark className="size-3.5 text-indigo-500" />
-            <span className="text-[11px] font-bold text-muted-foreground">Account Category:</span>
-            <select
-              value={bankOrCashFilter}
-              onChange={(e) => setBankOrCashFilter(e.target.value as any)}
-              className="bg-transparent text-xs font-bold text-foreground outline-none cursor-pointer"
-            >
-              <option value="All">Bank & Cash Both</option>
-              <option value="Cash Only">Cash Only</option>
-              <option value="Bank Only">Bank Only</option>
-            </select>
-          </div>
-
           {/* Single-Click Populate All Companies Button */}
           <button
             type="button"
@@ -184,9 +170,9 @@ export const DefaultAccountsTable: React.FC<DefaultAccountsTableProps> = ({
                       }
                       onlyCashAndBank={true}
                       placeholder={
-                        bankOrCashFilter === 'Cash Only'
+                        accountCategory === 'Cash Only'
                           ? 'Select Cash Account...'
-                          : bankOrCashFilter === 'Bank Only'
+                          : accountCategory === 'Bank Only'
                           ? 'Select Bank Account...'
                           : 'Select Cash / Bank Account...'
                       }

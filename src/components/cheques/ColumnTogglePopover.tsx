@@ -108,9 +108,9 @@ export const ColumnTogglePopover: React.FC<ColumnTogglePopoverProps> = ({
     { id: 'chequeType', label: 'Cheque Type' },
     { id: 'chequeNo', label: 'Cheque No (Required)', locked: true },
     { id: 'chequeDate', label: 'Cheque Date' },
-    { id: 'payTo', label: 'Pay to' },
     { id: 'chequeFor', label: 'Cheque for', directOnly: true },
     { id: 'name', label: 'Name', directOnly: true },
+    { id: 'payTo', label: 'Pay to' },
     { id: 'glAccountId', label: 'GL Account' },
     { id: 'amount', label: 'DR. Amount (Required)', locked: true },
   ];

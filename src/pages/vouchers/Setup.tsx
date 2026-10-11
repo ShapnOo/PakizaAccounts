@@ -13,6 +13,8 @@ import {
   Building2,
   Info,
   SlidersHorizontal,
+  Hash,
+  Landmark,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -27,6 +29,9 @@ export const VoucherSetupPage: React.FC = () => {
   const [name, setName] = useState('');
   const [shortName, setShortName] = useState('');
   const [voucherType, setVoucherType] = useState<VoucherType>('Payment Voucher');
+  const [prefix, setPrefix] = useState('');
+  const [resetFrequency, setResetFrequency] = useState<'Month' | 'Fiscal Year' | 'Calendar Year'>('Month');
+  const [accountCategory, setAccountCategory] = useState<'Bank & Cash Both' | 'Cash Only' | 'Bank Only'>('Bank & Cash Both');
   const [activeStatus, setActiveStatus] = useState<'Active' | 'Inactive'>('Active');
   const [defaultAccounts, setDefaultAccounts] = useState<DefaultAccountRow[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -37,6 +42,9 @@ export const VoucherSetupPage: React.FC = () => {
       setName(existingVoucher.name);
       setShortName(existingVoucher.shortName);
       setVoucherType(existingVoucher.voucherType);
+      setPrefix(existingVoucher.prefix || `${existingVoucher.shortName}-`);
+      setResetFrequency(existingVoucher.resetFrequency || 'Month');
+      setAccountCategory(existingVoucher.accountCategory || 'Bank & Cash Both');
       setActiveStatus(existingVoucher.activeStatus);
       setDefaultAccounts(
         existingVoucher.defaultAccounts && existingVoucher.defaultAccounts.length > 0
@@ -48,6 +56,9 @@ export const VoucherSetupPage: React.FC = () => {
       setName('');
       setShortName('');
       setVoucherType('Payment Voucher');
+      setPrefix('');
+      setResetFrequency('Month');
+      setAccountCategory('Bank & Cash Both');
       setActiveStatus('Active');
       // Sheet 2 seed rows: Petty Cash In Hand (PSL) & Cash In Hand H/O (PKCL)
       setDefaultAccounts([
@@ -114,6 +125,9 @@ export const VoucherSetupPage: React.FC = () => {
       name: name.trim(),
       shortName: shortName.trim().toUpperCase(),
       voucherType,
+      prefix: prefix.trim(),
+      resetFrequency,
+      accountCategory,
       activeStatus,
       defaultAccounts,
     };
@@ -175,14 +189,11 @@ export const VoucherSetupPage: React.FC = () => {
                     Primary metadata used across transactions, ledgers, and voucher numbers.
                   </p>
                 </div>
-                <span className="text-[10px] font-mono text-muted-foreground/60 uppercase">
-                  Sheet 2 • Setup Page
-                </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Voucher Name */}
-                <div className="space-y-1.5 sm:col-span-2">
+                <div className="space-y-1.5 sm:col-span-2 lg:col-span-3">
                   <label className="text-[12px] font-semibold text-foreground flex items-center justify-between">
                     <span>
                       Voucher Name <span className="text-rose-500">*</span>
@@ -219,7 +230,11 @@ export const VoucherSetupPage: React.FC = () => {
                     value={shortName}
                     maxLength={6}
                     onChange={(e) => {
-                      setShortName(e.target.value.toUpperCase());
+                      const val = e.target.value.toUpperCase();
+                      setShortName(val);
+                      if (!prefix || prefix === `${shortName}-`) {
+                        setPrefix(val ? `${val}-` : '');
+                      }
                       if (errors.shortName) setErrors((prev) => ({ ...prev, shortName: '' }));
                     }}
                     placeholder="e.g. CPV"
@@ -233,7 +248,7 @@ export const VoucherSetupPage: React.FC = () => {
                 </div>
 
                 {/* Voucher Type */}
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 sm:col-span-1 lg:col-span-2">
                   <label className="text-[12px] font-semibold text-foreground flex items-center justify-between">
                     <span>
                       Voucher Type <span className="text-rose-500">*</span>
@@ -243,7 +258,7 @@ export const VoucherSetupPage: React.FC = () => {
                   <select
                     value={voucherType}
                     onChange={(e) => handleTypeChange(e.target.value as VoucherType)}
-                    className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                    className="w-full h-9 px-3 rounded-lg border border-border bg-background text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
                   >
                     {VOUCHER_TYPES.map((t) => (
                       <option key={t} value={t}>
@@ -253,32 +268,59 @@ export const VoucherSetupPage: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Active Status Segmented */}
+                {/* ID Generation (Placed from left) */}
                 <div className="space-y-1.5 sm:col-span-2">
-                  <label className="text-[12px] font-semibold text-foreground">Active Status</label>
-                  <div className="inline-flex p-1 bg-slate-100 rounded-lg border border-slate-200/80 w-full sm:w-auto">
-                    <button
-                      type="button"
-                      onClick={() => setActiveStatus('Active')}
-                      className={`flex-1 sm:flex-initial px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
-                        activeStatus === 'Active'
-                          ? 'bg-white text-emerald-700 shadow-sm'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
+                  <label className="text-[12px] font-semibold text-foreground flex items-center gap-1.5">
+                    <Hash className="size-3.5 text-indigo-500" />
+                    <span>ID Generation</span>
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-xl border border-border/80 bg-muted/20">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-muted-foreground">Prefix</label>
+                      <input
+                        type="text"
+                        value={prefix}
+                        onChange={(e) => setPrefix(e.target.value)}
+                        placeholder="e.g. CPV-"
+                        className="w-full h-8.5 px-3 rounded-lg border border-border bg-background text-xs font-mono font-bold uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-2xs"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-muted-foreground">Reset Frequency</label>
+                      <select
+                        value={resetFrequency}
+                        onChange={(e) => setResetFrequency(e.target.value as any)}
+                        className="w-full h-8.5 px-3 rounded-lg border border-border bg-background text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-2xs cursor-pointer"
+                      >
+                        <option value="Month">Month</option>
+                        <option value="Fiscal Year">Fiscal Year</option>
+                        <option value="Calendar Year">Calendar Year</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Account Category */}
+                <div className="space-y-1.5">
+                  <label className="text-[12px] font-semibold text-foreground flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Landmark className="size-3.5 text-indigo-500" />
+                      <span>Account Category</span>
+                    </span>
+                  </label>
+                  <div className="p-3 rounded-xl border border-border/80 bg-muted/20">
+                    <label className="text-[11px] font-bold text-muted-foreground block mb-1">
+                      Allowed Category
+                    </label>
+                    <select
+                      value={accountCategory}
+                      onChange={(e) => setAccountCategory(e.target.value as any)}
+                      className="w-full h-8.5 px-3 rounded-lg border border-border bg-background text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-2xs cursor-pointer"
                     >
-                      Active
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveStatus('Inactive')}
-                      className={`flex-1 sm:flex-initial px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
-                        activeStatus === 'Inactive'
-                          ? 'bg-white text-slate-700 shadow-sm'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      Inactive
-                    </button>
+                      <option value="Bank & Cash Both">Bank & Cash Both</option>
+                      <option value="Cash Only">Cash Only</option>
+                      <option value="Bank Only">Bank Only</option>
+                    </select>
                   </div>
                 </div>
               </div>
@@ -290,7 +332,44 @@ export const VoucherSetupPage: React.FC = () => {
                 voucherType={voucherType}
                 rows={defaultAccounts}
                 onChange={setDefaultAccounts}
+                accountCategory={accountCategory}
               />
+            </div>
+
+            {/* Placement will be bottom part: Active Status */}
+            <div className="pt-4 border-t border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <label className="text-[12px] font-semibold text-foreground block">
+                  Active Status
+                </label>
+                <p className="text-[11px] text-muted-foreground">
+                  Enable or disable this voucher definition across transactions and entry menus
+                </p>
+              </div>
+              <div className="inline-flex p-1 bg-slate-100 dark:bg-muted/50 rounded-lg border border-slate-200/80 dark:border-border self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setActiveStatus('Active')}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                    activeStatus === 'Active'
+                      ? 'bg-white dark:bg-card text-emerald-700 dark:text-emerald-400 shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Active
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveStatus('Inactive')}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                    activeStatus === 'Inactive'
+                      ? 'bg-white dark:bg-card text-slate-700 dark:text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Inactive
+                </button>
+              </div>
             </div>
           </div>
 

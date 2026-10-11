@@ -300,8 +300,8 @@ function isPathActive(itemTo: string | undefined, currentPath: string): boolean 
   if (itemTo === '/customers' && (currentPath.startsWith('/customers') || currentPath.startsWith('/accounts-receivable/customer-master'))) return true;
   if (itemTo === '/banks' && (currentPath.startsWith('/banks') || currentPath.startsWith('/branches') || currentPath.startsWith('/bank-management/bank-master-setup'))) return true;
   if (itemTo === '/cheque-setup' && currentPath.startsWith('/cheque-setup')) return true;
-  if (itemTo === '/cheque-prepare/direct' && (currentPath.startsWith('/cheque-prepare') || currentPath.startsWith('/cheques'))) return true;
-  if (itemTo === '/cheque-prepare/register' && currentPath === '/cheque-prepare/register') return true;
+  if (itemTo === '/cheque-prepare/register' && (currentPath === '/cheque-prepare/register' || currentPath.startsWith('/cheque-prepare/register/') || currentPath.startsWith('/bank-management/cheque-book-register'))) return true;
+  if (itemTo === '/cheque-prepare/direct' && !currentPath.startsWith('/cheque-prepare/register') && (currentPath.startsWith('/cheque-prepare') || currentPath.startsWith('/cheques'))) return true;
   if (itemTo === '/journal-entries' && (currentPath.startsWith('/journal-entries') || currentPath.startsWith('/journal-books/journal-entries'))) return true;
   if (itemTo === '/journal-books/journal-entries' && (currentPath.startsWith('/journal-entries') || currentPath.startsWith('/journal-books/journal-entries'))) return true;
   if (itemTo === '/recurring-journal' && (currentPath.startsWith('/recurring-journal') || currentPath.startsWith('/journal-books/recurring-journal'))) return true;
