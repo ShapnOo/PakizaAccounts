@@ -255,50 +255,27 @@ export const MasterConfigPage: React.FC = () => {
               </ConfigRow>
             )}
 
-            {/* Threshold: Max Due Days ONLY */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ConfigRow
-                label="Max Due Days"
-                hint="Maximum allowable due period (in days) before voucher creation is restricted"
-              >
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min="0"
-                    max="365"
-                    value={config.voucherControlling.maxDueDays}
-                    onChange={(e) =>
-                      updateSection('voucherControlling', {
-                        maxDueDays: parseInt(e.target.value, 10) || 0,
-                      })
-                    }
-                    className="w-24 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
-                  />
-                  <span className="text-xs text-muted-foreground font-semibold">Days</span>
-                </div>
-              </ConfigRow>
-
-              <ConfigRow
-                label="Max Delay Days"
-                hint="Maximum allowable delay period (in days)"
-              >
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min="0"
-                    max="365"
-                    value={config.voucherControlling.maxDelayDays}
-                    onChange={(e) =>
-                      updateSection('voucherControlling', {
-                        maxDelayDays: parseInt(e.target.value, 10) || 0,
-                      })
-                    }
-                    className="w-24 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
-                  />
-                  <span className="text-xs text-muted-foreground font-semibold">Days</span>
-                </div>
-              </ConfigRow>
-            </div>
+            {/* Threshold: Max Due Days */}
+            <ConfigRow
+              label="Max Due Days"
+              hint="Maximum allowable due period (in days) before voucher creation is restricted"
+            >
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max="365"
+                  value={config.voucherControlling.maxDueDays}
+                  onChange={(e) =>
+                    updateSection('voucherControlling', {
+                      maxDueDays: parseInt(e.target.value, 10) || 0,
+                    })
+                  }
+                  className="w-24 h-8.5 px-3 rounded-lg bg-card border border-border/80 text-xs font-mono font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                />
+                <span className="text-xs text-muted-foreground font-semibold">Days</span>
+              </div>
+            </ConfigRow>
 
             <ConfigRow
               label="Effective Company"

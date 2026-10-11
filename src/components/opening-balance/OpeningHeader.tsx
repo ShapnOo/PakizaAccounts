@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Upload, Scale, Plus, Download } from 'lucide-react';
+import { Calendar, Upload, Scale, Download } from 'lucide-react';
 
 interface OpeningHeaderProps {
   openingDate: string;
@@ -7,7 +7,7 @@ interface OpeningHeaderProps {
   onDateChange: (date: string) => void;
   onOpenUpload: () => void;
   onExportData?: () => void;
-  onOpenAddModal: () => void;
+  onOpenAddModal?: () => void;
 }
 
 export const OpeningHeader: React.FC<OpeningHeaderProps> = ({
@@ -15,7 +15,6 @@ export const OpeningHeader: React.FC<OpeningHeaderProps> = ({
   onDateChange,
   onOpenUpload,
   onExportData,
-  onOpenAddModal,
 }) => {
   return (
     <div className="bg-card border border-border/80 rounded-xl p-4 sm:p-5 shadow-2xs">
@@ -37,7 +36,7 @@ export const OpeningHeader: React.FC<OpeningHeaderProps> = ({
           </div>
         </div>
 
-        {/* Right: DatePicker, Export, Upload Action & Prominent Add Button */}
+        {/* Right: DatePicker, Export & Upload Action */}
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
           {/* Opening Date Selector */}
           <div className="flex items-center gap-2 bg-muted/30 px-3 py-1.5 rounded-lg border border-border/80 shadow-2xs">
@@ -75,16 +74,6 @@ export const OpeningHeader: React.FC<OpeningHeaderProps> = ({
           >
             <Upload className="size-3.5 text-indigo-600 dark:text-indigo-400" />
             <span>Upload</span>
-          </button>
-
-          {/* Prominent "+ Add Opening Balance" Button */}
-          <button
-            type="button"
-            onClick={onOpenAddModal}
-            className="inline-flex items-center gap-1.5 h-8.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm shadow-indigo-600/25 transition-all cursor-pointer whitespace-nowrap active:scale-95"
-          >
-            <Plus className="size-4 stroke-[2.5]" />
-            <span>Add Opening Balance</span>
           </button>
         </div>
       </div>

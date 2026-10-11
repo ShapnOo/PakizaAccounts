@@ -153,14 +153,13 @@ export const OpeningBalanceEntryPage: React.FC = () => {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-5 space-y-4 pb-24">
-      {/* ── 1. Upper Header Strip with [+ Add Opening Balance] Button ── */}
+      {/* ── 1. Upper Header Strip ── */}
       <OpeningHeader
         openingDate={openingDate}
         activeFiscalYear={activeFiscalYear}
         onDateChange={setOpeningDate}
         onOpenUpload={() => setIsUploadOpen(true)}
         onExportData={handleExportData}
-        onOpenAddModal={handleOpenAddModal}
       />
 
       {/* ── 2. Top Balance Validation Banner (if unbalanced) ── */}

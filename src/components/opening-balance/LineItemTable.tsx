@@ -143,9 +143,9 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
           <button
             type="button"
             onClick={onAddLine}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 border border-indigo-200/80 dark:border-indigo-800 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm shadow-indigo-600/25 transition-all cursor-pointer whitespace-nowrap active:scale-95"
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-3.5 stroke-[2.5]" />
             <span>Add Entry</span>
           </button>
         </div>
