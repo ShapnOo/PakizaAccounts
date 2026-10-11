@@ -133,9 +133,10 @@ export const AccountHeadPicker: React.FC<AccountHeadPickerProps> = ({
               position: 'fixed',
               top: openUpward ? undefined : coords.bottom + 4,
               bottom: openUpward ? Math.max(8, window.innerHeight - coords.top + 4) : undefined,
-              left: Math.max(8, Math.min(coords.left, window.innerWidth - Math.max(coords.width, 420) - 16)),
-              width: Math.max(coords.width, 420),
-              maxWidth: Math.min(680, window.innerWidth - 16),
+              left: Math.max(8, Math.min(coords.left, window.innerWidth - Math.max(coords.width, 520) - 16)),
+              minWidth: Math.max(coords.width, 520),
+              width: 'max-content',
+              maxWidth: Math.min(760, window.innerWidth - 24),
               maxHeight,
               zIndex: 99999,
             }}
@@ -153,7 +154,7 @@ export const AccountHeadPicker: React.FC<AccountHeadPickerProps> = ({
               />
             </div>
 
-            <div className="max-h-56 overflow-y-auto sidebar-scroll space-y-0.5">
+            <div className="max-h-64 overflow-y-auto sidebar-scroll space-y-0.5">
               {loading ? (
                 <div className="py-4 text-center text-xs text-muted-foreground">Loading accounts...</div>
               ) : filteredAccounts.length === 0 ? (
@@ -170,29 +171,29 @@ export const AccountHeadPicker: React.FC<AccountHeadPickerProps> = ({
                         setIsOpen(false);
                         setSearch('');
                       }}
-                      className={`w-full p-2 rounded-lg text-left text-xs transition-colors flex items-start justify-between gap-2 cursor-pointer ${
+                      className={`w-full p-2 rounded-lg text-left text-xs transition-colors flex items-start justify-between gap-3 cursor-pointer ${
                         isSelected
                           ? 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-bold'
                           : 'hover:bg-muted/50 text-foreground'
                       }`}
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 truncate">
+                        <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
                           {acc.code && (
                             <span className="font-mono text-[10px] text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-normal border border-slate-200/80 dark:border-slate-700 shrink-0">
                               {acc.code}
                             </span>
                           )}
-                          <span className="font-semibold text-foreground truncate">{acc.name}</span>
+                          <span className="font-semibold text-foreground whitespace-normal break-words">{acc.name}</span>
                         </div>
                         {acc.path && acc.path.length > 0 && (
-                          <div className="text-[10px] text-muted-foreground/75 truncate mt-0.5 flex items-center gap-1">
-                            <FolderTree className="size-2.5 shrink-0 opacity-60" />
-                            <span>{acc.path.join(' › ')}</span>
+                          <div className="text-[10.5px] text-muted-foreground/80 mt-0.5 flex items-center gap-1.5 flex-wrap sm:flex-nowrap leading-relaxed">
+                            <FolderTree className="size-3 shrink-0 opacity-60" />
+                            <span className="whitespace-normal break-words">{acc.path.join(' › ')}</span>
                           </div>
                         )}
                       </div>
-                      {isSelected && <Check className="size-3.5 text-indigo-600 shrink-0 mt-0.5" />}
+                      {isSelected && <Check className="size-3.5 text-indigo-600 shrink-0 mt-0.5 ml-2" />}
                     </button>
                   );
                 })

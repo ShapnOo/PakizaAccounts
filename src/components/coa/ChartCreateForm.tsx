@@ -217,25 +217,24 @@ export const ChartCreateForm: React.FC<ChartCreateFormProps> = ({
                   Taxonomy Category
                 </span>
               </label>
-              <Controller
-                control={control}
-                name="accountsType"
-                render={({ field }) => (
-                  <SearchableSelect
-                    value={field.value}
-                    onChange={field.onChange}
-                    options={ACCOUNTS_TYPE_TREE.map((it) => ({
-                      value: it.type,
-                      label: `${it.type}${it.detailsMandatory ? ' (Details Req.)' : ''}`,
-                      group: `${it.nature}${it.category ? ` · ${it.category}` : ''}`,
-                    }))}
-                    placeholder="-- Select Accounts Type --"
-                    searchPlaceholder="Search account taxonomy type..."
-                    error={!!errors.accountsType}
-                    buttonClassName="h-9 rounded-lg text-xs font-semibold"
-                  />
-                )}
-              />
+              <select
+                {...register('accountsType')}
+                className={`w-full h-9 px-3 rounded-lg bg-card border text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer ${
+                  errors.accountsType
+                    ? 'border-rose-500 ring-2 ring-rose-500/10'
+                    : 'border-border/80'
+                }`}
+              >
+                {Object.entries(groupedTaxonomy).map(([groupName, items]) => (
+                  <optgroup key={groupName} label={groupName}>
+                    {items.map((it) => (
+                      <option key={`${it.nature}-${it.type}`} value={it.type}>
+                        {it.type} {it.detailsMandatory ? '(Details Req.)' : ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
               {errors.accountsType && (
                 <p className="text-[10.5px] font-medium text-rose-500">
                   {errors.accountsType.message}

@@ -170,9 +170,10 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
               position: 'fixed',
               top: openUpward ? undefined : coords.bottom + 4,
               bottom: openUpward ? Math.max(8, window.innerHeight - coords.top + 4) : undefined,
-              left: Math.max(8, Math.min(coords.left, window.innerWidth - Math.max(coords.width, 380) - 16)),
-              width: Math.max(coords.width, 380),
-              maxWidth: Math.min(640, window.innerWidth - 16),
+              left: Math.max(8, Math.min(coords.left, window.innerWidth - Math.max(coords.width, 480) - 16)),
+              minWidth: Math.max(coords.width, 480),
+              width: 'max-content',
+              maxWidth: Math.min(760, window.innerWidth - 24),
               maxHeight,
               zIndex: 99999,
             }}
@@ -192,7 +193,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
             </div>
 
             {/* Items */}
-            <div className="max-h-52 overflow-y-auto sidebar-scroll space-y-0.5">
+            <div className="max-h-64 overflow-y-auto sidebar-scroll space-y-0.5">
               {filteredOptions.length === 0 ? (
                 <div className="py-3 text-center text-xs text-muted-foreground">
                   {emptyMessage}
@@ -212,7 +213,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                         setIsOpen(false);
                         setSearch('');
                       }}
-                      className={`w-full px-2.5 py-1.5 rounded-md text-left text-xs transition-colors flex items-center justify-between gap-2 cursor-pointer ${
+                      className={`w-full px-2.5 py-1.5 rounded-md text-left text-xs transition-colors flex items-center justify-between gap-3 cursor-pointer ${
                         opt.disabled
                           ? 'opacity-40 cursor-not-allowed bg-transparent'
                           : isSelected
@@ -221,7 +222,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                       }`}
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 truncate">
+                        <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
                           {opt.group && (
                             <span className="text-[9.5px] uppercase font-bold text-muted-foreground/70 bg-muted px-1 py-0.2 rounded shrink-0">
                               {opt.group}
@@ -232,23 +233,23 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                               {opt.code}
                             </span>
                           )}
-                          <span className="font-semibold text-foreground truncate">{opt.label}</span>
+                          <span className="font-semibold text-foreground whitespace-normal break-words">{opt.label}</span>
                         </div>
                         {opt.path ? (
-                          <div className="text-[10px] text-muted-foreground/80 truncate mt-0.5 flex items-center gap-1">
-                            <FolderTree className="size-2.5 text-slate-400 shrink-0" />
-                            <span className="truncate">{Array.isArray(opt.path) ? opt.path.join(' › ') : opt.path}</span>
+                          <div className="text-[10.5px] text-muted-foreground/80 mt-0.5 flex items-center gap-1.5 flex-wrap sm:flex-nowrap leading-relaxed">
+                            <FolderTree className="size-3 text-slate-400 shrink-0" />
+                            <span className="whitespace-normal break-words">{Array.isArray(opt.path) ? opt.path.join(' › ') : opt.path}</span>
                           </div>
                         ) : opt.subLabel ? (
-                          <div className="text-[10px] text-muted-foreground/80 truncate mt-0.5 flex items-center gap-1">
+                          <div className="text-[10.5px] text-muted-foreground/80 mt-0.5 flex items-center gap-1.5 flex-wrap sm:flex-nowrap leading-relaxed">
                             {opt.subLabel.includes('›') && (
-                              <FolderTree className="size-2.5 text-slate-400 shrink-0" />
+                              <FolderTree className="size-3 text-slate-400 shrink-0" />
                             )}
-                            <span className="truncate">{opt.subLabel}</span>
+                            <span className="whitespace-normal break-words">{opt.subLabel}</span>
                           </div>
                         ) : null}
                       </div>
-                      {isSelected && <Check className="size-3.5 text-primary shrink-0" />}
+                      {isSelected && <Check className="size-3.5 text-primary shrink-0 ml-2" />}
                     </button>
                   );
                 })
