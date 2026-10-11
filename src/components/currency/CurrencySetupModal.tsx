@@ -29,8 +29,10 @@ export const CurrencySetupModal: React.FC<CurrencySetupModalProps> = ({
   const [symbol, setSymbol] = useState('');
   const [decimalPlace, setDecimalPlace] = useState(2);
   const [subunit, setSubunit] = useState('');
+  const today = new Date().toISOString().split('T')[0];
   const [commaFormat, setCommaFormat] = useState<CommaFormat>('1,234,567,890');
   const [initialRate, setInitialRate] = useState<number>(1);
+  const [effectiveDate, setEffectiveDate] = useState<string>(today);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
 
@@ -53,9 +55,10 @@ export const CurrencySetupModal: React.FC<CurrencySetupModalProps> = ({
       setSubunit('');
       setCommaFormat('1,234,567,890');
       setInitialRate(1);
+      setEffectiveDate(today);
       setErrors({});
     }
-  }, [initialCurrency, isOpen]);
+  }, [initialCurrency, isOpen, today]);
 
   if (!isOpen) return null;
 

@@ -20,7 +20,11 @@ export interface CurrencyStoreState {
   dirty: boolean;
 
   load: () => Promise<void>;
-  addSetup: (s: Omit<CurrencySetup, 'id'>, initialRate?: number) => Promise<CurrencySetup>;
+  addSetup: (
+    s: Omit<CurrencySetup, 'id'>,
+    initialRate?: number,
+    effectiveDate?: string
+  ) => Promise<CurrencySetup>;
   updateSetup: (id: string, patch: Partial<CurrencySetup>) => Promise<CurrencySetup>;
   deleteSetup: (id: string) => Promise<void>;
   upsertRate: (currencyId: string, rate: number, date: string) => Promise<void>;
@@ -55,10 +59,14 @@ export const useCurrencyStore = create<CurrencyStoreState>()(
         }
       },
 
-      addSetup: async (data: Omit<CurrencySetup, 'id'>, initialRate: number = 1) => {
+      addSetup: async (
+        data: Omit<CurrencySetup, 'id'>,
+        initialRate: number = 1,
+        effectiveDate?: string
+      ) => {
         set({ saving: true });
         try {
-          const created = await createCurrencySetup(data, initialRate);
+          const created = await createCurrencySetup(data, initialRate, effectiveDate);
           const updatedRates = await listExchangeRates();
           set((state) => ({
             setups: [...state.setups, created],

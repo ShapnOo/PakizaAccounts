@@ -125,7 +125,7 @@ export const RateTable: React.FC<RateTableProps> = ({
               <tr>
                 <th className="py-2.5 px-4 font-black">Currency Name</th>
                 <th className="py-2.5 px-4 font-black text-right w-44">Exchange Rate</th>
-                <th className="py-2.5 px-4 font-bold w-36">Effective Date</th>
+                <th className="py-2.5 px-4 font-bold min-w-[190px] w-48">Effective Date</th>
                 <th className="py-2.5 px-4 font-bold w-20 text-center">History</th>
                 <th className="py-2.5 px-4 font-bold min-w-[140px] text-center whitespace-nowrap">Base Currency</th>
                 <th className="py-2.5 px-4 font-bold w-14 text-right"></th>

@@ -25,7 +25,8 @@ export async function listCurrencySetups(): Promise<CurrencySetup[]> {
 
 export async function createCurrencySetup(
   payload: Omit<CurrencySetup, 'id'>,
-  initialRate?: number
+  initialRate?: number,
+  effectiveDate?: string
 ): Promise<CurrencySetup> {
   await delay(350);
   const setups = await listCurrencySetups();
@@ -37,11 +38,13 @@ export async function createCurrencySetup(
   // Also create an initial rate entry
   const rates = await listExchangeRates();
   const rateVal = initialRate && initialRate > 0 ? initialRate : 1;
+  const today = new Date().toISOString().split('T')[0];
+  const rateDate = effectiveDate && effectiveDate >= today ? effectiveDate : today;
   const newRate: ExchangeRate = {
     id: `r-${Date.now()}`,
     currencyId: newId,
     rate: rateVal,
-    effectiveDate: new Date().toISOString().split('T')[0],
+    effectiveDate: rateDate,
     isBase: false,
   };
   localStorage.setItem(LS_RATES, JSON.stringify([...rates, newRate]));
