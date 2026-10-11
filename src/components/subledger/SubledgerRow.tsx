@@ -76,8 +76,8 @@ export const SubledgerRow: React.FC<SubledgerRowProps> = ({
                 entry.type === 'cost-center'
                   ? 'bg-blue-50 text-blue-600'
                   : entry.type === 'reference-center'
-                  ? 'bg-purple-50 text-purple-600'
-                  : 'bg-amber-50 text-amber-600',
+                    ? 'bg-purple-50 text-purple-600'
+                    : 'bg-amber-50 text-amber-600',
               ].join(' ')}
             >
               <Icon className={isCompact ? 'size-3' : 'size-3.5'} />
@@ -114,7 +114,7 @@ export const SubledgerRow: React.FC<SubledgerRowProps> = ({
           />
         </td>
 
-        {/* Effective Company Column (>= 1024px) */}
+        {/* Apply Changes To Column (>= 1024px) */}
         <td className="px-4 py-2 align-middle hidden lg:table-cell">
           <CompanyChips
             companyIds={entry.effectiveCompanyIds}
@@ -137,11 +137,10 @@ export const SubledgerRow: React.FC<SubledgerRowProps> = ({
 
             {menuOpen && (
               <div
-                className={`absolute right-0 w-40 rounded-xl bg-white dark:bg-card shadow-xl border border-slate-200 dark:border-border py-1 z-30 ${
-                  openUpward
+                className={`absolute right-0 w-40 rounded-xl bg-white dark:bg-card shadow-xl border border-slate-200 dark:border-border py-1 z-30 ${openUpward
                     ? 'bottom-full mb-1 origin-bottom animate-in fade-in-0 zoom-in-95 duration-100'
                     : 'top-full mt-1 origin-top animate-in fade-in-0 zoom-in-95 duration-100'
-                }`}
+                  }`}
               >
                 <button
                   type="button"
@@ -198,8 +197,8 @@ export const SubledgerRow: React.FC<SubledgerRowProps> = ({
                     entry.type === 'cost-center'
                       ? 'bg-blue-50 text-blue-600'
                       : entry.type === 'reference-center'
-                      ? 'bg-purple-50 text-purple-600'
-                      : 'bg-amber-50 text-amber-600',
+                        ? 'bg-purple-50 text-purple-600'
+                        : 'bg-amber-50 text-amber-600',
                   ].join(' ')}
                 >
                   <Icon className="size-3.5" />

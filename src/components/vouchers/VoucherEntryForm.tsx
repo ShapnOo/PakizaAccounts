@@ -44,25 +44,27 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({ type, onSave
 
   // Initial seed lines
   const [lines, setLines] = useState<VoucherLine[]>(() => {
-    return [
-      {
-        id: `vl-seed-1`,
-        accountHeadId: '',
-        accountHeadName: '',
-        costCenterId: '',
-        subsidiaryId: '',
-        employeeId: '',
-        vehicleId: '',
-        reference: '',
-        description: '',
-        currency: 'BDT',
-        exchangeRate: 1,
-        debit: config.showDebit ? 0 : undefined,
-        credit: config.showCredit ? 0 : undefined,
-        debitBDT: config.showDebit ? 0 : undefined,
-        creditBDT: config.showCredit ? 0 : undefined,
-      },
-    ];
+    const isTwoLineType = type === 'Journal Voucher' || type === 'Contra Voucher';
+    const makeSeedLine = (id: string): VoucherLine => ({
+      id,
+      accountHeadId: '',
+      accountHeadName: '',
+      costCenterId: '',
+      subsidiaryId: '',
+      employeeId: '',
+      vehicleId: '',
+      reference: '',
+      description: '',
+      currency: 'BDT',
+      exchangeRate: 1,
+      debit: config.showDebit ? 0 : undefined,
+      credit: config.showCredit ? 0 : undefined,
+      debitBDT: config.showDebit ? 0 : undefined,
+      creditBDT: config.showCredit ? 0 : undefined,
+    });
+    return isTwoLineType
+      ? [makeSeedLine('vl-seed-1'), makeSeedLine('vl-seed-2')]
+      : [makeSeedLine('vl-seed-1')];
   });
 
   // Calculate live totals and reconciliation

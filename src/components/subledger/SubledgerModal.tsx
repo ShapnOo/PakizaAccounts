@@ -228,8 +228,8 @@ export const SubledgerModal: React.FC<SubledgerModalProps> = ({
                   type === 'cost-center'
                     ? 'e.g. Head Office, Spinning Division, Factory Unit-1'
                     : type === 'reference-center'
-                    ? 'e.g. REF-2026-EXP-A, Project Core'
-                    : 'e.g. Truck-01 (Dhaka Metro-GA-11-2041)'
+                      ? 'e.g. REF-2026-EXP-A, Project Core'
+                      : 'e.g. Truck-01 (Dhaka Metro-GA-11-2041)'
                 }
                 className={[
                   'w-full px-3.5 py-2.5 rounded-lg border text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none transition-all duration-200',
@@ -250,10 +250,10 @@ export const SubledgerModal: React.FC<SubledgerModalProps> = ({
               )}
             </div>
 
-            {/* Field 2: Effective Company (multi-select combobox) */}
+            {/* Field 2: Apply Changes To (multi-select combobox) */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-700">
-                Effective Company <span className="text-rose-500">*</span>
+                Apply Changes To <span className="text-rose-500">*</span>
               </label>
               <CompanyMultiSelect
                 value={effectiveCompanyIds}
@@ -341,8 +341,8 @@ export const SubledgerModal: React.FC<SubledgerModalProps> = ({
                 {isSubmitting
                   ? 'Saving...'
                   : isEditMode
-                  ? `Update ${config.singular}`
-                  : `Save ${config.singular}`}
+                    ? `Update ${config.singular}`
+                    : `Save ${config.singular}`}
               </span>
             </button>
           </div>

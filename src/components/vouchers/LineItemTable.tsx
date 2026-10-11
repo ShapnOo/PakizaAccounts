@@ -70,21 +70,80 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
 
   const handleUpdateLine = (id: string, patch: Partial<VoucherLine>) => {
     onChange(
-      lines.map((l) => {
-        if (l.id !== id) return l;
-        const updated = { ...l, ...patch };
+      (() => {
+        const targetIndex = lines.findIndex((l) => l.id === id);
+        if (targetIndex === -1) return lines;
 
-        // Recalculate BDT conversions
-        const rate = updated.exchangeRate > 0 ? updated.exchangeRate : 1;
-        if (config.showDebit && updated.debit !== undefined) {
-          updated.debitBDT = Math.round(((updated.debit || 0) * rate + Number.EPSILON) * 100) / 100;
-        }
-        if (config.showCredit && updated.credit !== undefined) {
-          updated.creditBDT = Math.round(((updated.credit || 0) * rate + Number.EPSILON) * 100) / 100;
+        const updatedList = lines.map((l, idx) => {
+          if (idx !== targetIndex) return l;
+          const updated = { ...l, ...patch };
+
+          // Mutual exclusivity on edited row if double entry
+          if (config.isDoubleEntry) {
+            if (patch.debit !== undefined && (patch.debit || 0) > 0) {
+              updated.credit = 0;
+            } else if (patch.credit !== undefined && (patch.credit || 0) > 0) {
+              updated.debit = 0;
+            }
+          }
+
+          // Recalculate BDT conversions
+          const rate = updated.exchangeRate > 0 ? updated.exchangeRate : 1;
+          if (config.showDebit && updated.debit !== undefined) {
+            updated.debitBDT = Math.round(((updated.debit || 0) * rate + Number.EPSILON) * 100) / 100;
+          }
+          if (config.showCredit && updated.credit !== undefined) {
+            updated.creditBDT = Math.round(((updated.credit || 0) * rate + Number.EPSILON) * 100) / 100;
+          }
+
+          return updated;
+        });
+
+        // 2-line auto balance for double-entry (Journal & Contra)
+        if (config.isDoubleEntry && updatedList.length === 2) {
+          const otherIndex = targetIndex === 0 ? 1 : 0;
+          const otherLine = updatedList[otherIndex];
+          const otherRate = otherLine.exchangeRate > 0 ? otherLine.exchangeRate : 1;
+
+          if (patch.debit !== undefined) {
+            const amount = patch.debit || 0;
+            if (amount > 0) {
+              updatedList[otherIndex] = {
+                ...otherLine,
+                debit: 0,
+                debitBDT: 0,
+                credit: amount,
+                creditBDT: Math.round((amount * otherRate + Number.EPSILON) * 100) / 100,
+              };
+            } else if (amount === 0) {
+              updatedList[otherIndex] = {
+                ...otherLine,
+                credit: 0,
+                creditBDT: 0,
+              };
+            }
+          } else if (patch.credit !== undefined) {
+            const amount = patch.credit || 0;
+            if (amount > 0) {
+              updatedList[otherIndex] = {
+                ...otherLine,
+                credit: 0,
+                creditBDT: 0,
+                debit: amount,
+                debitBDT: Math.round((amount * otherRate + Number.EPSILON) * 100) / 100,
+              };
+            } else if (amount === 0) {
+              updatedList[otherIndex] = {
+                ...otherLine,
+                debit: 0,
+                debitBDT: 0,
+              };
+            }
+          }
         }
 
-        return updated;
-      })
+        return updatedList;
+      })()
     );
   };
 

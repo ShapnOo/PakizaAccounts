@@ -126,7 +126,7 @@ export const MasterConfigPage: React.FC = () => {
             </ConfigRow>
 
             <ConfigRow
-              label="Effective Company"
+              label="Apply Changes To"
               hint="Select companies to apply cost center configuration"
               controlClassName="w-full md:w-96 shrink-0"
             >
@@ -278,7 +278,7 @@ export const MasterConfigPage: React.FC = () => {
             </ConfigRow>
 
             <ConfigRow
-              label="Effective Company"
+              label="Apply Changes To"
               hint="Select which companies this voucher control policy governs"
               controlClassName="w-full md:w-96 shrink-0"
             >
@@ -318,7 +318,7 @@ export const MasterConfigPage: React.FC = () => {
         </div>
 
         <ConfigRow
-          label="Effective Company"
+          label="Apply Changes To"
           hint="Select which companies this period lock governs"
           controlClassName="w-full md:w-96 shrink-0"
         >
@@ -367,7 +367,7 @@ export const MasterConfigPage: React.FC = () => {
         </ConfigRow>
 
         <ConfigRow
-          label="Effective Company"
+          label="Apply Changes To"
           hint="Select company scope for voucher account configuration"
           controlClassName="w-full md:w-96 shrink-0"
         >
@@ -442,7 +442,7 @@ export const MasterConfigPage: React.FC = () => {
         </div>
 
         <ConfigRow
-          label="Effective Company"
+          label="Apply Changes To"
           hint="Select company scope for accounts identifications"
           controlClassName="w-full md:w-96 shrink-0"
         >
@@ -481,7 +481,7 @@ export const MasterConfigPage: React.FC = () => {
         </ConfigRow>
 
         <ConfigRow
-          label="Effective Company"
+          label="Apply Changes To"
           hint="Select company scope for bank and cheque settings"
           controlClassName="w-full md:w-96 shrink-0"
         >

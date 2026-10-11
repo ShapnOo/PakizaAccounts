@@ -125,7 +125,7 @@ export const CompanyMultiSelect: React.FC<CompanyMultiSelectProps> = ({
         <div className="flex-1 flex flex-wrap items-center gap-1.5 min-w-0">
           {value.length === 0 ? (
             <span className="text-slate-400 text-sm select-none">
-              Select effective company...
+              Select Apply Changes To...
             </span>
           ) : (
             value.map((id) => {
@@ -170,9 +170,8 @@ export const CompanyMultiSelect: React.FC<CompanyMultiSelectProps> = ({
             </button>
           )}
           <ChevronDown
-            className={`size-4 transition-transform duration-200 ${
-              isOpen ? 'rotate-180 text-indigo-600' : ''
-            }`}
+            className={`size-4 transition-transform duration-200 ${isOpen ? 'rotate-180 text-indigo-600' : ''
+              }`}
           />
         </div>
       </div>
@@ -186,11 +185,10 @@ export const CompanyMultiSelect: React.FC<CompanyMultiSelectProps> = ({
       {isOpen && (
         <div
           style={{ maxHeight }}
-          className={`absolute z-50 left-0 right-0 bg-card rounded-xl border border-border shadow-2xl overflow-hidden transition-all ${
-            openUpward
+          className={`absolute z-50 left-0 right-0 bg-card rounded-xl border border-border shadow-2xl overflow-hidden transition-all ${openUpward
               ? 'bottom-full mb-1.5 origin-bottom animate-in fade-in-0 zoom-in-95'
               : 'top-full mt-1.5 origin-top animate-in fade-in-0 zoom-in-95'
-          }`}
+            }`}
         >
           {/* Search Header */}
           <div className="p-2 border-b border-slate-100 bg-slate-50/70 flex items-center gap-2">

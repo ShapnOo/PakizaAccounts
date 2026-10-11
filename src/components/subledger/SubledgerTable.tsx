@@ -306,7 +306,7 @@ export const SubledgerTable: React.FC<SubledgerTableProps> = ({ type }) => {
                     Active Status
                   </th>
                   <th className="px-4 py-2.5 hidden lg:table-cell">
-                    Effective Company
+                    Apply Changes To
                   </th>
                   <th className="px-4 py-2.5 w-16 text-right">
                     Actions
@@ -339,9 +339,9 @@ export const SubledgerTable: React.FC<SubledgerTableProps> = ({ type }) => {
                   {pageSize === 0
                     ? `1–${totalItems}`
                     : `${(safeCurrentPage - 1) * pageSize + 1}–${Math.min(
-                        safeCurrentPage * pageSize,
-                        totalItems
-                      )}`}
+                      safeCurrentPage * pageSize,
+                      totalItems
+                    )}`}
                 </strong>{' '}
                 of <strong className="text-slate-800 font-semibold">{totalItems}</strong> entries
               </span>

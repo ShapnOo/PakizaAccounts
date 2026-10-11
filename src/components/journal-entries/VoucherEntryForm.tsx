@@ -121,21 +121,24 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
     initialData?.headerCostCenterId || ''
   );
   const [narration, setNarration] = useState(initialData?.narration || '');
-  const [lines, setLines] = useState<VoucherLine[]>(
-    initialData?.lines || [
-      {
-        id: 'l-1',
-        accountHeadId: '',
-        accountHeadName: '',
-        currency: 'BDT',
-        exchangeRate: 1,
-        debit: 0,
-        credit: 0,
-        debitBDT: 0,
-        creditBDT: 0,
-      },
-    ]
-  );
+  const [lines, setLines] = useState<VoucherLine[]>(() => {
+    if (initialData?.lines && initialData.lines.length > 0) {
+      return initialData.lines;
+    }
+    const isTwoLineType = activeType === 'Journal' || activeType === 'Contra';
+    const createEmptyLine = (idx: number): VoucherLine => ({
+      id: `l-${idx}`,
+      accountHeadId: '',
+      accountHeadName: '',
+      currency: 'BDT',
+      exchangeRate: 1,
+      debit: 0,
+      credit: 0,
+      debitBDT: 0,
+      creditBDT: 0,
+    });
+    return isTwoLineType ? [createEmptyLine(1), createEmptyLine(2)] : [createEmptyLine(1)];
+  });
 
   const [attachments, setAttachments] = useState<Attachment[]>(
     initialData?.attachments || []
@@ -214,8 +217,10 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
 
   // Remove Line
   const handleRemoveLine = (id: string) => {
-    if (lines.length <= 1) {
-      toast.error('Minimum 1 line is required in the voucher.');
+    const isTwoLineType = activeType === 'Journal' || activeType === 'Contra';
+    const minLines = isTwoLineType ? 2 : 1;
+    if (lines.length <= minLines) {
+      toast.error(`Minimum ${minLines} lines required for ${activeType} voucher.`);
       return;
     }
     setLines(lines.filter((l) => l.id !== id));
@@ -223,9 +228,14 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
 
   // Update Line
   const handleUpdateLine = (id: string, patch: Partial<VoucherLine>) => {
-    setLines((prev) =>
-      prev.map((line) => {
-        if (line.id !== id) return line;
+    setLines((prev) => {
+      const isTwoLineType = activeType === 'Journal' || activeType === 'Contra';
+      const targetIndex = prev.findIndex((l) => l.id === id);
+      if (targetIndex === -1) return prev;
+
+      // Update target line first
+      const updatedList = prev.map((line, idx) => {
+        if (idx !== targetIndex) return line;
 
         const updated = { ...line, ...patch };
 
@@ -233,6 +243,15 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
         if (patch.accountHeadId !== undefined) {
           const acc = MOCK_ACCOUNTS.find((a) => a.id === patch.accountHeadId);
           updated.accountHeadName = acc?.name || '';
+        }
+
+        // Mutual exclusivity on edited row: if debit > 0, reset credit to 0, and vice versa
+        if (patch.debit !== undefined && (patch.debit || 0) > 0) {
+          updated.credit = 0;
+          updated.creditBDT = 0;
+        } else if (patch.credit !== undefined && (patch.credit || 0) > 0) {
+          updated.debit = 0;
+          updated.debitBDT = 0;
         }
 
         // Recalculate BDT amounts
@@ -245,8 +264,56 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
         }
 
         return updated;
-      })
-    );
+      });
+
+      // Auto balancing for 2-line vouchers (Journal & Contra)
+      if (isTwoLineType && updatedList.length === 2) {
+        const otherIndex = targetIndex === 0 ? 1 : 0;
+        const otherLine = updatedList[otherIndex];
+
+        if (patch.debit !== undefined) {
+          const amount = patch.debit || 0;
+          const otherRate = otherLine.exchangeRate || 1;
+          if (amount > 0) {
+            // Line 1 debit -> Line 2 credit
+            updatedList[otherIndex] = {
+              ...otherLine,
+              debit: 0,
+              debitBDT: 0,
+              credit: amount,
+              creditBDT: amount * otherRate,
+            };
+          } else if (amount === 0) {
+            updatedList[otherIndex] = {
+              ...otherLine,
+              credit: 0,
+              creditBDT: 0,
+            };
+          }
+        } else if (patch.credit !== undefined) {
+          const amount = patch.credit || 0;
+          const otherRate = otherLine.exchangeRate || 1;
+          if (amount > 0) {
+            // Line 1 credit -> Line 2 debit
+            updatedList[otherIndex] = {
+              ...otherLine,
+              credit: 0,
+              creditBDT: 0,
+              debit: amount,
+              debitBDT: amount * otherRate,
+            };
+          } else if (amount === 0) {
+            updatedList[otherIndex] = {
+              ...otherLine,
+              debit: 0,
+              debitBDT: 0,
+            };
+          }
+        }
+      }
+
+      return updatedList;
+    });
   };
 
   // Totals calculations
