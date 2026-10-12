@@ -23,6 +23,8 @@ export const voucherTemplateSchema = z
       size: z.number().min(6).max(72),
       background: z.string().optional(),
       backgroundColor: z.string().min(1, 'Background color required'),
+      watermarkPlacement: z.enum(['table', 'full']).optional(),
+      watermarkOpacity: z.number().optional(),
     }),
     header: z.object({
       companyNameSize: z.number().min(8).max(72),
@@ -46,12 +48,16 @@ export const voucherTemplateSchema = z
           visible: z.boolean(),
           label: z.string().min(1).max(40),
           isCustom: z.boolean().optional(),
+          align: z.enum(['Left', 'Center', 'Right']).optional(),
+          width: z.number().optional(),
         })
       ),
       columnOrder: z.array(z.string()).optional(),
       showBorder: z.boolean(),
       fontSize: z.number().min(6).max(24),
       showApprovalSignature: z.boolean(),
+      autoFit: z.boolean().optional(),
+      density: z.enum(['compact', 'normal', 'relaxed']).optional(),
     }),
   })
   .refine(

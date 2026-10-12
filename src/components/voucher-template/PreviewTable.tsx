@@ -12,6 +12,38 @@ interface PreviewTableProps {
   previewLines: any[];
 }
 
+// Relative default column weight to distribute 100% table width intelligently
+const getBaseWeight = (key: string): number => {
+  switch (key) {
+    case 'accounts':
+      return 15;
+    case 'description':
+      return 14;
+    case 'subsidiary':
+      return 11;
+    case 'costCenter':
+      return 9;
+    case 'reference':
+      return 8;
+    case 'employee':
+      return 8;
+    case 'vehicles':
+      return 7;
+    case 'debit':
+    case 'credit':
+      return 7.5;
+    case 'debitBDT':
+    case 'creditBDT':
+      return 8.5;
+    case 'currency':
+      return 5;
+    case 'exchangeRate':
+      return 5;
+    default:
+      return 8; // Custom fields or other dynamic columns
+  }
+};
+
 export const PreviewTable: React.FC<PreviewTableProps> = ({
   columns,
   columnOrder,
@@ -25,6 +57,7 @@ export const PreviewTable: React.FC<PreviewTableProps> = ({
 
   // Filter visible columns in the specified order
   const visibleColKeys = columnOrder.filter((key) => columns[key]?.visible);
+  const totalCols = visibleColKeys.length;
 
   const isNumericCol = (key: string) => {
     return (
@@ -66,9 +99,44 @@ export const PreviewTable: React.FC<PreviewTableProps> = ({
         return line.creditBDT > 0 ? formatCurrency(line.creditBDT) : '—';
       default:
         // Dynamic custom fields
-        return 'INV-2026-01';
+        return line[key] || 'INV-2026-01';
     }
   };
+
+  // Adaptive density and padding based on visible column count
+  const isDense = totalCols >= 13;
+  const isMedium = totalCols >= 8;
+
+  const cellPaddingClass = isDense
+    ? 'py-1 px-1'
+    : isMedium
+    ? 'py-1.2 px-1.5'
+    : 'py-1.5 px-2';
+
+  // Responsive font size auto-scaling for high column counts
+  const effectiveFontSize = isDense
+    ? Math.min(fontSize, 7.5)
+    : isMedium
+    ? Math.min(fontSize, 8.5)
+    : fontSize;
+
+  const headerFontSize = Math.max(6, effectiveFontSize - 0.5);
+
+  // Calculate 100% proportional column widths so table never overflows
+  const slWeight = isDense ? 3 : isMedium ? 3.5 : 4;
+  const colWeights = visibleColKeys.map((key) => {
+    const customWidth = columns[key]?.width;
+    return typeof customWidth === 'number' && customWidth > 0
+      ? customWidth
+      : getBaseWeight(key);
+  });
+  const sumWeights = slWeight + colWeights.reduce((a, b) => a + b, 0);
+
+  const slWidthPercent = (slWeight / sumWeights) * 100;
+  const colWidthPercents: Record<string, number> = {};
+  visibleColKeys.forEach((key, idx) => {
+    colWidthPercents[key] = (colWeights[idx] / sumWeights) * 100;
+  });
 
   const borderClass = showBorder
     ? 'border border-slate-900/70'
@@ -79,19 +147,29 @@ export const PreviewTable: React.FC<PreviewTableProps> = ({
     : 'border-b border-slate-200 dark:border-border/60';
 
   return (
-    <div className="overflow-x-auto w-full">
+    <div className="w-full overflow-hidden">
       <table
-        className={`w-full border-collapse ${borderClass}`}
+        className={`w-full table-fixed border-collapse ${borderClass}`}
         style={{
-          fontSize: `${fontSize}px`,
+          fontSize: `${effectiveFontSize}px`,
           color: textColor,
         }}
       >
+        <colgroup>
+          <col style={{ width: `${slWidthPercent.toFixed(2)}%` }} />
+          {visibleColKeys.map((key) => (
+            <col
+              key={key}
+              style={{ width: `${colWidthPercents[key].toFixed(2)}%` }}
+            />
+          ))}
+        </colgroup>
+
         <thead>
           <tr className="bg-slate-100/90 dark:bg-muted font-bold">
             <th
-              className={`py-1.5 px-2 text-center w-8 ${cellBorderClass}`}
-              style={{ fontSize: `${fontSize - 0.5}px`, color: activeHeaderColor }}
+              className={`text-center font-bold break-words whitespace-normal leading-[1.15] ${cellBorderClass} ${cellPaddingClass}`}
+              style={{ fontSize: `${headerFontSize}px`, color: activeHeaderColor }}
             >
               #
             </th>
@@ -111,8 +189,8 @@ export const PreviewTable: React.FC<PreviewTableProps> = ({
               return (
                 <th
                   key={key}
-                  className={`py-1.5 px-2 font-bold uppercase tracking-tight whitespace-nowrap ${cellBorderClass} ${alignClass}`}
-                  style={{ fontSize: `${fontSize - 0.5}px`, color: activeHeaderColor }}
+                  className={`font-bold uppercase tracking-tight break-words whitespace-normal leading-[1.15] hyphens-auto ${cellBorderClass} ${alignClass} ${cellPaddingClass}`}
+                  style={{ fontSize: `${headerFontSize}px`, color: activeHeaderColor }}
                 >
                   {cfg.label}
                 </th>
@@ -130,7 +208,7 @@ export const PreviewTable: React.FC<PreviewTableProps> = ({
                 className={isZebra ? 'bg-slate-50/50 dark:bg-muted/15' : 'bg-transparent'}
               >
                 <td
-                  className={`py-1 px-2 text-center font-mono ${cellBorderClass} text-slate-500`}
+                  className={`text-center font-mono ${cellBorderClass} ${cellPaddingClass} text-slate-500`}
                 >
                   {idx + 1}
                 </td>
@@ -151,8 +229,10 @@ export const PreviewTable: React.FC<PreviewTableProps> = ({
                   return (
                     <td
                       key={key}
-                      className={`py-1.5 px-2 ${cellBorderClass} ${alignClass} ${
-                        isNum ? 'font-mono tabular-nums' : ''
+                      className={`${cellBorderClass} ${alignClass} ${cellPaddingClass} ${
+                        isNum
+                          ? 'font-mono tabular-nums whitespace-nowrap overflow-hidden text-ellipsis'
+                          : 'break-words whitespace-normal leading-snug'
                       }`}
                     >
                       {val}

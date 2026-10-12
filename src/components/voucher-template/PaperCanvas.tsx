@@ -91,6 +91,9 @@ export const PaperCanvas: React.FC<PaperCanvasProps> = ({
     watermarkText.startsWith('https://') ||
     watermarkText.startsWith('data:') ||
     watermarkText.startsWith('/');
+  const watermarkPlacement = template.font.watermarkPlacement || 'table';
+  const watermarkOpacity =
+    template.font.watermarkOpacity ?? (isImageWatermark ? 0.2 : 0.15);
 
   return (
     <div
@@ -125,7 +128,7 @@ export const PaperCanvas: React.FC<PaperCanvasProps> = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="relative transition-all duration-150 select-none shadow-xl rounded-xs ring-1 ring-black/5 dark:ring-white/10 overflow-hidden"
+        className="printable-paper-sheet relative transition-all duration-150 select-none shadow-xl rounded-xs ring-1 ring-black/5 dark:ring-white/10 overflow-hidden"
         style={{
           width: `${dimensions.widthPx}px`,
           minHeight: `${dimensions.heightPx}px`,
@@ -134,21 +137,22 @@ export const PaperCanvas: React.FC<PaperCanvasProps> = ({
           fontFamily: template.font.family || 'Inter, sans-serif',
         }}
       >
-        {/* ── Background Watermark Layer ── */}
-        {watermarkText && (
+        {/* ── Background Watermark Layer (Full Page Mode) ── */}
+        {watermarkText && watermarkPlacement === 'full' && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0">
             {isImageWatermark ? (
               <img
                 src={watermarkText}
                 alt="Watermark"
-                className="max-w-[75%] max-h-[75%] object-contain opacity-15"
+                className="max-w-[75%] max-h-[75%] object-contain"
+                style={{ opacity: watermarkOpacity }}
               />
             ) : (
               <div
                 className="transform -rotate-25 select-none font-black uppercase text-5xl sm:text-6xl md:text-7xl tracking-widest text-center px-4"
                 style={{
                   color: themeColor || '#475569',
-                  opacity: 0.12,
+                  opacity: watermarkOpacity,
                 }}
               >
                 {watermarkText}
@@ -227,17 +231,18 @@ export const PaperCanvas: React.FC<PaperCanvasProps> = ({
 
             {/* 2. Main Line Items Table */}
             <div
-              className={`transition-all rounded-xs ${
+              className={`w-full max-w-full transition-all rounded-xs relative ${
                 showSectionOutlines
-                  ? 'ring-1 ring-emerald-500/50 p-1 relative'
+                  ? 'ring-1 ring-emerald-500/50 p-1'
                   : ''
               }`}
             >
               {showSectionOutlines && (
                 <span className="absolute -top-3 left-1 text-[8px] font-mono font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950 px-1 rounded shadow-2xs border border-emerald-200">
-                  Data Table ({columnOrder.filter(k => template.table.columns[k]?.visible).length} Columns)
+                  Data Table ({columnOrder.filter(k => template.table.columns[k]?.visible).length} Columns · Dynamic Auto-Fit)
                 </span>
               )}
+
               <PreviewTable
                 columns={template.table.columns}
                 columnOrder={columnOrder}
@@ -247,6 +252,31 @@ export const PaperCanvas: React.FC<PaperCanvasProps> = ({
                 themeColor={themeColor}
                 previewLines={previewLines}
               />
+
+              {/* Watermark stamped on top of table, centered across table area without clipping */}
+              {watermarkText && watermarkPlacement !== 'full' && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                  {isImageWatermark ? (
+                    <img
+                      src={watermarkText}
+                      alt="Watermark"
+                      className="max-w-[70%] max-h-[160px] object-contain pointer-events-none"
+                      style={{ opacity: watermarkOpacity }}
+                    />
+                  ) : (
+                    <div
+                      className="transform -rotate-12 select-none font-black uppercase tracking-widest text-center px-4 leading-none pointer-events-none whitespace-nowrap"
+                      style={{
+                        fontSize: 'clamp(1.8rem, 4.2vw, 3.2rem)',
+                        color: themeColor || '#475569',
+                        opacity: watermarkOpacity,
+                      }}
+                    >
+                      {watermarkText}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* 3. Totals Block */}

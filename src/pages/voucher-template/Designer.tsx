@@ -29,6 +29,7 @@ export const VoucherTemplateDesignerPage: React.FC = () => {
     toggleColumnVisibility,
     updateColumnLabel,
     updateColumnAlign,
+    updateColumnWidth,
     reorderColumns,
     setLivePreviewEnabled,
     setZoom,
@@ -185,6 +186,7 @@ export const VoucherTemplateDesignerPage: React.FC = () => {
                 onToggleColumn={toggleColumnVisibility}
                 onUpdateColumnLabel={updateColumnLabel}
                 onUpdateColumnAlign={updateColumnAlign}
+                onUpdateColumnWidth={updateColumnWidth}
                 onReorderColumns={reorderColumns}
               />
             </div>

@@ -31,6 +31,7 @@ export interface VoucherTemplateStoreState {
   toggleColumnVisibility: (colKey: string) => void;
   updateColumnLabel: (colKey: string, label: string) => void;
   updateColumnAlign: (colKey: string, align: 'Left' | 'Center' | 'Right') => void;
+  updateColumnWidth: (colKey: string, width: number) => void;
   reorderColumns: (newOrder: string[]) => void;
   setLivePreviewEnabled: (enabled: boolean) => void;
   setZoom: (zoom: number) => void;
@@ -178,6 +179,37 @@ export const useVoucherTemplateStore = create<VoucherTemplateStoreState>()(
           [colKey]: {
             ...col,
             align,
+          },
+        };
+
+        set({
+          templates: {
+            ...templates,
+            [activeType]: {
+              ...current,
+              table: {
+                ...current.table,
+                columns: updatedCols,
+              },
+            },
+          },
+          dirty: true,
+        });
+      },
+
+      updateColumnWidth: (colKey: string, width: number) => {
+        const { activeType, templates } = get();
+        const current = templates[activeType];
+        if (!current) return;
+
+        const col = current.table.columns[colKey];
+        if (!col) return;
+
+        const updatedCols = {
+          ...current.table.columns,
+          [colKey]: {
+            ...col,
+            width,
           },
         };
 

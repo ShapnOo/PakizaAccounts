@@ -53,82 +53,81 @@ export const MarginSection: React.FC<MarginSectionProps> = ({
 
       {!isCollapsed && (
         <div className="p-3.5 pt-1 border-t border-border/40">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {/* Top */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
+                Top
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="3"
+                value={top}
+                onChange={(e) =>
+                  onChange({ top: parseFloat(e.target.value) || 0 })
+                }
+                className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-mono font-medium text-foreground outline-none focus:ring-1 focus:ring-indigo-500 shadow-2xs text-right"
+              />
+            </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        {/* Top */}
-        <div className="space-y-1">
-          <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
-            Top
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            max="3"
-            value={top}
-            onChange={(e) =>
-              onChange({ top: parseFloat(e.target.value) || 0 })
-            }
-            className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-mono font-medium text-foreground outline-none focus:ring-1 focus:ring-indigo-500 shadow-2xs text-right"
-          />
-        </div>
+            {/* Bottom */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
+                Bottom
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="3"
+                value={bottom}
+                onChange={(e) =>
+                  onChange({ bottom: parseFloat(e.target.value) || 0 })
+                }
+                className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-mono font-medium text-foreground outline-none focus:ring-1 focus:ring-indigo-500 shadow-2xs text-right"
+              />
+            </div>
 
-        {/* Bottom */}
-        <div className="space-y-1">
-          <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
-            Bottom
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            max="3"
-            value={bottom}
-            onChange={(e) =>
-              onChange({ bottom: parseFloat(e.target.value) || 0 })
-            }
-            className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-mono font-medium text-foreground outline-none focus:ring-1 focus:ring-indigo-500 shadow-2xs text-right"
-          />
-        </div>
+            {/* Left */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
+                Left
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="3"
+                value={left}
+                onChange={(e) =>
+                  onChange({ left: parseFloat(e.target.value) || 0 })
+                }
+                className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-mono font-medium text-foreground outline-none focus:ring-1 focus:ring-indigo-500 shadow-2xs text-right"
+              />
+            </div>
 
-        {/* Left */}
-        <div className="space-y-1">
-          <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
-            Left
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            max="3"
-            value={left}
-            onChange={(e) =>
-              onChange({ left: parseFloat(e.target.value) || 0 })
-            }
-            className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-mono font-medium text-foreground outline-none focus:ring-1 focus:ring-indigo-500 shadow-2xs text-right"
-          />
+            {/* Right */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
+                Right
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="3"
+                value={right}
+                onChange={(e) =>
+                  onChange({ right: parseFloat(e.target.value) || 0 })
+                }
+                className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-mono font-medium text-foreground outline-none focus:ring-1 focus:ring-indigo-500 shadow-2xs text-right"
+              />
+            </div>
+          </div>
         </div>
-
-        {/* Right */}
-        <div className="space-y-1">
-          <label className="text-[11px] font-bold text-slate-700 dark:text-muted-foreground block">
-            Right
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            max="3"
-            value={right}
-            onChange={(e) =>
-              onChange({ right: parseFloat(e.target.value) || 0 })
-            }
-            className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-mono font-medium text-foreground outline-none focus:ring-1 focus:ring-indigo-500 shadow-2xs text-right"
-          />
-        </div>
-      </div>
+      )}
     </div>
-    )}
-  </div>
   );
 };

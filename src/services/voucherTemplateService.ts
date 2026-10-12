@@ -8,7 +8,26 @@ function getStoredTemplates(): VoucherTemplate[] {
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) {
-      return JSON.parse(raw);
+      const parsed: VoucherTemplate[] = JSON.parse(raw);
+      let migrated = false;
+      const updated = parsed.map((t) => {
+        if (t.margin && (t.margin.left === 0.04 || t.margin.right === 0.04)) {
+          migrated = true;
+          return {
+            ...t,
+            margin: {
+              ...t.margin,
+              left: t.margin.left === 0.04 ? 0.2 : t.margin.left,
+              right: t.margin.right === 0.04 ? 0.2 : t.margin.right,
+            },
+          };
+        }
+        return t;
+      });
+      if (migrated) {
+        saveStoredTemplates(updated);
+      }
+      return updated;
     }
   } catch (err) {
     console.warn('Failed to parse voucher templates from localStorage:', err);

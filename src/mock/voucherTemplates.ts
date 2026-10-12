@@ -38,7 +38,7 @@ export const MOCK_TEMPLATES: VoucherTemplate[] = [
     voucherType: 'Journal',
     variant: 'General',
     paper: { size: 'A4', orientation: 'Portrait' },
-    margin: { top: 0.08, bottom: 0.08, left: 0.04, right: 0.04 },
+    margin: { top: 0.08, bottom: 0.08, left: 0.20, right: 0.20 },
     font: {
       family: 'Inter',
       theme: 'Classic',
@@ -76,7 +76,7 @@ export const MOCK_TEMPLATES: VoucherTemplate[] = [
     voucherType: 'Payment',
     variant: 'Standard',
     paper: { size: 'A4', orientation: 'Portrait' },
-    margin: { top: 0.08, bottom: 0.08, left: 0.04, right: 0.04 },
+    margin: { top: 0.08, bottom: 0.08, left: 0.20, right: 0.20 },
     font: {
       family: 'Inter',
       theme: 'Classic',
@@ -118,7 +118,7 @@ export const MOCK_TEMPLATES: VoucherTemplate[] = [
     voucherType: 'Receive',
     variant: 'Standard',
     paper: { size: 'A4', orientation: 'Portrait' },
-    margin: { top: 0.08, bottom: 0.08, left: 0.04, right: 0.04 },
+    margin: { top: 0.08, bottom: 0.08, left: 0.20, right: 0.20 },
     font: {
       family: 'Inter',
       theme: 'Classic',
@@ -160,7 +160,7 @@ export const MOCK_TEMPLATES: VoucherTemplate[] = [
     voucherType: 'Contra',
     variant: 'Cash/Bank',
     paper: { size: 'A4', orientation: 'Portrait' },
-    margin: { top: 0.08, bottom: 0.08, left: 0.04, right: 0.04 },
+    margin: { top: 0.08, bottom: 0.08, left: 0.20, right: 0.20 },
     font: {
       family: 'Inter',
       theme: 'Classic',

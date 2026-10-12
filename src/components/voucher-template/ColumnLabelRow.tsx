@@ -1,5 +1,14 @@
 import React from 'react';
-import { GripVertical, ChevronUp, ChevronDown, Check, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import {
+  GripVertical,
+  ChevronUp,
+  ChevronDown,
+  Check,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Columns3,
+} from 'lucide-react';
 import { Align, TableColumnConfig } from '../../types/voucherTemplate';
 
 interface ColumnLabelRowProps {
@@ -10,6 +19,7 @@ interface ColumnLabelRowProps {
   onToggleVisible: () => void;
   onLabelChange: (label: string) => void;
   onAlignChange?: (align: Align) => void;
+  onWidthChange?: (width: number) => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
 }
@@ -22,16 +32,37 @@ export const ColumnLabelRow: React.FC<ColumnLabelRowProps> = ({
   onToggleVisible,
   onLabelChange,
   onAlignChange,
+  onWidthChange,
   onMoveUp,
   onMoveDown,
 }) => {
-  const currentAlign = config.align || (colKey.includes('debit') || colKey.includes('credit') || colKey === 'exchangeRate' ? 'Right' : 'Left');
+  const currentAlign =
+    config.align ||
+    (colKey.includes('debit') || colKey.includes('credit') || colKey === 'exchangeRate'
+      ? 'Right'
+      : 'Left');
 
   const cycleAlign = () => {
     if (!onAlignChange) return;
     if (currentAlign === 'Left') onAlignChange('Center');
     else if (currentAlign === 'Center') onAlignChange('Right');
     else onAlignChange('Left');
+  };
+
+  const currentWidthPreset = config.width
+    ? config.width <= 6
+      ? 'Compact'
+      : config.width >= 14
+      ? 'Wide'
+      : 'Medium'
+    : 'Auto';
+
+  const cycleWidth = () => {
+    if (!onWidthChange) return;
+    if (currentWidthPreset === 'Auto') onWidthChange(6); // Compact
+    else if (currentWidthPreset === 'Compact') onWidthChange(10); // Medium
+    else if (currentWidthPreset === 'Medium') onWidthChange(16); // Wide
+    else onWidthChange(0); // Reset to Auto proportional
   };
 
   return (
@@ -103,7 +134,26 @@ export const ColumnLabelRow: React.FC<ColumnLabelRowProps> = ({
           {currentAlign === 'Left' && <AlignLeft className="size-3 text-indigo-600" />}
           {currentAlign === 'Center' && <AlignCenter className="size-3 text-indigo-600" />}
           {currentAlign === 'Right' && <AlignRight className="size-3 text-indigo-600" />}
-          <span className="text-[10px] hidden group-hover:inline">{currentAlign.slice(0, 1)}</span>
+          <span className="text-[10px] hidden group-hover:inline">
+            {currentAlign.slice(0, 1)}
+          </span>
+        </button>
+      )}
+
+      {/* Width Preset Button */}
+      {onWidthChange && config.visible && (
+        <button
+          type="button"
+          onClick={cycleWidth}
+          title={`Width: ${currentWidthPreset} (Click to cycle Auto -> Compact -> Medium -> Wide)`}
+          className={`px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold flex items-center gap-1 border transition-colors cursor-pointer ${
+            currentWidthPreset !== 'Auto'
+              ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/80 border-transparent hover:border-border'
+          }`}
+        >
+          <Columns3 className="size-2.5 opacity-70" />
+          <span>{currentWidthPreset}</span>
         </button>
       )}
 

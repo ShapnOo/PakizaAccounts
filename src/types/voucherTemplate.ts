@@ -24,6 +24,7 @@ export interface TableColumnConfig {
   label: string;
   isCustom?: boolean;
   align?: Align;
+  width?: number; // Relative weight / width percentage
 }
 
 export const BASE_TABLE_COLUMNS: { key: string; label: string }[] = [
@@ -66,6 +67,8 @@ export interface VoucherTemplate {
     size: number;
     background?: string;
     backgroundColor?: string;
+    watermarkPlacement?: 'table' | 'full'; // 'table' (over table) | 'full' (full page)
+    watermarkOpacity?: number;
   };
   header: {
     companyNameSize: number;
@@ -88,6 +91,8 @@ export interface VoucherTemplate {
     showBorder: boolean;
     fontSize: number;
     showApprovalSignature: boolean;
+    autoFit?: boolean;
+    density?: 'compact' | 'normal' | 'relaxed';
   };
 }
 
