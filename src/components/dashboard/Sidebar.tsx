@@ -277,17 +277,6 @@ function isRouteReady(path?: string): boolean {
   return READY_ROUTE_PATTERNS.some((pattern) => path === pattern || path.startsWith(pattern + '/'));
 }
 
-// Helper to check recursively if a menu item or any of its children have ready routes
-function hasAnyReadyRoute(item: { to?: string; subitems?: any[] }): boolean {
-  if (item.to) {
-    return isRouteReady(item.to);
-  }
-  if (item.subitems && item.subitems.length > 0) {
-    return item.subitems.some((child) => hasAnyReadyRoute(child));
-  }
-  return false;
-}
-
 // Helper to determine if a route or alias is currently active
 function isPathActive(itemTo: string | undefined, currentPath: string): boolean {
   if (!itemTo) return false;
@@ -534,28 +523,6 @@ export function Sidebar() {
             );
           }
 
-          const isItemReady = hasAnyReadyRoute(item);
-
-          if (!isItemReady) {
-            return (
-              <div
-                key={item.label}
-                className="border-b border-sidebar-border/30 last:border-0 pb-1"
-              >
-                <div
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-sidebar-foreground/40 font-normal select-none"
-                  title="Coming soon"
-                >
-                  <Icon className="size-3.5 shrink-0 text-sidebar-foreground/35" />
-                  <span className="flex-1 truncate">{item.label}</span>
-                  <span className="text-[8px] font-semibold tracking-tight text-sidebar-foreground/35 px-1 py-0.2 rounded bg-sidebar-foreground/5 shrink-0 select-none">
-                    Soon
-                  </span>
-                </div>
-              </div>
-            );
-          }
-
           const isOpen = !!openMenus[item.label];
 
           return (
@@ -603,24 +570,6 @@ export function Sidebar() {
               >
                 {item.subitems.map((sub) => {
                   if (sub.subitems) {
-                    const isSubReady = hasAnyReadyRoute(sub);
-
-                    if (!isSubReady) {
-                      return (
-                        <div
-                          key={sub.label}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] text-sidebar-foreground/40 font-normal select-none"
-                          title="Coming soon"
-                        >
-                          <File className="size-3 shrink-0 text-sidebar-foreground/30" />
-                          <span className="truncate flex-1">{sub.label}</span>
-                          <span className="text-[8px] font-semibold tracking-tight text-sidebar-foreground/35 px-1 py-0.2 rounded bg-sidebar-foreground/5 shrink-0 select-none">
-                            Soon
-                          </span>
-                        </div>
-                      );
-                    }
-
                     const isSubOpen = !!openMenus[sub.label];
                     const isSubActive = sub.subitems.some((nested) => isPathActive(nested.to, currentPath));
 

@@ -230,16 +230,46 @@ const searchableMenus: SearchMenuLink[] = [
 
   // Treasury Management
   {
-    label: "Forecasting Accounts",
-    parent: "Treasury Management",
-    to: "/treasury-management/forecasting-accounts",
-    description: "Cash flow projections, incoming receivables, and outgoing commitments",
+    label: "Cash Flow Forecasting",
+    parent: "Treasury Management (Forecasting Accounts)",
+    to: "/treasury-management/forecasting-accounts/cash-flow",
+    description: "Multi-period incoming receipts and outgoing commitments projections",
   },
   {
-    label: "Budgeting",
-    parent: "Treasury Management",
-    to: "/treasury-management/budgeting",
-    description: "Departmental fiscal budgets, allocations, and variance tracking",
+    label: "Daily Cash & Bank Position",
+    parent: "Treasury Management (Forecasting Accounts)",
+    to: "/treasury-management/forecasting-accounts/daily-position",
+    description: "Consolidated daily bank balances, liquid cash, and float status",
+  },
+  {
+    label: "Fiscal Budget Master Setup",
+    parent: "Treasury Management (Budgeting)",
+    to: "/treasury-management/budgeting/master-setup",
+    description: "Annual and quarterly departmental budget planning and thresholds",
+  },
+  {
+    label: "Budget Variance & Control Analysis",
+    parent: "Treasury Management (Budgeting)",
+    to: "/treasury-management/budgeting/variance-analysis",
+    description: "Track budget vs actual expenditure and cost overrun variances",
+  },
+  {
+    label: "Inter-Account Fund Transfer",
+    parent: "Treasury Management (Cash & Liquidity)",
+    to: "/treasury-management/liquidity/fund-transfer",
+    description: "Internal transfers between operational banks and liquidity sweep",
+  },
+  {
+    label: "Bank Facility & Limit Setup",
+    parent: "Treasury Management (Credit Facilities)",
+    to: "/treasury-management/credit-facility/setup",
+    description: "Sanctioned overdrafts, revolving credit, and commercial loan lines",
+  },
+  {
+    label: "FDR & Term Deposit Placement",
+    parent: "Treasury Management (Investments)",
+    to: "/treasury-management/investments/placement",
+    description: "Manage fixed deposit receipts, maturity rollover, and interest returns",
   },
 
   // Accounts Integration
