@@ -25,9 +25,10 @@ export const CustomFieldFormPage: React.FC = () => {
   const isEdit = Boolean(id);
   const targetField = isEdit ? fields.find((f) => f.id === id) : null;
 
-  const urlCtx = (searchParams.get('ctx') as CustomFieldContext) || 'journal';
+  const rawCtx = searchParams.get('ctx');
+  const urlCtx: CustomFieldContext = rawCtx === 'voucher-details' ? 'voucher-details' : 'voucher-master';
   const [context, setContext] = useState<CustomFieldContext>(urlCtx);
-  const [scope, setScope] = useState<'Master' | 'Details'>('Details');
+  const [scope, setScope] = useState<'Master' | 'Details'>(urlCtx === 'voucher-master' ? 'Master' : 'Details');
   const [label, setLabel] = useState('');
   const [dataType, setDataType] = useState<CustomFieldDataType>('Text');
   const [mandatory, setMandatory] = useState<boolean>(false);
@@ -45,7 +46,7 @@ export const CustomFieldFormPage: React.FC = () => {
   useEffect(() => {
     if (targetField) {
       setContext(targetField.context);
-      setScope(targetField.scope || 'Details');
+      setScope(targetField.scope || (targetField.context === 'voucher-master' ? 'Master' : 'Details'));
       setLabel(targetField.label);
       setDataType(targetField.dataType);
       setMandatory(targetField.mandatory);
@@ -63,6 +64,7 @@ export const CustomFieldFormPage: React.FC = () => {
       );
     } else if (!isEdit) {
       setContext(urlCtx);
+      setScope(urlCtx === 'voucher-master' ? 'Master' : 'Details');
     }
   }, [targetField, isEdit, urlCtx]);
 
@@ -183,7 +185,11 @@ export const CustomFieldFormPage: React.FC = () => {
               ) : (
                 <select
                   value={context}
-                  onChange={(e) => setContext(e.target.value as CustomFieldContext)}
+                  onChange={(e) => {
+                    const next = e.target.value as CustomFieldContext;
+                    setContext(next);
+                    setScope(next === 'voucher-master' ? 'Master' : 'Details');
+                  }}
                   className="w-full h-8.5 px-3 rounded-lg border border-border bg-card text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-2xs"
                 >
                   {Object.entries(CONTEXT_CONFIG).map(([k, cfg]) => (

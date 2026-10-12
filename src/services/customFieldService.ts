@@ -4,16 +4,35 @@ import { delay } from '../lib/delay';
 
 const LS_KEY = 'custom-fields';
 
+function migrateLegacyContext(ctx: any): CustomFieldContext {
+  if (ctx === 'journal' || ctx === 'voucher-master') return 'voucher-master';
+  return 'voucher-details';
+}
+
 function getStored(): CustomField[] {
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length < MOCK_CUSTOM_FIELDS.length) {
-        localStorage.setItem(LS_KEY, JSON.stringify(MOCK_CUSTOM_FIELDS));
-        return MOCK_CUSTOM_FIELDS;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const hasLegacy = parsed.some((f) =>
+          ['journal', 'payment', 'receive', 'contra', 'opening-balance', 'coa'].includes(f.context)
+        );
+        if (hasLegacy) {
+          const migrated: CustomField[] = parsed
+            .filter((f) => ['journal', 'payment', 'voucher-master', 'voucher-details'].includes(f.context))
+            .map((f, idx) => ({
+              ...f,
+              context: migrateLegacyContext(f.context),
+              scope: (f.context === 'journal' || f.context === 'voucher-master') ? 'Master' : 'Details',
+              order: idx,
+            }));
+          const result = migrated.length >= 2 ? migrated : MOCK_CUSTOM_FIELDS;
+          localStorage.setItem(LS_KEY, JSON.stringify(result));
+          return result;
+        }
+        return parsed;
       }
-      return parsed;
     }
   } catch (err) {
     console.warn('Failed to parse stored custom fields:', err);

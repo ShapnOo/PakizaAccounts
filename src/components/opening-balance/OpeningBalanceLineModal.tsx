@@ -56,7 +56,7 @@ export const OpeningBalanceLineModal: React.FC<OpeningBalanceLineModalProps> = (
   const [description, setDescription] = useState('');
   const [customFieldsValues, setCustomFieldsValues] = useState<Record<string, any>>({});
 
-  const { fields: customFields } = useCustomFields('opening-balance');
+  const { fields: customFields } = useCustomFields('voucher-details');
   const { getAccount } = useOpeningMasterLookups();
 
   const [errors, setErrors] = useState<Record<string, string>>({});

@@ -11,12 +11,8 @@ import { DeleteConfirmDialog } from '../../components/custom-fields/DeleteConfir
 import { PreviewModal } from '../../components/custom-fields/PreviewModal';
 
 const VALID_CONTEXTS: CustomFieldContext[] = [
-  'journal',
-  'payment',
-  'receive',
-  'contra',
-  'opening-balance',
-  'coa',
+  'voucher-master',
+  'voucher-details',
 ];
 
 export const CustomFieldBuilderPage: React.FC = () => {
@@ -45,12 +41,16 @@ export const CustomFieldBuilderPage: React.FC = () => {
 
   // Initialize from URL or store
   useEffect(() => {
-    const ctxParam = searchParams.get('ctx') as CustomFieldContext | null;
-    if (ctxParam && VALID_CONTEXTS.includes(ctxParam)) {
+    const ctxParam = searchParams.get('ctx');
+    if (ctxParam === 'voucher-master' || ctxParam === 'voucher-details') {
       setContext(ctxParam);
+    } else if (ctxParam) {
+      const fallback: CustomFieldContext = ctxParam === 'journal' ? 'voucher-master' : 'voucher-details';
+      setContext(fallback);
+      setSearchParams({ ctx: fallback }, { replace: true });
     }
     load();
-  }, [load, setContext, searchParams]);
+  }, [load, setContext, searchParams, setSearchParams]);
 
   // Context switch handler
   const handleContextChange = (ctx: CustomFieldContext) => {

@@ -4,12 +4,8 @@ import { CustomField } from '../../types/customField';
 export const customFieldSchema = z
   .object({
     context: z.enum([
-      'journal',
-      'payment',
-      'receive',
-      'contra',
-      'opening-balance',
-      'coa',
+      'voucher-master',
+      'voucher-details',
     ]),
     label: z
       .string()

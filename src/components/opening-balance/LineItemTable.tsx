@@ -41,7 +41,7 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
   const { getAccount, getCostCenter, getSubsidiary, getEmployee, getVehicle } =
     useOpeningMasterLookups();
 
-  const { fields: customFields } = useCustomFields('opening-balance');
+  const { fields: customFields } = useCustomFields('voucher-details');
 
   const filteredLines = useMemo(() => {
     return lines.filter((line) => {

@@ -13,7 +13,6 @@ import { SearchableSelect } from '../shared/SearchableSelect';
 import { Plus, Trash2, Info } from 'lucide-react';
 import { useCustomFields } from '../../hooks/useCustomFields';
 import { CustomFieldCell } from '../shared/CustomFieldCell';
-import { CustomFieldContext } from '../../types/customField';
 
 interface LineItemTableProps {
   voucherType: VoucherType;
@@ -28,16 +27,8 @@ export const LineItemTable: React.FC<LineItemTableProps> = ({
 }) => {
   const config = VOUCHER_TYPE_CONFIGS[voucherType];
 
-  const voucherContext: CustomFieldContext =
-    voucherType === 'Journal Voucher'
-      ? 'journal'
-      : voucherType === 'Payment Voucher'
-      ? 'payment'
-      : voucherType === 'Receive Voucher'
-      ? 'receive'
-      : 'contra';
-
-  const { fields: customFields } = useCustomFields(voucherContext);
+  // Detail-level custom fields applied across all voucher lines
+  const { fields: customFields } = useCustomFields('voucher-details');
 
   const handleAddLine = () => {
     const initialCustom: Record<string, any> = {};

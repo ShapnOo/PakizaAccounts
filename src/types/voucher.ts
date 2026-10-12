@@ -64,5 +64,6 @@ export interface VoucherEntry {
     creditBDT: number;
   };
   difference?: number;
+  customFields?: Record<string, any>; // Master / header custom fields
   createdAt?: string;
 }

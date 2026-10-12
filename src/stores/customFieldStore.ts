@@ -43,7 +43,7 @@ export const useCustomFieldStore = create<CustomFieldStoreState>()(
   persist(
     (set, get) => ({
       fields: [],
-      activeContext: 'journal',
+      activeContext: 'voucher-master',
       loading: true,
       searchQuery: '',
       typeFilter: [],
@@ -55,10 +55,15 @@ export const useCustomFieldStore = create<CustomFieldStoreState>()(
         set({ loading: true });
         try {
           const loaded = await listCustomFields();
+          const current = get().activeContext;
+          const validContext: CustomFieldContext =
+            current === 'voucher-master' || current === 'voucher-details'
+              ? current
+              : 'voucher-master';
           set({
             fields: loaded,
             loading: false,
-            ...(context ? { activeContext: context } : {}),
+            activeContext: context || validContext,
           });
         } catch (err) {
           console.error('Failed to load custom fields:', err);

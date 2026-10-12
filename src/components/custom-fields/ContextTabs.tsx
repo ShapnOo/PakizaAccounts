@@ -9,12 +9,8 @@ interface ContextTabsProps {
 }
 
 const CONTEXT_KEYS: CustomFieldContext[] = [
-  'journal',
-  'payment',
-  'receive',
-  'contra',
-  'opening-balance',
-  'coa',
+  'voucher-master',
+  'voucher-details',
 ];
 
 export const ContextTabs: React.FC<ContextTabsProps> = ({

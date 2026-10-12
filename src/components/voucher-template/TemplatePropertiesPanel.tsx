@@ -6,7 +6,6 @@ import { FontSection } from './FontSection';
 import { HeaderFooterSection } from './HeaderFooterSection';
 import { TableSection } from './TableSection';
 import { useCustomFields } from '../../hooks/useCustomFields';
-import { CustomFieldContext } from '../../types/customField';
 
 interface TemplatePropertiesPanelProps {
   template: VoucherTemplate;
@@ -25,17 +24,8 @@ export const TemplatePropertiesPanel: React.FC<TemplatePropertiesPanelProps> = (
   onUpdateColumnAlign,
   onReorderColumns,
 }) => {
-  // Read active custom fields for this voucher type context
-  const contextName: CustomFieldContext =
-    template.voucherType === 'Journal'
-      ? 'journal'
-      : template.voucherType === 'Payment'
-      ? 'payment'
-      : template.voucherType === 'Receive'
-      ? 'receive'
-      : 'contra';
-
-  const { fields: customFields } = useCustomFields(contextName);
+  // Read active custom detail fields for line items
+  const { fields: customFields } = useCustomFields('voucher-details');
 
   // Synchronize any custom fields into table.columns
   useEffect(() => {

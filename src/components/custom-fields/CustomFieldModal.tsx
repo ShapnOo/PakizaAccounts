@@ -106,6 +106,7 @@ export const CustomFieldModal: React.FC<CustomFieldModalProps> = ({
     try {
       const payload: Omit<CustomField, 'id' | 'createdAt' | 'updatedAt' | 'order'> = {
         context,
+        scope: context === 'voucher-master' ? 'Master' : 'Details',
         label: trimmedLabel,
         dataType,
         mandatory,
@@ -139,7 +140,9 @@ export const CustomFieldModal: React.FC<CustomFieldModalProps> = ({
               {isEdit ? `Edit Custom Field — ${fieldToEdit.label}` : `New Custom Field — ${contextLabel}`}
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Configure line-item column definition and data behavior.
+              {context === 'voucher-master'
+                ? 'Configure voucher master header custom field and data behavior.'
+                : 'Configure voucher and opening balance line-item custom column.'}
             </p>
           </div>
           <button
@@ -176,7 +179,9 @@ export const CustomFieldModal: React.FC<CustomFieldModalProps> = ({
               </select>
             )}
             <p className="text-[11px] text-muted-foreground italic">
-              Determines which voucher or entry screen will display this column.
+              {context === 'voucher-master'
+                ? 'Appears in all types of journal and voucher entries in the master (header) part.'
+                : 'Appears as line items in all voucher types and opening balance sheet.'}
             </p>
           </div>
 

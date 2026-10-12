@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { VoucherType, VoucherLine, VoucherEntry } from '../../types/voucher';
 import {
@@ -12,6 +12,7 @@ import { LineItemTable } from './LineItemTable';
 import { VoucherFooterTotals } from './VoucherFooterTotals';
 import { AccountHeadPicker } from './AccountHeadPicker';
 import { SearchableSelect } from '../shared/SearchableSelect';
+import { CustomFieldCell } from '../shared/CustomFieldCell';
 import {
   Calendar,
   Save,
@@ -25,7 +26,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCustomFields } from '../../hooks/useCustomFields';
-import { CustomFieldContext } from '../../types/customField';
 
 interface VoucherEntryFormProps {
   type: VoucherType;
@@ -99,16 +99,27 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({ type, onSave
     return true;
   }, [lines, config, headerAccountId, totals, type]);
 
-  const voucherContext: CustomFieldContext =
-    type === 'Journal Voucher'
-      ? 'journal'
-      : type === 'Payment Voucher'
-      ? 'payment'
-      : type === 'Receive Voucher'
-      ? 'receive'
-      : 'contra';
+  // Custom fields: Master level (header) and Details level (line-items)
+  const { fields: masterCustomFields } = useCustomFields('voucher-master');
+  const { fields: detailCustomFields } = useCustomFields('voucher-details');
+  const [masterCustomFieldValues, setMasterCustomFieldValues] = useState<Record<string, any>>({});
 
-  const { fields: customFields } = useCustomFields(voucherContext);
+  // Seed default values for master custom fields
+  useEffect(() => {
+    if (masterCustomFields.length > 0) {
+      setMasterCustomFieldValues((prev) => {
+        let changed = false;
+        const next = { ...prev };
+        masterCustomFields.forEach((cf) => {
+          if (next[cf.id] === undefined && cf.defaultValue !== undefined && cf.defaultValue !== null && cf.defaultValue !== '') {
+            next[cf.id] = cf.defaultValue;
+            changed = true;
+          }
+        });
+        return changed ? next : prev;
+      });
+    }
+  }, [masterCustomFields]);
 
   const handleSaveVoucher = () => {
     if (!isSaveValid) {
@@ -122,15 +133,25 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({ type, onSave
       return;
     }
 
-    // Check mandatory custom fields
-    const mandatoryFields = customFields.filter((cf) => cf.mandatory && cf.activeStatus === 'Active');
-    for (const mf of mandatoryFields) {
+    // 1. Check mandatory master custom fields
+    const mandatoryMasterFields = masterCustomFields.filter((cf) => cf.mandatory && cf.activeStatus === 'Active');
+    for (const mf of mandatoryMasterFields) {
+      const val = masterCustomFieldValues[mf.id];
+      if (val === undefined || val === null || String(val).trim() === '') {
+        toast.error(`Master Custom Field "${mf.label}" is required before saving.`);
+        return;
+      }
+    }
+
+    // 2. Check mandatory detail custom fields on line-items
+    const mandatoryDetailFields = detailCustomFields.filter((cf) => cf.mandatory && cf.activeStatus === 'Active');
+    for (const df of mandatoryDetailFields) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         if (line.accountHeadId) {
-          const val = line.customFields?.[mf.id];
+          const val = line.customFields?.[df.id];
           if (val === undefined || val === null || String(val).trim() === '') {
-            toast.error(`Line #${i + 1}: Custom field "${mf.label}" is required before saving.`);
+            toast.error(`Line #${i + 1}: Custom field "${df.label}" is required before saving.`);
             return;
           }
         }
@@ -154,6 +175,7 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({ type, onSave
         creditBDT: totals.totalCreditBDT,
       },
       difference: totals.difference,
+      customFields: masterCustomFieldValues,
       createdAt: new Date().toISOString(),
     };
 
@@ -235,6 +257,48 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({ type, onSave
                 searchPlaceholder="Filter cost center..."
                 buttonClassName="h-8.5 rounded-lg border-border/80 text-xs font-semibold"
               />
+            </div>
+          </div>
+        )}
+
+        {/* ── Voucher Master Custom Fields ── */}
+        {masterCustomFields.length > 0 && (
+          <div className="p-3 rounded-xl bg-muted/20 border border-border/60 space-y-2">
+            <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
+              <span className="text-[11px] font-bold text-foreground/85 uppercase tracking-wider flex items-center gap-1.5">
+                <span>Voucher Master Custom Fields</span>
+                <span className="text-[10px] font-normal text-muted-foreground lowercase">
+                  ({masterCustomFields.length} {masterCustomFields.length === 1 ? 'field' : 'fields'})
+                </span>
+              </span>
+              <span className="text-[10.5px] font-medium text-muted-foreground">
+                Applies to voucher master header
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pt-0.5">
+              {masterCustomFields.map((cf) => (
+                <div key={cf.id} className="space-y-1">
+                  <label className="text-xs font-bold text-foreground/85 flex items-center justify-between">
+                    <span>
+                      {cf.label} {cf.mandatory && <span className="text-rose-500">*</span>}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground font-mono">
+                      {cf.dataType}
+                    </span>
+                  </label>
+                  <CustomFieldCell
+                    field={cf}
+                    value={masterCustomFieldValues[cf.id] ?? ''}
+                    onChange={(val) =>
+                      setMasterCustomFieldValues((prev) => ({
+                        ...prev,
+                        [cf.id]: val,
+                      }))
+                    }
+                  />
+                </div>
+              ))}
             </div>
           </div>
         )}

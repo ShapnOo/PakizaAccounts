@@ -36,7 +36,9 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Add extra fields to voucher entry screens and system modules (CF1–CF8).
+              {activeContext === 'voucher-master'
+                ? 'Master-level custom fields added across all types of voucher & journal entries (header section).'
+                : 'Detail-level custom fields added across all voucher lines and opening balance sheet.'}
             </p>
           </div>
         </div>

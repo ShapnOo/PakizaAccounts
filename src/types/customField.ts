@@ -1,12 +1,8 @@
-import { LucideIcon, BookOpen, ArrowUpRight, ArrowDownRight, Repeat, Scale, FolderTree } from 'lucide-react';
+import { LucideIcon, BookOpen, Layers, FileSpreadsheet } from 'lucide-react';
 
 export type CustomFieldContext =
-  | 'journal'
-  | 'payment'
-  | 'receive'
-  | 'contra'
-  | 'opening-balance'
-  | 'coa';
+  | 'voucher-master'
+  | 'voucher-details';
 
 export type CustomFieldDataType =
   | 'Text'
@@ -38,37 +34,19 @@ export type CustomField = {
 
 export const CONTEXT_CONFIG: Record<
   CustomFieldContext,
-  { label: string; icon: LucideIcon; description: string }
+  { label: string; icon: LucideIcon; description: string; scopeText: string }
 > = {
-  'journal': {
-    label: 'Journal Voucher',
+  'voucher-master': {
+    label: 'Voucher Master',
     icon: BookOpen,
-    description: 'Fields added to Journal entry lines',
+    description: 'Fields added to all types of journal/voucher entries in the master (header) part',
+    scopeText: 'Master Header Level',
   },
-  'payment': {
-    label: 'Payment Voucher',
-    icon: ArrowUpRight,
-    description: 'Fields added to Payment entry lines',
-  },
-  'receive': {
-    label: 'Receive Voucher',
-    icon: ArrowDownRight,
-    description: 'Fields added to Receive entry lines',
-  },
-  'contra': {
-    label: 'Contra Voucher',
-    icon: Repeat,
-    description: 'Fields added to Contra entry lines',
-  },
-  'opening-balance': {
-    label: 'Opening Balance',
-    icon: Scale,
-    description: 'Fields added to Opening Balance lines',
-  },
-  'coa': {
-    label: 'Chart of Accounts',
-    icon: FolderTree,
-    description: 'Fields added to COA create form',
+  'voucher-details': {
+    label: 'Voucher Details',
+    icon: FileSpreadsheet,
+    description: 'Fields added to all types of vouchers as well as opening balance sheet line items',
+    scopeText: 'Line Item / Detail Level',
   },
 };
 
