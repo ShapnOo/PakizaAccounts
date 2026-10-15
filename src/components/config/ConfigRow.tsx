@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { Info, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 interface ConfigRowProps {
   label: string;
@@ -30,23 +30,18 @@ export const ConfigRow: React.FC<ConfigRowProps> = ({
     <div
       className={`min-h-[50px] py-2.5 px-3 sm:px-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between border-b border-border/25 last:border-0 hover:bg-muted/20 transition-colors gap-2.5 md:gap-6 ${className}`}
     >
-      {/* 1. Label & Hint Column (Fixed width for strict tabular vertical alignment) */}
-      <div className="w-full md:w-72 lg:w-80 shrink-0 space-y-0.5">
-        <div className="flex items-center gap-1.5">
-          <label className="text-[12.5px] font-bold text-foreground/90 select-none leading-snug">
-            {label}
-          </label>
-          {required && (
-            <span className="text-rose-500 font-black text-xs leading-none" title="Required field">
-              *
-            </span>
-          )}
-        </div>
-        {hint && (
-          <p className="text-[11px] text-muted-foreground/75 font-normal leading-relaxed select-none flex items-start gap-1.5">
-            <Info className="size-3 shrink-0 text-muted-foreground/50 mt-0.5 not-italic" />
-            <span>{hint}</span>
-          </p>
+      {/* 1. Label Column (Fixed width for strict tabular vertical alignment) */}
+      <div className="w-full md:w-64 lg:w-72 shrink-0 flex items-center gap-1.5">
+        <label
+          className="text-[12.5px] font-bold text-foreground/90 select-none leading-snug"
+          title={hint}
+        >
+          {label}
+        </label>
+        {required && (
+          <span className="text-rose-500 font-black text-xs leading-none" title="Required field">
+            *
+          </span>
         )}
       </div>
 
