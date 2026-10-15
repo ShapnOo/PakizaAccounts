@@ -108,33 +108,32 @@ export const MasterConfigPage: React.FC = () => {
 
         {/* CONDITIONAL (Mandatory === true) */}
         <div
-          className={`transition-all duration-300 ${config.costCenter.mandatory ? 'max-h-96 opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
-            }`}
+          className={`transition-all duration-300 ${
+            config.costCenter.mandatory ? 'max-h-96 opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
+          }`}
         >
-          <div className="pl-4 md:pl-6 my-1 border-l-2 border-primary/50 bg-muted/20 rounded-r-lg space-y-2 py-2">
+          <div className="mt-1 pt-1 border-t border-border/40 divide-y divide-border/20 bg-muted/10 rounded-xl">
             <ConfigRow
               label="Effective Part"
               hint="Multi-select balance sheet and income statement"
-              controlClassName="w-full md:w-96 shrink-0"
             >
               <MultiSelect
                 value={config.costCenter.effectivePart}
                 onChange={(val) => updateSection('costCenter', { effectivePart: val })}
                 options={EFFECTIVE_PART_OPTIONS}
-                className="w-full max-w-none"
+                className="w-full max-w-md"
               />
             </ConfigRow>
 
             <ConfigRow
               label="Apply Changes To"
               hint="Select companies to apply cost center configuration"
-              controlClassName="w-full md:w-96 shrink-0"
             >
               <MultiSelect
                 value={config.costCenter.effectiveCompany || COMPANY_LIST}
                 onChange={(val) => updateSection('costCenter', { effectiveCompany: val })}
                 options={COMPANY_LIST}
-                className="w-full max-w-none"
+                className="w-full max-w-md"
               />
             </ConfigRow>
           </div>
@@ -157,30 +156,33 @@ export const MasterConfigPage: React.FC = () => {
 
         {/* CONDITIONAL (Enabled === true) */}
         <div
-          className={`transition-all duration-300 ${config.voucherControlling.enabled ? 'max-h-[700px] opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
-            }`}
+          className={`transition-all duration-300 ${
+            config.voucherControlling.enabled ? 'max-h-[700px] opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
+          }`}
         >
-          <div className="pl-4 md:pl-6 my-1 border-l-2 border-primary/50 bg-muted/20 rounded-r-lg space-y-3 py-3">
+          <div className="mt-1 pt-1 border-t border-border/40 divide-y divide-border/20 bg-muted/10 rounded-xl">
             {/* Control Mode: Voucher-wise vs User-wise */}
             <ConfigRow label="Control Mode" hint="Configure control rules voucher-wise or user-wise">
               <div className="inline-flex p-1 rounded-lg border border-border/80 bg-card shadow-2xs">
                 <button
                   type="button"
                   onClick={() => updateSection('voucherControlling', { controlMode: 'voucher-wise' })}
-                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${config.voucherControlling.controlMode === 'voucher-wise'
-                    ? 'bg-primary text-primary-foreground shadow-2xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                    }`}
+                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                    config.voucherControlling.controlMode === 'voucher-wise'
+                      ? 'bg-primary text-primary-foreground shadow-2xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
                 >
                   Voucher-wise
                 </button>
                 <button
                   type="button"
                   onClick={() => updateSection('voucherControlling', { controlMode: 'user-wise' })}
-                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${config.voucherControlling.controlMode === 'user-wise'
-                    ? 'bg-primary text-primary-foreground shadow-2xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                    }`}
+                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                    config.voucherControlling.controlMode === 'user-wise'
+                      ? 'bg-primary text-primary-foreground shadow-2xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
                 >
                   User-wise
                 </button>
@@ -192,9 +194,8 @@ export const MasterConfigPage: React.FC = () => {
               <ConfigRow
                 label="Controlled Vouchers"
                 hint="Multi-select vouchers with select-all option"
-                controlClassName="w-full md:w-3/4 shrink-0"
               >
-                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full max-w-xl">
                   <MultiSelect
                     value={config.voucherControlling.selectedVouchers || []}
                     onChange={(val) => updateSection('voucherControlling', { selectedVouchers: val })}
@@ -206,14 +207,14 @@ export const MasterConfigPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleSelectAllVouchers}
-                      className="px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/10 rounded-md border border-primary/30 transition-colors whitespace-nowrap cursor-pointer active:scale-95"
+                      className="h-8.5 px-3 text-[11px] font-bold text-primary hover:bg-primary/10 rounded-lg border border-primary/30 transition-colors whitespace-nowrap cursor-pointer active:scale-95 shadow-2xs"
                     >
                       Select All
                     </button>
                     <button
                       type="button"
                       onClick={handleDeselectAllVouchers}
-                      className="px-2.5 py-1.5 text-[11px] font-bold text-muted-foreground hover:bg-muted rounded-md border border-border transition-colors whitespace-nowrap cursor-pointer active:scale-95"
+                      className="h-8.5 px-3 text-[11px] font-bold text-muted-foreground hover:bg-muted rounded-lg border border-border transition-colors whitespace-nowrap cursor-pointer active:scale-95 shadow-2xs"
                     >
                       Clear
                     </button>
@@ -225,9 +226,8 @@ export const MasterConfigPage: React.FC = () => {
               <ConfigRow
                 label="Controlled Users"
                 hint="Multi-user selection with select-all option"
-                controlClassName="w-full md:flex-1 md:max-w-3xl shrink-0"
               >
-                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full max-w-xl">
                   <MultiSelect
                     value={config.voucherControlling.selectedUsers || []}
                     onChange={(val) => updateSection('voucherControlling', { selectedUsers: val })}
@@ -239,14 +239,14 @@ export const MasterConfigPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleSelectAllUsers}
-                      className="px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/10 rounded-md border border-primary/30 transition-colors whitespace-nowrap cursor-pointer active:scale-95"
+                      className="h-8.5 px-3 text-[11px] font-bold text-primary hover:bg-primary/10 rounded-lg border border-primary/30 transition-colors whitespace-nowrap cursor-pointer active:scale-95 shadow-2xs"
                     >
                       Select All
                     </button>
                     <button
                       type="button"
                       onClick={handleDeselectAllUsers}
-                      className="px-2.5 py-1.5 text-[11px] font-bold text-muted-foreground hover:bg-muted rounded-md border border-border transition-colors whitespace-nowrap cursor-pointer active:scale-95"
+                      className="h-8.5 px-3 text-[11px] font-bold text-muted-foreground hover:bg-muted rounded-lg border border-border transition-colors whitespace-nowrap cursor-pointer active:scale-95 shadow-2xs"
                     >
                       Clear
                     </button>
@@ -280,13 +280,12 @@ export const MasterConfigPage: React.FC = () => {
             <ConfigRow
               label="Apply Changes To"
               hint="Select which companies this voucher control policy governs"
-              controlClassName="w-full md:w-96 shrink-0"
             >
               <MultiSelect
                 value={config.voucherControlling.effectiveCompany}
                 onChange={(val) => updateSection('voucherControlling', { effectiveCompany: val })}
                 options={COMPANY_LIST}
-                className="w-full max-w-none"
+                className="w-full max-w-md"
               />
             </ConfigRow>
           </div>
@@ -305,11 +304,11 @@ export const MasterConfigPage: React.FC = () => {
             value={config.monthLock.fiscalYear}
             onChange={(val) => updateSection('monthLock', { fiscalYear: val })}
             options={FISCAL_YEAR_OPTIONS}
-            className="w-48"
+            className="w-full max-w-[240px]"
           />
         </ConfigRow>
 
-        <div className="py-1">
+        <div className="py-2">
           <MonthGrid
             fiscalYear={config.monthLock.fiscalYear}
             months={config.monthLock.months}
@@ -320,13 +319,12 @@ export const MasterConfigPage: React.FC = () => {
         <ConfigRow
           label="Apply Changes To"
           hint="Select which companies this period lock governs"
-          controlClassName="w-full md:w-96 shrink-0"
         >
           <MultiSelect
             value={config.monthLock.effectiveCompany}
             onChange={(val) => updateSection('monthLock', { effectiveCompany: val })}
             options={COMPANY_LIST}
-            className="w-full max-w-none"
+            className="w-full max-w-md"
           />
         </ConfigRow>
       </SectionCard>
@@ -369,13 +367,12 @@ export const MasterConfigPage: React.FC = () => {
         <ConfigRow
           label="Apply Changes To"
           hint="Select company scope for voucher account configuration"
-          controlClassName="w-full md:w-96 shrink-0"
         >
           <MultiSelect
             value={config.accountsCode.effectiveCompany}
             onChange={(val) => updateSection('accountsCode', { effectiveCompany: val })}
             options={COMPANY_LIST}
-            className="w-full max-w-none"
+            className="w-full max-w-md"
           />
         </ConfigRow>
       </SectionCard>
@@ -387,8 +384,8 @@ export const MasterConfigPage: React.FC = () => {
         icon={Landmark}
         isDirty={isSectionDirty('accountsIdentifications')}
       >
-        <div className="py-2 grid grid-cols-1 md:grid-cols-2 gap-3.5">
-          <div className="p-3 rounded-lg border border-border/70 bg-card shadow-2xs space-y-1">
+        <div className="py-2.5 grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <div className="p-3.5 rounded-xl border border-border/70 bg-card shadow-2xs hover:border-primary/30 transition-colors">
             <AccountPicker
               label="Accounts Payable"
               badge="Current Liability"
@@ -401,7 +398,7 @@ export const MasterConfigPage: React.FC = () => {
             />
           </div>
 
-          <div className="p-3 rounded-lg border border-border/70 bg-card shadow-2xs space-y-1">
+          <div className="p-3.5 rounded-xl border border-border/70 bg-card shadow-2xs hover:border-primary/30 transition-colors">
             <AccountPicker
               label="Accounts Receivable"
               badge="Current Asset"
@@ -414,7 +411,7 @@ export const MasterConfigPage: React.FC = () => {
             />
           </div>
 
-          <div className="p-3 rounded-lg border border-border/70 bg-card shadow-2xs space-y-1">
+          <div className="p-3.5 rounded-xl border border-border/70 bg-card shadow-2xs hover:border-primary/30 transition-colors">
             <AccountPicker
               label="Advance Payment"
               badge="Asset Prepayment"
@@ -427,7 +424,7 @@ export const MasterConfigPage: React.FC = () => {
             />
           </div>
 
-          <div className="p-3 rounded-lg border border-border/70 bg-card shadow-2xs space-y-1">
+          <div className="p-3.5 rounded-xl border border-border/70 bg-card shadow-2xs hover:border-primary/30 transition-colors">
             <AccountPicker
               label="Advance Receive"
               badge="Customer Liability"
@@ -441,18 +438,19 @@ export const MasterConfigPage: React.FC = () => {
           </div>
         </div>
 
-        <ConfigRow
-          label="Apply Changes To"
-          hint="Select company scope for accounts identifications"
-          controlClassName="w-full md:w-96 shrink-0"
-        >
-          <MultiSelect
-            value={config.accountsIdentifications.effectiveCompany || COMPANY_LIST}
-            onChange={(val) => updateSection('accountsIdentifications', { effectiveCompany: val })}
-            options={COMPANY_LIST}
-            className="w-full max-w-none"
-          />
-        </ConfigRow>
+        <div className="mt-2 pt-2 border-t border-border/30">
+          <ConfigRow
+            label="Apply Changes To"
+            hint="Select company scope for accounts identifications"
+          >
+            <MultiSelect
+              value={config.accountsIdentifications.effectiveCompany || COMPANY_LIST}
+              onChange={(val) => updateSection('accountsIdentifications', { effectiveCompany: val })}
+              options={COMPANY_LIST}
+              className="w-full max-w-md"
+            />
+          </ConfigRow>
+        </div>
       </SectionCard>
 
       {/* ── 3.6 BANK & CHEQUE ── */}
@@ -467,11 +465,12 @@ export const MasterConfigPage: React.FC = () => {
             value={config.bankCheque.defaultVoucherName}
             onChange={(val) => updateSection('bankCheque', { defaultVoucherName: val })}
             options={voucherTypeOptions}
+            className="w-full max-w-md"
           />
         </ConfigRow>
 
         <ConfigRow label="Default Account" required>
-          <div className="w-full max-w-[340px]">
+          <div className="w-full max-w-md">
             <AccountPicker
               value={config.bankCheque.defaultAccount}
               onChange={(val) => updateSection('bankCheque', { defaultAccount: val })}
@@ -483,45 +482,62 @@ export const MasterConfigPage: React.FC = () => {
         <ConfigRow
           label="Apply Changes To"
           hint="Select company scope for bank and cheque settings"
-          controlClassName="w-full md:w-96 shrink-0"
         >
           <MultiSelect
             value={config.bankCheque.effectiveCompany || ['Pakiza Software Ltd.']}
             onChange={(val) => updateSection('bankCheque', { effectiveCompany: val })}
             options={COMPANY_LIST}
-            className="w-full max-w-none"
+            className="w-full max-w-md"
           />
         </ConfigRow>
       </SectionCard>
 
       {/* ── 4. STICKY GLOBAL BOTTOM BAR ── */}
       <div className="sticky bottom-0 z-30 bg-card/95 backdrop-blur-md border-t border-border/80 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] py-2.5 px-4 sm:px-6 lg:px-8 mt-6">
-        <div className="w-full flex items-center justify-end gap-2.5">
-          <button
-            type="button"
-            onClick={resetAll}
-            disabled={!isGlobalDirty}
-            className={`inline-flex items-center gap-1.5 h-8.5 px-4 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${isGlobalDirty
-              ? 'text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95'
-              : 'text-muted-foreground/40 cursor-not-allowed'
-              }`}
-          >
-            <RotateCcw className="size-3.5 shrink-0" />
-            <span className="whitespace-nowrap">Reset</span>
-          </button>
+        <div className="w-full flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs">
+            {isGlobalDirty ? (
+              <span className="inline-flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400">
+                <span className="size-2 rounded-full bg-amber-500 animate-pulse" />
+                <span>You have unsaved changes</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 font-medium text-muted-foreground/70">
+                <ShieldCheck className="size-3.5 text-emerald-500" />
+                <span>All configurations up to date</span>
+              </span>
+            )}
+          </div>
 
-          <button
-            type="button"
-            onClick={saveAll}
-            disabled={!isGlobalDirty}
-            className={`inline-flex items-center gap-2 h-8.5 px-5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all shadow-sm cursor-pointer ${isGlobalDirty
-              ? 'bg-primary text-primary-foreground hover:bg-primary/95 shadow-primary/20 active:scale-95'
-              : 'bg-muted/60 text-muted-foreground/50 border border-border/40 cursor-not-allowed shadow-none'
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={resetAll}
+              disabled={!isGlobalDirty}
+              className={`inline-flex items-center gap-1.5 h-8.5 px-4 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+                isGlobalDirty
+                  ? 'text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95'
+                  : 'text-muted-foreground/40 cursor-not-allowed'
               }`}
-          >
-            <Check className="size-3.5 stroke-[2.5] shrink-0" />
-            <span className="whitespace-nowrap">Save</span>
-          </button>
+            >
+              <RotateCcw className="size-3.5 shrink-0" />
+              <span className="whitespace-nowrap">Reset</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={saveAll}
+              disabled={!isGlobalDirty}
+              className={`inline-flex items-center gap-2 h-8.5 px-5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all shadow-sm cursor-pointer ${
+                isGlobalDirty
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/95 shadow-primary/20 active:scale-95'
+                  : 'bg-muted/60 text-muted-foreground/50 border border-border/40 cursor-not-allowed shadow-none'
+              }`}
+            >
+              <Check className="size-3.5 stroke-[2.5] shrink-0" />
+              <span className="whitespace-nowrap">Save</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -39,14 +39,14 @@ export const MonthGrid: React.FC<MonthGridProps> = ({
   return (
     <div className="w-full space-y-2 py-1 select-none">
       {/* Top Meta Bar */}
-      <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/40 border border-border/50 text-xs">
+      <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-muted/40 border border-border/50 text-xs">
         <div className="flex items-center gap-2">
           <Calendar className="size-3.5 text-primary shrink-0" />
           <span className="text-[11px] font-bold text-muted-foreground uppercase">Fiscal Year:</span>
-          <span className="text-[11px] font-black font-mono text-foreground px-2 py-0.5 rounded bg-card border border-border/60 shadow-2xs">
+          <span className="text-[11px] font-black font-mono text-foreground px-2 py-0.5 rounded-md bg-card border border-border/60 shadow-2xs">
             {fiscalYear}
           </span>
-          <span className="text-[10px] font-bold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded border border-destructive/20">
+          <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20">
             Selection
           </span>
         </div>

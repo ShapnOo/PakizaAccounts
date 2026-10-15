@@ -193,15 +193,15 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
   return (
     <div className="w-full space-y-1.5" ref={containerRef}>
       {label && (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <span className="text-[12px] font-bold text-foreground/85">
+        <div className="flex items-center justify-between gap-2 pb-0.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[12px] font-bold text-foreground/90">
               {label}
             </span>
             {required && <span className="text-rose-500 font-black text-xs leading-none">*</span>}
           </div>
           {badge && (
-            <span className="text-[9.5px] font-extrabold uppercase tracking-wider text-muted-foreground/60 px-1.5 py-0.2 rounded bg-muted/60">
+            <span className="text-[9.5px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20 shrink-0">
               {badge}
             </span>
           )}
@@ -213,33 +213,40 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-full h-8.5 px-3 flex items-center justify-between gap-2 rounded-lg border text-left text-xs transition-all duration-150 cursor-pointer ${
+          className={`w-full min-h-[42px] px-3 py-1.5 flex items-center justify-between gap-2 rounded-lg border text-left text-xs transition-all duration-150 cursor-pointer ${
             selectedItem
               ? 'bg-card border-border/90 text-foreground shadow-2xs hover:border-border'
               : 'bg-muted/20 border-border/60 text-muted-foreground hover:border-border'
           } ${isOpen ? 'ring-2 ring-primary/20 border-primary' : ''}`}
         >
-          <div className="flex items-center gap-2 truncate flex-1 min-w-0">
+          <div className="flex-1 min-w-0">
             {selectedItem ? (
-              <>
-                <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0 border border-primary/20">
-                  {selectedItem.code}
-                </span>
-                <span className="truncate font-semibold text-foreground text-[12px]">
-                  {selectedItem.name} {selectedItem.pathText ? <span className="text-[10px] text-muted-foreground ml-1 font-normal">({selectedItem.pathText})</span> : null}
-                </span>
-              </>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded bg-primary/10 text-primary shrink-0 border border-primary/20 leading-tight">
+                    {selectedItem.code}
+                  </span>
+                  <span className="truncate font-bold text-foreground text-[12px]">
+                    {selectedItem.name}
+                  </span>
+                </div>
+                {selectedItem.pathText && (
+                  <span className="text-[10px] text-muted-foreground/80 font-normal truncate block leading-tight pl-0.5" title={selectedItem.pathText}>
+                    {selectedItem.pathText}
+                  </span>
+                )}
+              </div>
             ) : (
-              <>
+              <div className="flex items-center gap-2">
                 <FolderTree className="size-3.5 shrink-0 text-muted-foreground/50" />
                 <span className="text-muted-foreground/60 font-medium text-xs">
                   {placeholder}
                 </span>
-              </>
+              </div>
             )}
           </div>
 
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-1 shrink-0 ml-1">
             {selectedItem && (
               <span
                 role="button"
@@ -247,7 +254,7 @@ export const AccountPicker: React.FC<AccountPickerProps> = ({
                   e.stopPropagation();
                   onChange(null);
                 }}
-                className="p-1 rounded-md hover:bg-muted text-muted-foreground/60 hover:text-foreground transition-colors"
+                className="p-1 rounded-md hover:bg-muted text-muted-foreground/60 hover:text-foreground transition-colors cursor-pointer"
                 title="Clear selection"
               >
                 <X className="size-3" />
