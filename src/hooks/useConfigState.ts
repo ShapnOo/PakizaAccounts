@@ -61,6 +61,10 @@ export const DEFAULT_CONFIG: Config = {
     defaultAccount: '1012',
     effectiveCompany: ['Pakiza Software Ltd.'],
   },
+  chartOfAccounts: {
+    codeSegmentSeparator: '-',
+    effectiveCompany: ['Pakiza Software Ltd.'],
+  },
   globalEffectiveCompany: ['Pakiza Software Ltd.'],
 };
 
@@ -93,6 +97,10 @@ function normalizeConfig(parsed: any): Config {
       defaultAccount: parsed?.bankCheque?.defaultAccount || DEFAULT_CONFIG.bankCheque.defaultAccount,
       effectiveCompany: parsed?.bankCheque?.effectiveCompany || DEFAULT_CONFIG.bankCheque.effectiveCompany,
     },
+    chartOfAccounts: {
+      codeSegmentSeparator: parsed?.chartOfAccounts?.codeSegmentSeparator || DEFAULT_CONFIG.chartOfAccounts.codeSegmentSeparator,
+      effectiveCompany: parsed?.chartOfAccounts?.effectiveCompany || DEFAULT_CONFIG.chartOfAccounts.effectiveCompany,
+    },
   };
 
   // Multi-select migrations
@@ -112,6 +120,7 @@ function normalizeConfig(parsed: any): Config {
   merged.accountsCode.effectiveCompany = toArray(merged.accountsCode.effectiveCompany);
   merged.accountsIdentifications.effectiveCompany = toArray(merged.accountsIdentifications?.effectiveCompany);
   merged.bankCheque.effectiveCompany = toArray(merged.bankCheque.effectiveCompany);
+  merged.chartOfAccounts.effectiveCompany = toArray(merged.chartOfAccounts?.effectiveCompany);
   merged.globalEffectiveCompany = toArray(merged.globalEffectiveCompany);
 
   return merged as Config;

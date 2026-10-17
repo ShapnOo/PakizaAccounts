@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Check,
   SlidersHorizontal,
+  FolderTree,
 } from 'lucide-react';
 import { useConfigState, COMPANY_LIST } from '../hooks/useConfigState';
 import { useVouchers } from '../context/VoucherContext';
@@ -31,6 +32,8 @@ const EFFECTIVE_PART_OPTIONS = ['Balance sheet', 'Income Statement'];
 const USER_OPTIONS = ['Admin', 'Accountant', 'Finance Manager', 'Maker', 'Checker', 'Super User'];
 
 const FISCAL_YEAR_OPTIONS = ['2023-2024', '2024-2025', '2025-2026', '2026-2027'];
+
+const CODE_SEPARATOR_OPTIONS = ['N/A', '-', '/', '.', '_'];
 
 export const MasterConfigPage: React.FC = () => {
   const {
@@ -62,6 +65,10 @@ export const MasterConfigPage: React.FC = () => {
   const handleDeselectAllUsers = () => {
     updateSection('voucherControlling', { selectedUsers: [] });
   };
+
+  const selectedSeparator = config.chartOfAccounts?.codeSegmentSeparator ?? '-';
+  const sampleSeparatorChar = selectedSeparator === 'N/A' ? '' : selectedSeparator;
+  const sampleChartCode = ['1', '1', '01', '01', '01', '0001'].join(sampleSeparatorChar);
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-5 md:py-6 space-y-4 pb-20">
@@ -486,6 +493,52 @@ export const MasterConfigPage: React.FC = () => {
           <MultiSelect
             value={config.bankCheque.effectiveCompany || ['Pakiza Software Ltd.']}
             onChange={(val) => updateSection('bankCheque', { effectiveCompany: val })}
+            options={COMPANY_LIST}
+            className="w-full max-w-md"
+          />
+        </ConfigRow>
+      </SectionCard>
+
+      {/* ── 3.7 CHART OF ACCOUNTS ── */}
+      <SectionCard
+        sectionNo="3.7"
+        title="Chart of Accounts"
+        icon={FolderTree}
+        isDirty={isSectionDirty('chartOfAccounts')}
+      >
+        <ConfigRow
+          label="Code Segment Separators"
+          hint="Select delimiter for separating chart of account code levels"
+        >
+          <Dropdown
+            value={selectedSeparator}
+            onChange={(val) => updateSection('chartOfAccounts', { codeSegmentSeparator: val })}
+            options={CODE_SEPARATOR_OPTIONS}
+            className="w-24 max-w-[96px]"
+          />
+        </ConfigRow>
+
+        <ConfigRow
+          label="Sample"
+          hint="Preview of account code formatted with chosen segment separator"
+        >
+          <div className="relative inline-flex items-center w-full max-w-[280px]">
+            <input
+              type="text"
+              readOnly
+              value={sampleChartCode}
+              className="w-full h-8.5 px-3 rounded-lg bg-slate-100/90 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 text-xs font-mono font-bold text-foreground select-all cursor-default shadow-2xs tracking-wider"
+            />
+          </div>
+        </ConfigRow>
+
+        <ConfigRow
+          label="Apply Changes To"
+          hint="Select company scope for chart of accounts segment configuration"
+        >
+          <MultiSelect
+            value={config.chartOfAccounts?.effectiveCompany || COMPANY_LIST}
+            onChange={(val) => updateSection('chartOfAccounts', { effectiveCompany: val })}
             options={COMPANY_LIST}
             className="w-full max-w-md"
           />

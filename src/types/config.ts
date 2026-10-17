@@ -48,6 +48,10 @@ export type Config = {
     defaultAccount: string | null;
     effectiveCompany?: string[];
   };
+  chartOfAccounts: {
+    codeSegmentSeparator: string;
+    effectiveCompany?: string[];
+  };
   globalEffectiveCompany: string[];
 };
 
@@ -58,7 +62,8 @@ export type ConfigSectionKey =
   | 'voucher'
   | 'accountsCode'
   | 'accountsIdentifications'
-  | 'bankCheque';
+  | 'bankCheque'
+  | 'chartOfAccounts';
 
 export interface AccountNode {
   id: string;
