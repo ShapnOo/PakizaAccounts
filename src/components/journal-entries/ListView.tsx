@@ -350,23 +350,41 @@ export const ListView: React.FC<ListViewProps> = ({
                     {/* History Badge Column */}
                     {visibleColumns.history && (
                       <td className="py-3 px-3 text-center whitespace-nowrap">
-                        <button
-                          type="button"
-                          id={`history-badge-${entry.id}`}
-                          data-history-badge="true"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedHistoryEntry(entry);
-                          }}
-                          onDoubleClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedHistoryEntry(entry);
-                          }}
-                          className="inline-flex items-center justify-center size-6 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] shadow-xs hover:scale-110 active:scale-95 transition-all cursor-pointer ring-2 ring-blue-500/25"
-                          title={`Version ${entry.versionCount || (entry.history ? entry.history.length : 1)} - Click to view revision history`}
-                        >
-                          {entry.versionCount || (entry.history ? entry.history.length : 1)}
-                        </button>
+                        {(() => {
+                          const modCount = typeof entry.versionCount === 'number'
+                            ? entry.versionCount
+                            : entry.history && entry.history.length > 0
+                              ? Math.max(...entry.history.map((h) => h.version))
+                              : 0;
+
+                          return (
+                            <button
+                              type="button"
+                              id={`history-badge-${entry.id}`}
+                              data-history-badge="true"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedHistoryEntry(entry);
+                              }}
+                              onDoubleClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedHistoryEntry(entry);
+                              }}
+                              className={`inline-flex items-center justify-center size-5 rounded-full font-mono text-[10px] font-bold transition-all cursor-pointer ${
+                                modCount === 0
+                                  ? 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-300/80 dark:border-slate-700 active:scale-95'
+                                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-2xs hover:scale-110 active:scale-95 ring-2 ring-blue-500/25'
+                              }`}
+                              title={
+                                modCount === 0
+                                  ? 'Original voucher (0 modifications) - Click to view history'
+                                  : `${modCount} modification${modCount > 1 ? 's' : ''} - Click to view history`
+                              }
+                            >
+                              {modCount}
+                            </button>
+                          );
+                        })()}
                       </td>
                     )}
 

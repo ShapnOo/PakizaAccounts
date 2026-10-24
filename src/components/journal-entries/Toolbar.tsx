@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Search,
   Filter,
@@ -6,6 +5,7 @@ import {
   ChevronDown,
   Calendar,
   X,
+  Printer,
 } from 'lucide-react';
 import {
   ViewType,
@@ -28,6 +28,7 @@ interface ToolbarProps {
   onToggleAdvanced: () => void;
   activeFilterCount: number;
   onExportCsv: () => void;
+  onOpenBulkPrint?: () => void;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -44,6 +45,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onToggleAdvanced,
   activeFilterCount,
   onExportCsv,
+  onOpenBulkPrint,
 }) => {
   return (
     <div className="space-y-3">
@@ -168,6 +170,18 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           >
             <Download className="size-3.5" />
             <span className="hidden sm:inline">Export</span>
+          </button>
+
+          {/* Bulk Print */}
+          <button
+            type="button"
+            id="bulk-print-toolbar-btn"
+            onClick={onOpenBulkPrint}
+            title="Bulk print multiple vouchers"
+            className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary font-bold text-xs transition-all cursor-pointer shadow-2xs active:scale-95 whitespace-nowrap"
+          >
+            <Printer className="size-3.5" />
+            <span>Bulk Print</span>
           </button>
         </div>
       </div>

@@ -29,29 +29,14 @@ export function getEntryHistory(entry: VoucherEntry): VoucherVersionHistory[] {
     return entry.history;
   }
 
-  // Derive based on versionCount or ID if mock data
-  const count = entry.versionCount || 1;
+  // Derive based on versionCount (0 = only created, 1 = 1 edit, etc.)
+  const modCount = typeof entry.versionCount === 'number' ? entry.versionCount : 0;
   const list: VoucherVersionHistory[] = [];
 
-  for (let v = count; v >= 1; v--) {
+  for (let v = modCount; v >= 1; v--) {
     if (v === 1) {
       list.push({
         version: 1,
-        timestamp: `${entry.voucherDate} 09:15 AM`,
-        user: entry.source === 'Opening Balance' ? 'System Import' : 'Tahmid Afsar',
-        userRole: 'Creator',
-        action: 'Created',
-        notes: `Initial voucher generation from ${entry.source}`,
-        amount: entry.amount,
-        linesCount: entry.lines?.length || 2,
-        changes: [
-          { field: 'Status', newValue: 'Draft', description: 'Created initial draft' },
-          { field: 'Amount', newValue: `৳ ${entry.amount.toLocaleString()}`, description: 'Initial ledger allocation' },
-        ],
-      });
-    } else if (v === 2) {
-      list.push({
-        version: 2,
         timestamp: `${entry.voucherDate} 11:30 AM`,
         user: 'Kamrul Hasan',
         userRole: 'Accounts Officer',
@@ -64,9 +49,9 @@ export function getEntryHistory(entry: VoucherEntry): VoucherVersionHistory[] {
           { field: 'Narration', description: 'Detailed justification added for audit reconciliation' },
         ],
       });
-    } else if (v === 3) {
+    } else if (v === 2) {
       list.push({
-        version: 3,
+        version: 2,
         timestamp: `${entry.voucherDate} 02:45 PM`,
         user: 'Nazmul Huda',
         userRole: 'Senior Auditor',
@@ -79,10 +64,24 @@ export function getEntryHistory(entry: VoucherEntry): VoucherVersionHistory[] {
           { field: 'Attachment', newValue: 'Bill_Challan_Scanned.pdf', description: 'Added 1 supporting invoice attachment' },
         ],
       });
+    } else if (v === 3) {
+      list.push({
+        version: 3,
+        timestamp: `${entry.voucherDate} 04:15 PM`,
+        user: 'Tahmid Afsar Shapno',
+        userRole: 'Head of Accounts & Finance',
+        action: 'Modified',
+        notes: 'Adjusted debit/credit distribution after department variance check',
+        amount: entry.amount,
+        linesCount: entry.lines?.length || 2,
+        changes: [
+          { field: 'Distribution', oldValue: 'General', newValue: 'Operational Unit 2', description: 'Distribution revised' },
+        ],
+      });
     } else {
       list.push({
         version: v,
-        timestamp: `${entry.voucherDate} 04:15 PM`,
+        timestamp: `${entry.voucherDate} 05:20 PM`,
         user: 'Tahmid Afsar Shapno',
         userRole: 'Head of Accounts & Finance',
         action: 'Approved',
@@ -95,6 +94,22 @@ export function getEntryHistory(entry: VoucherEntry): VoucherVersionHistory[] {
       });
     }
   }
+
+  // Version 0: Creation record (original creation baseline)
+  list.push({
+    version: 0,
+    timestamp: `${entry.voucherDate} 09:15 AM`,
+    user: entry.source === 'Opening Balance' ? 'System Import' : 'Tahmid Afsar',
+    userRole: 'Creator',
+    action: 'Created',
+    notes: `Initial voucher generation from ${entry.source}`,
+    amount: entry.amount,
+    linesCount: entry.lines?.length || 2,
+    changes: [
+      { field: 'Status', newValue: 'Draft', description: 'Created initial draft' },
+      { field: 'Amount', newValue: `৳ ${entry.amount.toLocaleString()}`, description: 'Initial ledger allocation' },
+    ],
+  });
 
   return list;
 }
@@ -109,7 +124,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
   if (!isOpen || !entry) return null;
 
   const history = getEntryHistory(entry);
-  const latestVersion = history[0]?.version || 1;
+  const latestVersion = history[0]?.version ?? 0;
 
   const actionColorMap: Record<string, string> = {
     Created: 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border-blue-200 dark:border-blue-800',
@@ -137,7 +152,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
                   {entry.voucherNo}
                 </span>
                 <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 dark:bg-muted text-muted-foreground border border-border">
-                  {history.length} Revisions
+                  {latestVersion === 0 ? 'Original (0 Modifications)' : `${latestVersion} Modification${latestVersion > 1 ? 's' : ''}`}
                 </span>
               </div>
               <p className="text-[11px] text-muted-foreground truncate mt-0.5">
@@ -188,7 +203,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-foreground text-xs inline-flex items-center gap-1">
-                          <span>Version {rev.version}</span>
+                          <span>{rev.version === 0 ? 'Original Creation (v0)' : `Revision ${rev.version} (v${rev.version})`}</span>
                           {isLatest && (
                             <span className="text-[9px] font-black uppercase tracking-wider bg-blue-600 text-white px-1.5 py-0.2 rounded">
                               Current

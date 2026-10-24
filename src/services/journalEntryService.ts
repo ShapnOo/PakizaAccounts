@@ -2,7 +2,7 @@ import { VoucherEntry, Attachment } from '../types/journalEntry';
 import { MOCK_JOURNAL_ENTRIES } from '../mock/journalEntries';
 import { delay } from '../lib/delay';
 
-const LS_KEY = 'journal-entries-v5';
+const LS_KEY = 'journal-entries-v6';
 
 export async function listEntries(): Promise<VoucherEntry[]> {
   await delay(250);
@@ -43,6 +43,19 @@ export async function createEntry(
     ...payload,
     voucherNo: nextNumber,
     id: `vch-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+    versionCount: 0,
+    history: [
+      {
+        version: 0,
+        timestamp: new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        user: 'Tahmid Afsar',
+        userRole: 'Creator',
+        action: 'Created',
+        notes: `Initial voucher generation from ${payload.source || 'Manual'}`,
+        amount: payload.amount,
+        linesCount: payload.lines?.length || 0,
+      },
+    ],
     createdAt: now,
     updatedAt: now,
   };
@@ -64,7 +77,12 @@ export async function updateEntry(
   const updated = all.map((e) => {
     if (e.id === id) {
       const prevHistory = e.history || [];
-      const nextVersion = (e.versionCount || (prevHistory.length > 0 ? prevHistory[0].version : 1)) + 1;
+      const currentModCount = typeof e.versionCount === 'number'
+        ? e.versionCount
+        : prevHistory.length > 0
+          ? Math.max(0, ...prevHistory.map((h) => h.version))
+          : 0;
+      const nextVersion = currentModCount + 1;
       const newRev = {
         version: nextVersion,
         timestamp: new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),

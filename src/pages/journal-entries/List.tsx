@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -16,9 +16,11 @@ import { KanbanView } from '../../components/journal-entries/KanbanView';
 import { BarChartView } from '../../components/journal-entries/BarChartView';
 import { AttachmentDrawer } from '../../components/journal-entries/AttachmentDrawer';
 import { VoucherEntryForm } from '../../components/journal-entries/VoucherEntryForm';
+import { BulkPrintModal } from '../../components/journal-entries/BulkPrintModal';
 
 export const JournalEntriesListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [bulkPrintOpen, setBulkPrintOpen] = useState(false);
 
   const {
     entries,
@@ -204,6 +206,7 @@ export const JournalEntriesListPage: React.FC = () => {
         onToggleAdvanced={toggleAdvanced}
         activeFilterCount={activeFilterCount}
         onExportCsv={handleExportCsv}
+        onOpenBulkPrint={() => setBulkPrintOpen(true)}
       />
 
       {/* 3. Advance Dynamic Condition Filter (Shared Formula Engine) */}
@@ -252,6 +255,13 @@ export const JournalEntriesListPage: React.FC = () => {
         onClose={() => setSelectedAttachmentVoucher(null)}
         onUpload={uploadAttachment}
         onDelete={deleteAttachment}
+      />
+
+      {/* 6. Bulk Print Modal */}
+      <BulkPrintModal
+        isOpen={bulkPrintOpen}
+        onClose={() => setBulkPrintOpen(false)}
+        entries={entries}
       />
     </div>
   );
