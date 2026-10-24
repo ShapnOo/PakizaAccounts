@@ -48,6 +48,8 @@ export const DEFAULT_CONFIG: Config = {
     mergeView: true,
     pathVisible: 'Before accounts',
     effectiveCompany: ['Pakiza Software Ltd.'],
+    voucherPreviewFormat: 'Standard',
+    autoPrintView: true,
   },
   accountsIdentifications: {
     accountsPayable: '2011',
@@ -91,7 +93,12 @@ function normalizeConfig(parsed: any): Config {
     voucherControlling: { ...DEFAULT_CONFIG.voucherControlling, ...parsed?.voucherControlling },
     monthLock: { ...DEFAULT_CONFIG.monthLock, ...parsed?.monthLock },
     voucher: { ...DEFAULT_CONFIG.voucher, ...parsed?.voucher },
-    accountsCode: { ...DEFAULT_CONFIG.accountsCode, ...parsed?.accountsCode },
+    accountsCode: {
+      ...DEFAULT_CONFIG.accountsCode,
+      ...parsed?.accountsCode,
+      voucherPreviewFormat: parsed?.accountsCode?.voucherPreviewFormat || DEFAULT_CONFIG.accountsCode.voucherPreviewFormat,
+      autoPrintView: parsed?.accountsCode?.autoPrintView !== undefined ? parsed?.accountsCode?.autoPrintView : DEFAULT_CONFIG.accountsCode.autoPrintView,
+    },
     bankCheque: {
       defaultVoucherName: parsed?.bankCheque?.defaultVoucherName || parsed?.bankCheque?.defaultVoucherType || DEFAULT_CONFIG.bankCheque.defaultVoucherName,
       defaultAccount: parsed?.bankCheque?.defaultAccount || DEFAULT_CONFIG.bankCheque.defaultAccount,

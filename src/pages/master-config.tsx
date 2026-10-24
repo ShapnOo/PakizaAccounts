@@ -35,6 +35,13 @@ const FISCAL_YEAR_OPTIONS = ['2023-2024', '2024-2025', '2025-2026', '2026-2027']
 
 const CODE_SEPARATOR_OPTIONS = ['N/A', '-', '/', '.', '_'];
 
+const VOUCHER_PREVIEW_FORMAT_OPTIONS = [
+  'Standard',
+  'Minimal',
+  'Clean Grid',
+  'Framed Ledger',
+];
+
 export const MasterConfigPage: React.FC = () => {
   const {
     config,
@@ -343,37 +350,82 @@ export const MasterConfigPage: React.FC = () => {
         icon={FileText}
         isDirty={isSectionDirty('accountsCode')}
       >
-        <ConfigRow label="Accounts Code" hint="Control whether account codes are shown or hidden across voucher screens">
-          <ToggleYesNo
-            value={config.accountsCode.showCode !== false && config.accountsCode.autoGenerate !== false}
-            onChange={(val) => updateSection('accountsCode', { showCode: val, autoGenerate: val })}
-            yesLabel="Show"
-            noLabel="Hide"
-          />
-        </ConfigRow>
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-6">
+          {/* Row 1 Left: Accounts Code */}
+          <ConfigRow
+            label="Accounts Code"
+            hint="Control whether account codes are shown or hidden across voucher screens"
+            labelClassName="w-full sm:w-56 md:w-60 lg:w-56 xl:w-60 shrink-0"
+          >
+            <ToggleYesNo
+              value={config.accountsCode.showCode !== false && config.accountsCode.autoGenerate !== false}
+              onChange={(val) => updateSection('accountsCode', { showCode: val, autoGenerate: val })}
+              yesLabel="Show"
+              noLabel="Hide"
+            />
+          </ConfigRow>
 
-        <ConfigRow
-          label="Subsidiary & Accounts Merge View"
-          hint="Consolidates subledger codes into primary chart tree"
-        >
-          <ToggleYesNo
-            value={config.accountsCode.mergeView}
-            onChange={(val) => updateSection('accountsCode', { mergeView: val })}
-          />
-        </ConfigRow>
+          {/* Row 1 Right: Voucher Preview Format */}
+          <ConfigRow
+            label="Voucher Preview Format"
+            hint="Default layout format for voucher preview and printing"
+            labelClassName="w-full sm:w-56 md:w-60 lg:w-56 xl:w-60 shrink-0"
+          >
+            <Dropdown
+              value={config.accountsCode.voucherPreviewFormat || 'Standard'}
+              onChange={(val) => updateSection('accountsCode', { voucherPreviewFormat: val })}
+              options={VOUCHER_PREVIEW_FORMAT_OPTIONS}
+              className="w-full max-w-[280px]"
+            />
+          </ConfigRow>
 
-        <ConfigRow label="Accounts Path" hint="Control whether the full account hierarchy path is shown or hidden">
-          <ToggleYesNo
-            value={Boolean(config.accountsCode.pathVisible && config.accountsCode.pathVisible !== 'Hide')}
-            onChange={(val) => updateSection('accountsCode', { pathVisible: val ? 'Show' : 'Hide' })}
-            yesLabel="Show"
-            noLabel="Hide"
-          />
-        </ConfigRow>
+          {/* Row 2 Left: Subsidiary & Accounts Merge View */}
+          <ConfigRow
+            label="Subsidiary & Accounts Merge View"
+            hint="Consolidates subledger codes into primary chart tree"
+            labelClassName="w-full sm:w-56 md:w-60 lg:w-56 xl:w-60 shrink-0"
+          >
+            <ToggleYesNo
+              value={config.accountsCode.mergeView}
+              onChange={(val) => updateSection('accountsCode', { mergeView: val })}
+            />
+          </ConfigRow>
 
+          {/* Row 2 Right: Auto Print View */}
+          <ConfigRow
+            label="Auto Print View"
+            hint="Automatically open print view after saving a voucher"
+            labelClassName="w-full sm:w-56 md:w-60 lg:w-56 xl:w-60 shrink-0"
+          >
+            <ToggleYesNo
+              value={config.accountsCode.autoPrintView !== false}
+              onChange={(val) => updateSection('accountsCode', { autoPrintView: val })}
+            />
+          </ConfigRow>
+
+          {/* Row 3 Left: Accounts Path */}
+          <ConfigRow
+            label="Accounts Path"
+            hint="Control whether the full account hierarchy path is shown or hidden"
+            labelClassName="w-full sm:w-56 md:w-60 lg:w-56 xl:w-60 shrink-0"
+          >
+            <ToggleYesNo
+              value={Boolean(config.accountsCode.pathVisible && config.accountsCode.pathVisible !== 'Hide')}
+              onChange={(val) => updateSection('accountsCode', { pathVisible: val ? 'Show' : 'Hide' })}
+              yesLabel="Show"
+              noLabel="Hide"
+            />
+          </ConfigRow>
+
+          {/* Row 3 Right: Spacer for grid balance */}
+          <div className="hidden lg:block border-b border-border/25" />
+        </div>
+
+        {/* Row 4: Apply Changes To */}
         <ConfigRow
           label="Apply Changes To"
           hint="Select company scope for voucher account configuration"
+          labelClassName="w-full sm:w-56 md:w-60 lg:w-56 xl:w-60 shrink-0"
         >
           <MultiSelect
             value={config.accountsCode.effectiveCompany}

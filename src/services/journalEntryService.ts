@@ -63,7 +63,26 @@ export async function updateEntry(
   let target: VoucherEntry | null = null;
   const updated = all.map((e) => {
     if (e.id === id) {
-      target = { ...e, ...patch, updatedAt: now };
+      const prevHistory = e.history || [];
+      const nextVersion = (e.versionCount || (prevHistory.length > 0 ? prevHistory[0].version : 1)) + 1;
+      const newRev = {
+        version: nextVersion,
+        timestamp: new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        user: 'Tahmid Afsar Shapno',
+        userRole: 'Head of Accounts & Finance',
+        action: 'Modified' as const,
+        notes: 'Voucher lines and ledger distributions modified',
+        amount: patch.amount ?? e.amount,
+        linesCount: patch.lines ? patch.lines.length : (e.lines?.length || 0),
+      };
+
+      target = {
+        ...e,
+        ...patch,
+        versionCount: nextVersion,
+        history: [newRev, ...prevHistory],
+        updatedAt: now,
+      };
       return target;
     }
     return e;

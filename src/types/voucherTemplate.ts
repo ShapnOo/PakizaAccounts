@@ -45,8 +45,13 @@ export const BASE_TABLE_COLUMNS: { key: string; label: string }[] = [
 
 export interface VoucherTemplate {
   id: string;
+  name: string;
+  description?: string;
   voucherType: VoucherType;
   variant?: string; // "General"
+  isDefault?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
   paper: {
     size: PaperSize;
     orientation: Orientation;

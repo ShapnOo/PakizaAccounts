@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { VoucherType } from '../../types/voucherTemplate';
+import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
+import { VoucherType, VoucherTemplate } from '../../types/voucherTemplate';
 import { useVoucherTemplateStore } from '../../stores/voucherTemplateStore';
 import { DesignerTopBar } from '../../components/voucher-template/DesignerTopBar';
 import { VoucherTypeSelector } from '../../components/voucher-template/VoucherTypeSelector';
@@ -8,15 +8,21 @@ import { TemplatePropertiesPanel } from '../../components/voucher-template/Templ
 import { ChangesPreviewPanel } from '../../components/voucher-template/ChangesPreviewPanel';
 import { ResetConfirmDialog } from '../../components/voucher-template/ResetConfirmDialog';
 import { UnsavedChangesDialog } from '../../components/voucher-template/UnsavedChangesDialog';
+import { CopyFromModal } from '../../components/voucher-template/CopyFromModal';
 import { TableSkeleton } from '../../components/custom-fields/TableSkeleton';
+import { toast } from 'sonner';
 
 const VALID_TYPES: VoucherType[] = ['Journal', 'Payment', 'Receive', 'Contra'];
 
 export const VoucherTemplateDesignerPage: React.FC = () => {
+  const { id } = useParams<{ id?: string }>();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const {
     activeType,
+    activeTemplateId,
+    templateList,
     templates,
     company,
     previewLines,
@@ -25,6 +31,8 @@ export const VoucherTemplateDesignerPage: React.FC = () => {
     livePreviewEnabled,
     zoom,
     setActiveType,
+    setActiveTemplateId,
+    getActiveTemplate,
     updateActive,
     toggleColumnVisibility,
     updateColumnLabel,
@@ -40,6 +48,7 @@ export const VoucherTemplateDesignerPage: React.FC = () => {
 
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false);
+  const [copyFromModalOpen, setCopyFromModalOpen] = useState(false);
   const [pendingType, setPendingType] = useState<VoucherType | null>(null);
   const [isVoucherTypeCollapsed, setIsVoucherTypeCollapsed] = useState(false);
 
@@ -50,15 +59,25 @@ export const VoucherTemplateDesignerPage: React.FC = () => {
     load();
   }, [load]);
 
-  // Sync URL query param `?type=` with store
+  // Sync route param `:id` or query param `?id=` with store
   useEffect(() => {
-    const typeParam = searchParams.get('type') as VoucherType | null;
-    if (typeParam && VALID_TYPES.includes(typeParam) && typeParam !== activeType) {
-      setActiveType(typeParam);
+    const targetId = id || searchParams.get('id');
+    if (targetId && targetId !== activeTemplateId) {
+      setActiveTemplateId(targetId);
     }
-  }, [searchParams, activeType, setActiveType]);
+  }, [id, searchParams, activeTemplateId, setActiveTemplateId]);
 
-  const currentTemplate = templates[activeType];
+  // Sync URL query param `?type=` with store if no specific ID
+  useEffect(() => {
+    if (!id && !searchParams.get('id')) {
+      const typeParam = searchParams.get('type') as VoucherType | null;
+      if (typeParam && VALID_TYPES.includes(typeParam) && typeParam !== activeType) {
+        setActiveType(typeParam);
+      }
+    }
+  }, [id, searchParams, activeType, setActiveType]);
+
+  const currentTemplate = getActiveTemplate();
 
   const handleSelectType = (targetType: VoucherType) => {
     if (targetType === activeType) return;
@@ -92,16 +111,43 @@ export const VoucherTemplateDesignerPage: React.FC = () => {
     }
   };
 
+  const handleBack = () => {
+    navigate('/voucher-template');
+  };
+
+  const handleApplyCopy = (source: VoucherTemplate) => {
+    updateActive({
+      paper: { ...source.paper },
+      margin: { ...source.margin },
+      font: { ...source.font },
+      header: { ...source.header },
+      footer: { ...source.footer },
+      table: {
+        ...currentTemplate?.table,
+        showBorder: source.table.showBorder,
+        fontSize: source.table.fontSize,
+        density: source.table.density,
+        autoFit: source.table.autoFit,
+        showApprovalSignature: source.table.showApprovalSignature,
+      },
+    });
+    toast.success(`Copied template style from "${source.name}"`);
+  };
+
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-5 space-y-4 pb-20">
       {/* ── Top Bar (Spans all 3 panels) ── */}
       <DesignerTopBar
         activeType={activeType}
+        templateName={currentTemplate?.name}
+        onUpdateName={(name) => updateActive({ name })}
         dirty={dirty}
         livePreviewEnabled={livePreviewEnabled}
         onToggleLivePreview={() => setLivePreviewEnabled(!livePreviewEnabled)}
         onSave={save}
         onReset={() => setResetDialogOpen(true)}
+        onCopyFrom={() => setCopyFromModalOpen(true)}
+        onBack={handleBack}
       />
 
       {/* ── Mobile Tab Strip (<1024px) ── */}
@@ -230,6 +276,17 @@ export const VoucherTemplateDesignerPage: React.FC = () => {
         onDiscard={handleDiscardAndSwitch}
         onSaveAndSwitch={handleSaveAndSwitch}
       />
+
+      {/* ── Copy From Modal ── */}
+      {currentTemplate && (
+        <CopyFromModal
+          isOpen={copyFromModalOpen}
+          onClose={() => setCopyFromModalOpen(false)}
+          currentTemplate={currentTemplate}
+          templates={templateList}
+          onApplyCopy={handleApplyCopy}
+        />
+      )}
     </div>
   );
 };

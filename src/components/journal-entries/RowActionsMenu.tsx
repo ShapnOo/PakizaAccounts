@@ -7,6 +7,7 @@ import {
   Paperclip,
   Ban,
   RotateCcw,
+  History,
 } from 'lucide-react';
 import { VoucherEntry } from '../../types/journalEntry';
 
@@ -14,12 +15,14 @@ interface RowActionsMenuProps {
   entry: VoucherEntry;
   onOpenAttachment: (entry: VoucherEntry) => void;
   onToggleVoid: (id: string) => void;
+  onOpenHistory?: (entry: VoucherEntry) => void;
 }
 
 export const RowActionsMenu: React.FC<RowActionsMenuProps> = ({
   entry,
   onOpenAttachment,
   onToggleVoid,
+  onOpenHistory,
 }) => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -76,6 +79,26 @@ export const RowActionsMenu: React.FC<RowActionsMenuProps> = ({
             <Pencil className="size-3.5 text-emerald-500" />
             <span>Edit Voucher</span>
           </button>
+
+          {/* Version History */}
+          {onOpenHistory && (
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onOpenHistory(entry);
+              }}
+              className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/80 transition-colors cursor-pointer text-left"
+            >
+              <div className="flex items-center gap-2.5">
+                <History className="size-3.5 text-blue-500" />
+                <span>Version History</span>
+              </div>
+              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                {entry.versionCount || (entry.history ? entry.history.length : 1)}
+              </span>
+            </button>
+          )}
 
           {/* 3. Attachment */}
           <button

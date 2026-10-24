@@ -12,6 +12,7 @@ interface ConfigRowProps {
   isDirty?: boolean;
   className?: string;
   controlClassName?: string;
+  labelClassName?: string;
 }
 
 export const ConfigRow: React.FC<ConfigRowProps> = ({
@@ -25,13 +26,14 @@ export const ConfigRow: React.FC<ConfigRowProps> = ({
   isDirty = false,
   className = '',
   controlClassName = '',
+  labelClassName = '',
 }) => {
   return (
     <div
       className={`min-h-[50px] py-2.5 px-3 sm:px-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between border-b border-border/25 last:border-0 hover:bg-muted/20 transition-colors gap-2.5 md:gap-6 ${className}`}
     >
       {/* 1. Label Column (Fixed width for strict tabular vertical alignment) */}
-      <div className="w-full md:w-64 lg:w-72 shrink-0 flex items-center gap-1.5">
+      <div className={`w-full ${labelClassName || 'md:w-64 lg:w-72'} shrink-0 flex items-center gap-1.5`}>
         <label
           className="text-[12.5px] font-bold text-foreground/90 select-none leading-snug"
           title={hint}

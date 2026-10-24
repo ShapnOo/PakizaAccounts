@@ -35,6 +35,8 @@ export type Config = {
     mergeView: boolean;
     pathVisible: AccountsPathVisibleOption | string;
     effectiveCompany: string[];
+    voucherPreviewFormat?: 'Standard' | 'Minimal' | 'Clean Grid' | 'Framed Ledger' | string;
+    autoPrintView?: boolean;
   };
   accountsIdentifications: {
     accountsPayable: string | null;

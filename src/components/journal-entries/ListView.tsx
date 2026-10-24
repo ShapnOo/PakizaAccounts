@@ -17,6 +17,7 @@ import {
 } from '../../types/journalEntry';
 import { useCurrencyStore } from '../../stores/currencyStore';
 import { RowActionsMenu } from './RowActionsMenu';
+import { VersionHistoryModal } from './VersionHistoryModal';
 
 interface ListViewProps {
   entries: VoucherEntry[];
@@ -47,12 +48,14 @@ export const ListView: React.FC<ListViewProps> = ({
 
   const [sortField, setSortField] = useState<SortField>('voucherDate');
   const [sortAsc, setSortAsc] = useState(false);
+  const [selectedHistoryEntry, setSelectedHistoryEntry] = useState<VoucherEntry | null>(null);
 
   // Column hide & show feature (#34)
   const [columnsOpen, setColumnsOpen] = useState(false);
   const columnsRef = useRef<HTMLDivElement>(null);
   const [visibleColumns, setVisibleColumns] = useState({
     voucherNo: true,
+    history: true,
     voucherName: true,
     voucherType: true,
     approvalStatus: true,
@@ -159,6 +162,7 @@ export const ListView: React.FC<ListViewProps> = ({
               </div>
               {([
                 ['voucherNo', 'Voucher No'],
+                ['history', 'History'],
                 ['voucherName', 'Voucher Name'],
                 ['voucherType', 'Voucher Type'],
                 ['approvalStatus', 'Approval Status'],
@@ -206,6 +210,12 @@ export const ListView: React.FC<ListViewProps> = ({
                       <span>Voucher No</span>
                       <ArrowUpDown className="size-3" />
                     </div>
+                  </th>
+                )}
+
+                {visibleColumns.history && (
+                  <th className="py-3 px-3 text-center min-w-[65px] whitespace-nowrap">
+                    <span className="text-primary font-bold">History</span>
                   </th>
                 )}
 
@@ -337,6 +347,29 @@ export const ListView: React.FC<ListViewProps> = ({
                       </td>
                     )}
 
+                    {/* History Badge Column */}
+                    {visibleColumns.history && (
+                      <td className="py-3 px-3 text-center whitespace-nowrap">
+                        <button
+                          type="button"
+                          id={`history-badge-${entry.id}`}
+                          data-history-badge="true"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedHistoryEntry(entry);
+                          }}
+                          onDoubleClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedHistoryEntry(entry);
+                          }}
+                          className="inline-flex items-center justify-center size-6 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] shadow-xs hover:scale-110 active:scale-95 transition-all cursor-pointer ring-2 ring-blue-500/25"
+                          title={`Version ${entry.versionCount || (entry.history ? entry.history.length : 1)} - Click to view revision history`}
+                        >
+                          {entry.versionCount || (entry.history ? entry.history.length : 1)}
+                        </button>
+                      </td>
+                    )}
+
                     {/* Voucher Name (#30) */}
                     {visibleColumns.voucherName && (
                       <td className="py-3 px-4 whitespace-nowrap font-medium text-foreground">
@@ -432,6 +465,7 @@ export const ListView: React.FC<ListViewProps> = ({
                         entry={entry}
                         onOpenAttachment={onOpenAttachment}
                         onToggleVoid={onToggleVoid}
+                        onOpenHistory={setSelectedHistoryEntry}
                       />
                     </td>
                   </tr>
@@ -461,6 +495,13 @@ export const ListView: React.FC<ListViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* ── Version History Modal ── */}
+      <VersionHistoryModal
+        entry={selectedHistoryEntry}
+        isOpen={!!selectedHistoryEntry}
+        onClose={() => setSelectedHistoryEntry(null)}
+      />
     </div>
   );
 };

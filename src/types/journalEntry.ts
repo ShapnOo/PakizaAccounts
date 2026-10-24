@@ -32,6 +32,25 @@ export interface VoucherLine {
   creditBDT?: number;    // credit * exchangeRate
 }
 
+export interface VoucherVersionChange {
+  field: string;
+  oldValue?: string;
+  newValue?: string;
+  description?: string;
+}
+
+export interface VoucherVersionHistory {
+  version: number;
+  timestamp: string;
+  user: string;
+  userRole?: string;
+  action: 'Created' | 'Modified' | 'Approved' | 'Rejected' | 'Voided' | 'Restored';
+  notes?: string;
+  changes?: VoucherVersionChange[];
+  amount?: number;
+  linesCount?: number;
+}
+
 export interface VoucherEntry {
   id: string;
   voucherNo: string;     // "JV-2026-0001"
@@ -51,6 +70,8 @@ export interface VoucherEntry {
   attachments: Attachment[];
   voided: boolean;
   presetId?: string;
+  history?: VoucherVersionHistory[];
+  versionCount?: number;
   createdAt: string;
   updatedAt: string;
 }
