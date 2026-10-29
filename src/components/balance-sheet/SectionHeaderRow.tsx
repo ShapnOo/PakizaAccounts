@@ -30,45 +30,47 @@ export const SectionHeaderRow: React.FC<SectionHeaderRowProps> = ({
 
   return (
     <tr
-      className={`border-b border-indigo-200/70 bg-indigo-50/50 hover:bg-indigo-100/40 transition-colors ${
-        isSecondSide ? 'border-t-4 border-t-indigo-300/80 mt-4' : ''
+      className={`border-b border-indigo-200/80 bg-indigo-50/70 hover:bg-indigo-100/50 transition-colors font-sans ${
+        isSecondSide ? 'border-t-4 border-t-indigo-300' : ''
       }`}
     >
-      {/* Particulars with chevron */}
+      {/* Particulars with chevron: Sticky on the left */}
       <td
-        className="py-2.5 px-3 font-extrabold text-sm text-indigo-900 flex items-center gap-1.5 cursor-pointer select-none"
+        className="py-2.5 px-3 font-bold text-xs text-indigo-950 sticky left-0 z-10 bg-indigo-50/95 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)] cursor-pointer select-none"
         onClick={onToggleCollapse}
       >
-        <button
-          type="button"
-          className="p-0.5 rounded hover:bg-indigo-200/60 text-indigo-700 transition-colors"
-        >
-          {isCollapsed ? (
-            <ChevronRight className="size-4" />
-          ) : (
-            <ChevronDown className="size-4" />
-          )}
-        </button>
-        <span className="tracking-tight">{row.label}</span>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            className="p-0.5 rounded hover:bg-indigo-200/70 text-indigo-700 transition-colors shrink-0"
+          >
+            {isCollapsed ? (
+              <ChevronRight className="size-4" />
+            ) : (
+              <ChevronDown className="size-4" />
+            )}
+          </button>
+          <span className="tracking-tight uppercase">{row.label}</span>
+        </div>
       </td>
 
-      {/* Indentation level helper cols */}
-      <td className="hidden md:table-cell" />
-      <td className="hidden lg:table-cell" />
-      <td className="hidden xl:table-cell" />
+      {/* L-2, L-3, L-4 Column Aligners */}
+      <td className="w-12 min-w-[48px] border-l border-indigo-100/80" />
+      <td className="w-12 min-w-[48px] border-l border-indigo-100/80" />
+      <td className="w-12 min-w-[48px] border-l border-indigo-100/80" />
 
-      {/* Subledger column */}
+      {/* Subledger Column */}
       {subLedger && (
-        <td className="py-2 px-3 border-l border-indigo-100 text-slate-300 font-mono text-xs select-none">
+        <td className="py-2 px-3 border-l border-indigo-100 text-slate-300 font-sans text-xs select-none">
           —
         </td>
       )}
 
-      {/* Year values */}
+      {/* Year Values */}
       {years.map((_, idx) => (
         <td
           key={idx}
-          className="py-2 px-1 text-right border-l border-indigo-100/70"
+          className="py-2 px-1 text-right border-l border-indigo-100 font-sans"
         >
           <ValueCell
             value={row.values[idx] || 0}
@@ -83,4 +85,3 @@ export const SectionHeaderRow: React.FC<SectionHeaderRowProps> = ({
     </tr>
   );
 };
-

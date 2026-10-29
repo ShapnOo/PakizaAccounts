@@ -270,6 +270,14 @@ const READY_ROUTE_PATTERNS = [
   '/reports/ledger/general-ledger',
   '/accounts-report/general-ledger',
   '/general-ledger',
+  '/financial-statement/balance-sheet',
+  '/reports/financial-statement/balance-sheet',
+  '/accounts-report/balance-sheet',
+  '/balance-sheet',
+  '/financial-statement/income-statement',
+  '/reports/financial-statement/income-statement',
+  '/accounts-report/income-statement',
+  '/income-statement',
 ];
 
 function isRouteReady(path?: string): boolean {

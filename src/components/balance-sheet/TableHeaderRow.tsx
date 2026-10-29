@@ -7,36 +7,40 @@ interface TableHeaderRowProps {
 
 export const TableHeaderRow: React.FC<TableHeaderRowProps> = ({ years, subLedger }) => {
   return (
-    <thead className="bg-slate-100/90 text-slate-700 text-xs uppercase tracking-wider sticky top-0 z-20 shadow-2xs backdrop-blur-xs">
-      {/* ROW 1: Column Names */}
+    <thead className="bg-slate-100/95 text-slate-700 text-xs uppercase tracking-wider sticky top-0 z-20 shadow-2xs backdrop-blur-xs font-sans">
       <tr className="border-b border-slate-200">
-        <th className="py-2.5 px-3 text-left font-bold text-slate-800 w-[300px] min-w-[260px]">
+        {/* Sticky Particulars Column for Mobile & Horizontal Scroll */}
+        <th className="py-2.5 px-3 text-left font-bold text-slate-800 w-[280px] min-w-[240px] sticky left-0 z-30 bg-slate-100 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] whitespace-nowrap">
           Particulars
         </th>
-        <th className="py-2.5 px-2 text-left font-medium text-slate-500 w-[70px] hidden md:table-cell">
-          (Level-2)
+
+        {/* Compact, fixed-width Level Columns: L-2, L-3, L-4 */}
+        <th className="py-2 px-1 text-center font-bold text-slate-600 w-12 min-w-[48px] whitespace-nowrap text-[11px] border-l border-slate-200/60">
+          L-2
         </th>
-        <th className="py-2.5 px-2 text-left font-medium text-slate-500 w-[70px] hidden lg:table-cell">
-          (Level-3)
+        <th className="py-2 px-1 text-center font-bold text-slate-600 w-12 min-w-[48px] whitespace-nowrap text-[11px] border-l border-slate-200/60">
+          L-3
         </th>
-        <th className="py-2.5 px-2 text-left font-medium text-slate-500 w-[70px] hidden xl:table-cell">
-          (Level-4)
+        <th className="py-2 px-1 text-center font-bold text-slate-600 w-12 min-w-[48px] whitespace-nowrap text-[11px] border-l border-slate-200/60">
+          L-4
         </th>
 
+        {/* Sub-Ledger Column */}
         {subLedger && (
-          <th className="py-2.5 px-3 text-left font-bold text-slate-700 min-w-[190px] border-l border-slate-200/80">
+          <th className="py-2.5 px-3 text-left font-bold text-slate-700 min-w-[170px] whitespace-nowrap border-l border-slate-200">
             Sub-Ledger
           </th>
         )}
 
+        {/* Dynamic Year Columns */}
         {years.map((yr, idx) => (
           <th
             key={yr}
-            className={`py-2 px-3 text-right font-bold text-slate-800 min-w-[130px] border-l border-slate-200/80 ${
-              idx === 0 ? 'bg-indigo-50/50 text-indigo-950 font-extrabold' : ''
+            className={`py-2 px-3 text-right font-bold text-slate-800 min-w-[125px] whitespace-nowrap border-l border-slate-200 font-sans ${
+              idx === 0 ? 'bg-indigo-50/60 text-indigo-950 font-extrabold' : ''
             }`}
           >
-            <div className="font-mono text-xs">{yr}</div>
+            <div className="font-sans text-xs tracking-tight">{yr}</div>
             <div className="text-[10px] lowercase font-normal italic text-slate-400 font-sans tracking-normal mt-0.5">
               (As on)
             </div>
@@ -46,4 +50,3 @@ export const TableHeaderRow: React.FC<TableHeaderRowProps> = ({ years, subLedger
     </thead>
   );
 };
-

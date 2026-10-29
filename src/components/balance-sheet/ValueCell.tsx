@@ -33,35 +33,33 @@ export const ValueCell: React.FC<ValueCellProps> = ({
 
   const rawFormatted = new Intl.NumberFormat('en-US').format(value);
 
+  // Exact matching font size (text-xs = 12px) and Inter font family (font-sans)
+  const fontStyle = isZero
+    ? 'text-slate-300 font-sans'
+    : isNegative
+    ? 'text-rose-600 font-semibold'
+    : isTotal
+    ? 'text-slate-950 font-bold'
+    : isHeader
+    ? 'text-indigo-900 font-bold'
+    : 'text-slate-800 font-medium';
+
   return (
     <div
-      className="relative text-right w-full py-1 px-3 select-all tabular-nums"
+      className="relative text-right w-full py-0.5 px-2.5 select-all tabular-nums font-sans"
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
-      <span
-        className={`inline-block text-[13px] transition-colors duration-150 ${
-          isZero
-            ? 'text-slate-300 font-mono'
-            : isNegative
-            ? 'text-rose-600 font-semibold'
-            : isTotal
-            ? 'text-slate-900 font-bold'
-            : isHeader
-            ? 'text-indigo-900 font-bold'
-            : 'text-slate-800 font-medium'
-        }`}
-      >
+      <span className={`inline-block text-xs font-sans transition-colors duration-150 ${fontStyle}`}>
         {text}
       </span>
 
       {/* Tooltip with raw number on hover */}
       {showTooltip && (
-        <div className="absolute right-2 -top-7 z-30 pointer-events-none px-2 py-0.5 rounded bg-slate-900 text-white text-[11px] font-mono shadow-md whitespace-nowrap">
+        <div className="absolute right-2 -top-7 z-30 pointer-events-none px-2 py-0.5 rounded bg-slate-900 text-white text-[11px] font-sans shadow-md whitespace-nowrap">
           Raw: {rawFormatted} {currency}
         </div>
       )}
     </div>
   );
 };
-

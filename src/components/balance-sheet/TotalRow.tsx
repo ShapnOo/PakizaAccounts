@@ -29,17 +29,21 @@ export const TotalRow: React.FC<TotalRowProps> = ({
   balanceDifference = 0,
 }) => {
   const isGrand = isGrandTotal || row.id === 'le-grand';
+  const bgClass = isGrand ? 'bg-indigo-50/80 text-indigo-950' : 'bg-slate-100/80 text-slate-900';
+  const stickyBg = isGrand ? 'bg-indigo-50' : 'bg-slate-100';
 
   return (
     <tr
-      className={`border-t-2 border-b font-bold transition-colors ${
+      className={`border-t-2 border-b font-bold transition-colors font-sans text-xs ${bgClass} ${
         isGrand
-          ? 'border-t-indigo-400 border-b-2 border-b-indigo-400 bg-indigo-50/70 text-indigo-950 text-sm'
-          : 'border-t-slate-300 border-b-slate-200 bg-slate-100/70 text-slate-900 text-xs'
+          ? 'border-t-indigo-400 border-b-2 border-b-indigo-400'
+          : 'border-t-slate-300 border-b-slate-200'
       }`}
     >
-      {/* Particulars + optional BalanceCheckBadge */}
-      <td className="py-2.5 px-3">
+      {/* Particulars + optional BalanceCheckBadge: Sticky left for mobile */}
+      <td
+        className={`py-2 px-3 sticky left-0 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)] ${stickyBg}`}
+      >
         <div className="flex items-center gap-2 flex-wrap">
           <span className="tracking-tight">{row.label}</span>
           {isGrand && (
@@ -52,23 +56,23 @@ export const TotalRow: React.FC<TotalRowProps> = ({
         </div>
       </td>
 
-      {/* Indent helper cols */}
-      <td className="hidden md:table-cell" />
-      <td className="hidden lg:table-cell" />
-      <td className="hidden xl:table-cell" />
+      {/* L-2, L-3, L-4 Column Aligners */}
+      <td className="w-12 min-w-[48px] border-l border-slate-200" />
+      <td className="w-12 min-w-[48px] border-l border-slate-200" />
+      <td className="w-12 min-w-[48px] border-l border-slate-200" />
 
-      {/* Subledger column */}
+      {/* Subledger Column */}
       {subLedger && (
-        <td className="py-2 px-3 border-l border-slate-200 text-slate-300 font-mono text-xs select-none">
+        <td className="py-2 px-3 border-l border-slate-200 text-slate-300 font-sans text-xs select-none">
           —
         </td>
       )}
 
-      {/* Year values */}
+      {/* Year Values */}
       {years.map((_, idx) => (
         <td
           key={idx}
-          className="py-2 px-1 text-right border-l border-slate-200"
+          className="py-2 px-1 text-right border-l border-slate-200 font-sans"
         >
           <ValueCell
             value={row.values[idx] || 0}
@@ -83,4 +87,3 @@ export const TotalRow: React.FC<TotalRowProps> = ({
     </tr>
   );
 };
-
