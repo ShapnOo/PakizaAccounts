@@ -8,11 +8,11 @@ import {
 } from '../../types/trialBalance';
 import { ValueCell } from './ValueCell';
 import { SubLedgerCell } from './SubLedgerCell';
-import { ChevronDown, ChevronRight, Folder, FolderOpen } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface TrialBalanceRowProps {
   row: TBLedgerRow;
-  visibleColumns: TBVisibleColumns;
+  colKeys: (keyof TBVisibleColumns)[];
   showSubLedger: boolean;
   valueShowIn: ValueShowIn;
   currency: Currency;
@@ -22,7 +22,7 @@ interface TrialBalanceRowProps {
 
 export const TrialBalanceRow: React.FC<TrialBalanceRowProps> = ({
   row,
-  visibleColumns,
+  colKeys,
   showSubLedger,
   valueShowIn,
   currency,
@@ -33,9 +33,8 @@ export const TrialBalanceRow: React.FC<TrialBalanceRowProps> = ({
   const isL1 = row.level === 1;
   const isL2 = row.level === 2;
   const isL3 = row.level === 3;
-  const isL4 = row.level === 4;
 
-  const indentPx = (row.level - 1) * 18;
+  const indentPx = (row.level - 1) * 16;
 
   // Background styling based on level
   const rowBg = isL1
@@ -48,7 +47,7 @@ export const TrialBalanceRow: React.FC<TrialBalanceRowProps> = ({
 
   const levelBadge = (
     <span
-      className={`text-[9.5px] font-bold px-1.5 py-0.2 rounded font-sans uppercase shrink-0 ${
+      className={`text-[9.5px] font-bold px-1 py-0.2 rounded font-sans uppercase shrink-0 ${
         isL1
           ? 'bg-indigo-100 text-indigo-800'
           : isL2
@@ -65,7 +64,7 @@ export const TrialBalanceRow: React.FC<TrialBalanceRowProps> = ({
   return (
     <tr className={`${rowBg} transition-colors font-sans text-xs`}>
       {/* Particulars Cell with Tree Indentation & Chevrons */}
-      <td className="py-2 px-3 border-r border-slate-200">
+      <td className="py-2 px-3 border-r border-slate-200 overflow-hidden">
         <div
           className="flex items-center gap-1.5 select-none"
           style={{ paddingLeft: `${indentPx}px` }}
@@ -91,8 +90,8 @@ export const TrialBalanceRow: React.FC<TrialBalanceRowProps> = ({
           <span
             onClick={() => row.isParent && onToggle()}
             className={`${LEVEL_COLORS[row.level]} ${
-              row.isParent ? 'cursor-pointer' : ''
-            } truncate max-w-[280px] sm:max-w-[380px]`}
+              row.isParent ? 'cursor-pointer hover:underline' : ''
+            } truncate`}
             title={row.accountPath.join(' › ')}
           >
             {accountName}
@@ -102,78 +101,32 @@ export const TrialBalanceRow: React.FC<TrialBalanceRowProps> = ({
 
       {/* Sub-Ledger Column (if enabled) */}
       {showSubLedger && (
-        <td className="py-2 px-3 border-r border-slate-200">
+        <td className="py-2 px-3 border-r border-slate-200 overflow-hidden truncate">
           <SubLedgerCell subLedger={row.subLedger} />
         </td>
       )}
 
-      {/* 6 Value Columns (per visibleColumns) */}
-      {visibleColumns.openingDr && (
-        <td className="py-2 px-1 text-right border-r border-slate-200">
-          <ValueCell
-            value={row.openingDr}
-            valueShowIn={valueShowIn}
-            currency={currency}
-            level={row.level}
-          />
-        </td>
-      )}
+      {/* Dynamic Numeric Columns strictly matching colKeys */}
+      {colKeys.map((k, idx) => {
+        const isLast = idx === colKeys.length - 1;
+        const val = row[k] as number;
 
-      {visibleColumns.openingCr && (
-        <td className="py-2 px-1 text-right border-r border-slate-200">
-          <ValueCell
-            value={row.openingCr}
-            valueShowIn={valueShowIn}
-            currency={currency}
-            level={row.level}
-          />
-        </td>
-      )}
-
-      {visibleColumns.debit && (
-        <td className="py-2 px-1 text-right border-r border-slate-200">
-          <ValueCell
-            value={row.debit}
-            valueShowIn={valueShowIn}
-            currency={currency}
-            level={row.level}
-          />
-        </td>
-      )}
-
-      {visibleColumns.credit && (
-        <td className="py-2 px-1 text-right border-r border-slate-200">
-          <ValueCell
-            value={row.credit}
-            valueShowIn={valueShowIn}
-            currency={currency}
-            level={row.level}
-          />
-        </td>
-      )}
-
-      {visibleColumns.closingDr && (
-        <td className="py-2 px-1 text-right border-r border-slate-200">
-          <ValueCell
-            value={row.closingDr}
-            valueShowIn={valueShowIn}
-            currency={currency}
-            level={row.level}
-          />
-        </td>
-      )}
-
-      {visibleColumns.closingCr && (
-        <td className="py-2 px-1 text-right">
-          <ValueCell
-            value={row.closingCr}
-            valueShowIn={valueShowIn}
-            currency={currency}
-            level={row.level}
-          />
-        </td>
-      )}
+        return (
+          <td
+            key={k}
+            className={`py-2 px-1 text-right overflow-hidden ${
+              !isLast ? 'border-r border-slate-200' : ''
+            }`}
+          >
+            <ValueCell
+              value={val}
+              valueShowIn={valueShowIn}
+              currency={currency}
+              level={row.level}
+            />
+          </td>
+        );
+      })}
     </tr>
   );
 };
-

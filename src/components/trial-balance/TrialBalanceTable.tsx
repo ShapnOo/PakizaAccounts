@@ -3,6 +3,7 @@ import {
   TBReport,
   TBLedgerRow,
   COLUMN_LABELS,
+  TBVisibleColumns,
 } from '../../types/trialBalance';
 import { TrialBalanceRow } from './TrialBalanceRow';
 import { ValueCell } from './ValueCell';
@@ -17,15 +18,15 @@ interface TrialBalanceTableProps {
 export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
   report,
 }) => {
-  const { expandedNodeIds, toggleNode } = useTrialBalanceStore();
-  const filters = report.filters;
+  const { filters, expandedNodeIds, toggleNode } = useTrialBalanceStore();
+
+  // Active numeric column keys
   const colKeys = (
-    Object.keys(filters.visibleColumns) as (keyof typeof filters.visibleColumns)[]
+    Object.keys(filters.visibleColumns) as (keyof TBVisibleColumns)[]
   ).filter((k) => filters.visibleColumns[k]);
 
   // Compute visibility of rows based on tree hierarchy expansion
   const visibleRows = useMemo(() => {
-    // Map accountPath to row id
     const pathToId = new Map<string, string>();
     report.rows.forEach((r) => pathToId.set(r.accountPath.join('|'), r.id));
 
@@ -44,6 +45,13 @@ export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
       return true;
     });
   }, [report.rows, expandedNodeIds]);
+
+  // Compute column widths for colgroup
+  const showSubLedger = filters.subLedger;
+  const particularsPercent = showSubLedger ? 28 : 38;
+  const subLedgerPercent = showSubLedger ? 14 : 0;
+  const remainingPercent = 100 - particularsPercent - subLedgerPercent;
+  const numericColPercent = colKeys.length > 0 ? remainingPercent / colKeys.length : 10;
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden flex flex-col font-sans transition-all">
@@ -73,16 +81,25 @@ export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
 
       {/* Table Container: uses .table-scroll for smooth vertical page scroll */}
       <div className="table-scroll w-full overflow-x-auto">
-        <table className="w-full border-collapse text-left font-sans min-w-[900px]">
+        <table className="w-full border-collapse text-left font-sans table-fixed min-w-[850px]">
+          {/* Explicit colgroup guarantees all columns fit and stay visible on screen */}
+          <colgroup>
+            <col style={{ width: `${particularsPercent}%` }} />
+            {showSubLedger && <col style={{ width: `${subLedgerPercent}%` }} />}
+            {colKeys.map((k) => (
+              <col key={k} style={{ width: `${numericColPercent}%` }} />
+            ))}
+          </colgroup>
+
           {/* Header Row */}
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-100/80 text-[11px] font-bold text-slate-700 uppercase tracking-wider font-sans sticky top-0 z-10 shadow-2xs">
-              <th className="py-2.5 px-3 min-w-[280px] border-r border-slate-200">
+            <tr className="border-b border-slate-200 bg-slate-100/90 text-[11px] font-bold text-slate-700 uppercase tracking-wider font-sans sticky top-0 z-10 shadow-2xs">
+              <th className="py-2.5 px-3 border-r border-slate-200 truncate">
                 Particulars
               </th>
 
-              {filters.subLedger && (
-                <th className="py-2.5 px-3 w-[180px] border-r border-slate-200">
+              {showSubLedger && (
+                <th className="py-2.5 px-3 border-r border-slate-200 truncate">
                   Sub-Ledger
                 </th>
               )}
@@ -92,7 +109,7 @@ export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
                 return (
                   <th
                     key={k}
-                    className={`py-2.5 px-3 min-w-[120px] text-right ${
+                    className={`py-2.5 px-2 text-right truncate ${
                       !isLast ? 'border-r border-slate-200' : ''
                     }`}
                   >
@@ -109,8 +126,8 @@ export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
               <TrialBalanceRow
                 key={row.id}
                 row={row}
-                visibleColumns={filters.visibleColumns}
-                showSubLedger={filters.subLedger}
+                colKeys={colKeys}
+                showSubLedger={showSubLedger}
                 valueShowIn={filters.valueShowIn}
                 currency={filters.currency}
                 isExpanded={expandedNodeIds.includes(row.id)}
@@ -123,13 +140,13 @@ export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
           <tfoot>
             <tr className="border-t-2 border-indigo-300 bg-indigo-50 font-bold text-xs text-slate-900 font-sans">
               <td
-                colSpan={filters.subLedger ? 2 : 1}
-                className="py-3 px-4 border-r border-slate-200 uppercase tracking-wider font-bold"
+                colSpan={showSubLedger ? 2 : 1}
+                className="py-3 px-3 border-r border-slate-200 uppercase tracking-wider font-bold truncate"
               >
                 <div className="flex items-center justify-between">
-                  <span>TOTAL (Trial Balance)</span>
+                  <span>TOTAL</span>
                   <span className="text-[10px] font-normal text-slate-500 lowercase hidden sm:inline">
-                    (dr-nature = Assets + Expense; cr-nature = Liab + Equity + Income)
+                    (dr = Assets+Expense; cr = Liab+Equity+Income)
                   </span>
                 </div>
               </td>
@@ -139,7 +156,7 @@ export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
                 return (
                   <td
                     key={k}
-                    className={`py-3 px-1 text-right ${
+                    className={`py-3 px-1 text-right truncate ${
                       !isLast ? 'border-r border-slate-200' : ''
                     }`}
                   >
@@ -179,4 +196,3 @@ export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
     </div>
   );
 };
-

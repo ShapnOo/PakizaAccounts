@@ -25,7 +25,7 @@ export interface TBStore {
   filters: TBFilterState;
   report: TBReport | null;
   loading: boolean;
-  expandedNodeIds: string[]; // Controlled array for serialization
+  expandedNodeIds: string[];
 
   setCurrency: (currency: Currency) => void;
   setDateRange: (dateRange: string) => void;
@@ -46,12 +46,13 @@ export const useTrialBalanceStore = create<TBStore>((set, get) => ({
   filters: MOCK_TB_FILTERS,
   report: null,
   loading: false,
-  expandedNodeIds: [], // Default collapsed per user requirement!
+  expandedNodeIds: [], // Default collapsed per user requirement
 
   setCurrency: (currency: Currency) => {
     const updated = { ...get().filters, currency };
     saveFilterState(updated);
-    set({ filters: updated });
+    const report = get().report ? { ...get().report!, filters: updated } : null;
+    set({ filters: updated, report });
   },
 
   setDateRange: (dateRange: string) => {
@@ -76,7 +77,8 @@ export const useTrialBalanceStore = create<TBStore>((set, get) => ({
   setValueShowIn: (valueShowIn: ValueShowIn) => {
     const updated = { ...get().filters, valueShowIn };
     saveFilterState(updated);
-    set({ filters: updated });
+    const report = get().report ? { ...get().report!, filters: updated } : null;
+    set({ filters: updated, report });
   },
 
   toggleGlOnly: () => {
@@ -89,7 +91,8 @@ export const useTrialBalanceStore = create<TBStore>((set, get) => ({
   toggleSubLedger: () => {
     const updated = { ...get().filters, subLedger: !get().filters.subLedger };
     saveFilterState(updated);
-    set({ filters: updated });
+    const report = get().report ? { ...get().report!, filters: updated } : null;
+    set({ filters: updated, report });
   },
 
   toggleColumn: (key: keyof TBVisibleColumns) => {
@@ -102,7 +105,8 @@ export const useTrialBalanceStore = create<TBStore>((set, get) => ({
     const updatedColumns = { ...current, [key]: !current[key] };
     const updated = { ...get().filters, visibleColumns: updatedColumns };
     saveFilterState(updated);
-    set({ filters: updated });
+    const report = get().report ? { ...get().report!, filters: updated } : null;
+    set({ filters: updated, report });
   },
 
   toggleAdvancedFilter: () => {
@@ -167,4 +171,3 @@ export const useTrialBalanceStore = create<TBStore>((set, get) => ({
     get().load();
   },
 }));
-
