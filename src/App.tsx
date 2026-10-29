@@ -43,6 +43,7 @@ import { BulkUploadPage } from "./pages/bulk-upload/Index";
 import { BulkUpdatePage } from "./pages/bulk-update/Index";
 import { FinancialPeriodSetupPage } from "./pages/financial-period/FinancialPeriodSetup";
 import { GeneralLedgerPage } from "./pages/reports/GeneralLedgerPage";
+import { BalanceSheetPage } from "./pages/balance-sheet/Index";
 import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen, Repeat, UploadCloud, RefreshCw, CalendarDays } from "lucide-react";
 import { Toaster } from "sonner";
 
@@ -173,6 +174,14 @@ function ContentArea() {
             >
               <Repeat className="size-3.5 text-indigo-600" />
               <span>Recurring Journal Schedules</span>
+            </Link>
+
+            <Link
+              to="/financial-statement/balance-sheet"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-indigo-200 bg-indigo-50/50 text-indigo-700 text-xs font-bold shadow-sm hover:bg-indigo-100/60 transition-all cursor-pointer"
+            >
+              <Scale className="size-3.5 text-indigo-600" />
+              <span>Balance Sheet (Comparative Report)</span>
             </Link>
           </div>
 
@@ -333,6 +342,12 @@ export default function App() {
                   <Route path="/reports/ledger/general-ledger" element={<GeneralLedgerPage />} />
                   <Route path="/accounts-report/general-ledger" element={<GeneralLedgerPage />} />
                   <Route path="/general-ledger" element={<Navigate to="/reports/ledger/general-ledger" replace />} />
+
+                  {/* Balance Sheet Report Routes */}
+                  <Route path="/financial-statement/balance-sheet" element={<BalanceSheetPage />} />
+                  <Route path="/reports/financial-statement/balance-sheet" element={<BalanceSheetPage />} />
+                  <Route path="/accounts-report/balance-sheet" element={<BalanceSheetPage />} />
+                  <Route path="/balance-sheet" element={<Navigate to="/financial-statement/balance-sheet" replace />} />
 
                   <Route path="*" element={<ContentArea />} />
                 </Routes>
