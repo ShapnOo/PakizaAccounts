@@ -40,3 +40,4 @@ export const ExpandCollapseControls: React.FC<ExpandCollapseControlsProps> = ({
     </div>
   );
 };
+

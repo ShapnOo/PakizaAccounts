@@ -166,3 +166,4 @@ export const COLUMN_LABELS: Record<keyof TBVisibleColumns, string> = {
   closingDr: 'Closing (DR)',
   closingCr: 'Closing (CR)',
 };
+

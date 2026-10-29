@@ -285,6 +285,9 @@ const READY_ROUTE_PATTERNS = [
   '/financial-statement/retained-earnings-statement',
   '/accounts-report/retained-earnings-statement',
   '/retained-earnings',
+  '/reports/ledger/trial-balance',
+  '/accounts-report/trial-balance',
+  '/trial-balance',
 ];
 
 function isRouteReady(path?: string): boolean {

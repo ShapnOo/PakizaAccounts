@@ -90,3 +90,4 @@ export const ColumnTogglePopover: React.FC<ColumnTogglePopoverProps> = ({
     </div>
   );
 };
+

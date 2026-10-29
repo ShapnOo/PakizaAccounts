@@ -33,3 +33,4 @@ export const SubLedgerTagChip: React.FC<SubLedgerTagChipProps> = ({ tag }) => {
     </span>
   );
 };
+

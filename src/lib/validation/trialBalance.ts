@@ -31,3 +31,4 @@ export const tbFilterSchema = z.object({
   advancedFilterCollapsed: z.boolean(),
   expandAll: z.boolean(),
 });
+

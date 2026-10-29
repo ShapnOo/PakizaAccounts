@@ -20,3 +20,4 @@ export const SubLedgerCell: React.FC<SubLedgerCellProps> = ({ subLedger }) => {
     </div>
   );
 };
+

@@ -65,3 +65,4 @@ export const BalanceCheckBadges: React.FC<BalanceCheckBadgesProps> = ({
     </div>
   );
 };
+

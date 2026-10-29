@@ -47,7 +47,8 @@ import { BalanceSheetPage } from "./pages/balance-sheet/Index";
 import { IncomeStatementPage } from "./pages/income-statement/Index";
 import { ReceiptPaymentPage } from "./pages/receipt-payment/Index";
 import { RetainedEarningsPage } from "./pages/retained-earnings/Index";
-import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen, Repeat, UploadCloud, RefreshCw, CalendarDays } from "lucide-react";
+import { TrialBalancePage } from "./pages/trial-balance/Index";
+import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen, Repeat, UploadCloud, RefreshCw, CalendarDays, Table2 } from "lucide-react";
 import { Toaster } from "sonner";
 
 function ContentArea() {
@@ -193,6 +194,14 @@ function ContentArea() {
             >
               <FileText className="size-3.5 text-emerald-600" />
               <span>Income Statement (P&L Report)</span>
+            </Link>
+
+            <Link
+              to="/reports/ledger/trial-balance"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-sky-200 bg-sky-50/50 text-sky-700 text-xs font-bold shadow-sm hover:bg-sky-100/60 transition-all cursor-pointer"
+            >
+              <Table2 className="size-3.5 text-sky-600" />
+              <span>Trial Balance Report</span>
             </Link>
 
             <Link
@@ -392,6 +401,11 @@ export default function App() {
                   <Route path="/accounts-report/retained-earnings-statement" element={<RetainedEarningsPage />} />
                   <Route path="/financial-statement/retained-earnings-statement" element={<RetainedEarningsPage />} />
                   <Route path="/retained-earnings" element={<Navigate to="/reports/financial-statement/retained-earnings-statement" replace />} />
+
+                  {/* Trial Balance Routes */}
+                  <Route path="/reports/ledger/trial-balance" element={<TrialBalancePage />} />
+                  <Route path="/accounts-report/trial-balance" element={<TrialBalancePage />} />
+                  <Route path="/trial-balance" element={<Navigate to="/reports/ledger/trial-balance" replace />} />
 
                   <Route path="*" element={<ContentArea />} />
                 </Routes>

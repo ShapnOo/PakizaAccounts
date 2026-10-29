@@ -334,3 +334,4 @@ export async function exportToPdf(report: TBReport): Promise<void> {
     toast.error('Failed to open PDF print preview.');
   }
 }
+

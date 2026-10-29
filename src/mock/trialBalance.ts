@@ -857,3 +857,4 @@ export const MOCK_TB_FILTERS: TBFilterState = {
   advancedFilterCollapsed: true, // Default collapsed
   expandAll: false, // Default collapsed per user requirement!
 };
+
