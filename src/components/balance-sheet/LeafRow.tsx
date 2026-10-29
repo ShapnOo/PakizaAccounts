@@ -39,7 +39,7 @@ export const LeafRow: React.FC<LeafRowProps> = ({
       </td>
 
       {/* L-2 Column */}
-      <td className="py-1 px-1 text-center w-12 min-w-[48px] border-l border-slate-100 whitespace-nowrap">
+      <td className="py-1 px-1 text-center w-12 min-w-[48px] border-l border-slate-200/70 whitespace-nowrap">
         {row.level === 2 && (
           <span className="inline-block text-[10px] font-bold px-1 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200/60 leading-none">
             L-2
@@ -48,7 +48,7 @@ export const LeafRow: React.FC<LeafRowProps> = ({
       </td>
 
       {/* L-3 Column */}
-      <td className="py-1 px-1 text-center w-12 min-w-[48px] border-l border-slate-100 whitespace-nowrap">
+      <td className="py-1 px-1 text-center w-12 min-w-[48px] border-l border-slate-200/70 whitespace-nowrap">
         {row.level === 3 && (
           <span className="inline-block text-[10px] font-bold px-1 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200/60 leading-none">
             L-3
@@ -57,7 +57,7 @@ export const LeafRow: React.FC<LeafRowProps> = ({
       </td>
 
       {/* L-4 Column (shows L-4 or L-5) */}
-      <td className="py-1 px-1 text-center w-12 min-w-[48px] border-l border-slate-100 whitespace-nowrap">
+      <td className="py-1 px-1 text-center w-12 min-w-[48px] border-l border-slate-200/70 whitespace-nowrap">
         {row.level === 4 && (
           <span className="inline-block text-[10px] font-bold px-1 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/60 leading-none">
             L-4
@@ -72,7 +72,7 @@ export const LeafRow: React.FC<LeafRowProps> = ({
 
       {/* Subledger Column */}
       {subLedger && (
-        <td className="py-1 px-3 border-l border-slate-100">
+        <td className="py-1 px-3 border-l border-slate-200/70">
           <SubLedgerCell subLedger={row.subLedger} isParent={false} />
         </td>
       )}
@@ -81,7 +81,7 @@ export const LeafRow: React.FC<LeafRowProps> = ({
       {years.map((_, idx) => (
         <td
           key={idx}
-          className="py-1 px-1 text-right border-l border-slate-100 font-sans"
+          className="py-1 px-1 text-right border-l border-slate-200/70 font-sans"
         >
           <ValueCell
             value={row.values[idx] || 0}

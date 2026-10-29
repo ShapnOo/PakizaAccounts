@@ -168,11 +168,10 @@ export async function exportToPdf(
           bg = '#f1f5f9';
         }
 
-        const subLedgerText = r.subLedger
-          ? `${r.subLedger.name} (${r.subLedger.tag})`
-          : r.isParent
-          ? '—'
-          : 'Undefined';
+        const subLedgerText =
+          r.subLedger && r.subLedger.name !== 'Undefined'
+            ? `${r.subLedger.name} (${r.subLedger.tag})`
+            : '—';
 
         const valuesHtml = r.values
           .map((v) => {

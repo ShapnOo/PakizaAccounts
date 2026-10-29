@@ -35,7 +35,7 @@ export const TableHeaderRows: React.FC<TableHeaderRowsProps> = ({
           ))}
 
           {/* Total Column is LAST in entity mode */}
-          <th className="py-2.5 px-3 text-right font-bold text-slate-900 bg-slate-200/60 min-w-[125px] whitespace-nowrap border-l-2 border-slate-300 font-sans">
+          <th className="py-2.5 px-3 text-right font-bold text-slate-900 bg-slate-200/50 min-w-[125px] whitespace-nowrap border-l border-slate-200 font-sans">
             Total
           </th>
         </tr>

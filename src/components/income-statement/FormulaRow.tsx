@@ -34,7 +34,7 @@ export const FormulaRow: React.FC<FormulaRowProps> = ({
   );
 
   return (
-    <tr className="border-t-2 border-slate-300 border-b border-indigo-100 bg-indigo-50/60 hover:bg-indigo-50 transition-colors font-sans font-bold">
+    <tr className="border-t border-b border-indigo-200/80 bg-indigo-50/50 hover:bg-indigo-100/40 transition-colors font-sans font-bold">
       {/* Particulars Cell: Sticky on the left */}
       <td className="py-2 px-3 text-xs font-bold text-indigo-950 sticky left-0 z-10 bg-indigo-50 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)] whitespace-nowrap">
         <div className="flex items-center">

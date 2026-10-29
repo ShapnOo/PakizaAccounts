@@ -26,23 +26,17 @@ export const SectionHeaderRow: React.FC<SectionHeaderRowProps> = ({
   isCollapsed,
   onToggleCollapse,
 }) => {
-  const isSecondSide = row.side === 'liabilities-equity' && row.id === 'le';
-
   return (
-    <tr
-      className={`border-b border-indigo-200/80 bg-indigo-50/70 hover:bg-indigo-100/50 transition-colors font-sans ${
-        isSecondSide ? 'border-t-4 border-t-indigo-300' : ''
-      }`}
-    >
+    <tr className="border-b border-slate-200 bg-slate-100/60 hover:bg-slate-100/80 transition-colors font-sans">
       {/* Particulars with chevron: Sticky on the left */}
       <td
-        className="py-2.5 px-3 font-bold text-xs text-indigo-950 sticky left-0 z-10 bg-indigo-50/95 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)] cursor-pointer select-none"
+        className="py-2.5 px-3 font-bold text-xs text-slate-900 sticky left-0 z-10 bg-slate-100/95 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.06)] cursor-pointer select-none"
         onClick={onToggleCollapse}
       >
         <div className="flex items-center gap-1.5">
           <button
             type="button"
-            className="p-0.5 rounded hover:bg-indigo-200/70 text-indigo-700 transition-colors shrink-0"
+            className="p-0.5 rounded hover:bg-slate-200/70 text-slate-600 transition-colors shrink-0 cursor-pointer"
           >
             {isCollapsed ? (
               <ChevronRight className="size-4" />
@@ -54,14 +48,14 @@ export const SectionHeaderRow: React.FC<SectionHeaderRowProps> = ({
         </div>
       </td>
 
-      {/* L-2, L-3, L-4 Column Aligners */}
-      <td className="w-12 min-w-[48px] border-l border-indigo-100/80" />
-      <td className="w-12 min-w-[48px] border-l border-indigo-100/80" />
-      <td className="w-12 min-w-[48px] border-l border-indigo-100/80" />
+      {/* L-2, L-3, L-4 Column Aligners (Uniform 1px border) */}
+      <td className="w-12 min-w-[48px] border-l border-slate-200/70" />
+      <td className="w-12 min-w-[48px] border-l border-slate-200/70" />
+      <td className="w-12 min-w-[48px] border-l border-slate-200/70" />
 
       {/* Subledger Column */}
       {subLedger && (
-        <td className="py-2 px-3 border-l border-indigo-100 text-slate-300 font-sans text-xs select-none">
+        <td className="py-2 px-3 border-l border-slate-200/70 text-slate-300 font-sans text-xs select-none">
           —
         </td>
       )}
@@ -70,7 +64,7 @@ export const SectionHeaderRow: React.FC<SectionHeaderRowProps> = ({
       {years.map((_, idx) => (
         <td
           key={idx}
-          className="py-2 px-1 text-right border-l border-indigo-100 font-sans"
+          className="py-2 px-1 text-right border-l border-slate-200/70 font-sans"
         >
           <ValueCell
             value={row.values[idx] || 0}

@@ -19,6 +19,23 @@ import { computeRollups } from '../lib/balanceSheetMath';
 
 export const useBsAdvanceFilterStore = createAdvanceFilterStore('advance-filter:balance-sheet');
 
+export const DEFAULT_COLLAPSED_NODES: Record<string, boolean> = {
+  'a-ca': true,
+  'a-ca-cce': true,
+  'a-ca-ar': true,
+  'a-ca-inv': true,
+  'a-nca': true,
+  'a-nca-tan': true,
+  'a-nca-intan': true,
+  'le-liab': true,
+  'le-liab-cl': true,
+  'le-liab-cl-tp': true,
+  'le-liab-cl-loan': true,
+  'le-liab-ltl': true,
+  'le-liab-ltl-loan': true,
+  'le-eq': true,
+};
+
 export interface BSStore {
   filters: BSFilterState;
   rows: BSTreeRow[];
@@ -56,7 +73,7 @@ export const useBalanceSheetStore = create<BSStore>()(
       years: ['2026-10-17', '2025-10-17', '2024-10-17', '2023-10-17'],
       loading: false,
       exportMenuOpen: false,
-      collapsedNodes: {},
+      collapsedNodes: DEFAULT_COLLAPSED_NODES,
 
       setAsOn: (asOn) => {
         set((s) => ({ filters: { ...s.filters, asOn } }));
@@ -159,8 +176,8 @@ export const useBalanceSheetStore = create<BSStore>()(
 
       resetFilters: () => {
         set({
-          filters: MOCK_BS_FILTERS,
-          collapsedNodes: {},
+          filters: { ...MOCK_BS_FILTERS, expandAll: false },
+          collapsedNodes: DEFAULT_COLLAPSED_NODES,
         });
         get().load();
         toast.info('Balance Sheet filters have been reset to default.');
@@ -195,11 +212,10 @@ export const useBalanceSheetStore = create<BSStore>()(
             Level: `L${r.level}`,
           };
           if (filters.subLedger) {
-            obj['Sub-Ledger'] = r.subLedger
-              ? `${r.subLedger.name} (${r.subLedger.tag})`
-              : r.isParent
-                ? '—'
-                : 'Undefined';
+            obj['Sub-Ledger'] =
+              r.subLedger && r.subLedger.name !== 'Undefined'
+                ? `${r.subLedger.name} (${r.subLedger.tag})`
+                : '—';
           }
           years.forEach((yr, idx) => {
             const rawVal = r.values[idx] || 0;

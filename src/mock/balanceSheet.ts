@@ -451,6 +451,6 @@ export const MOCK_BS_FILTERS: BSFilterState = {
   currency: 'BDT',
   subLedger: true,
   advancedFilterCollapsed: true,
-  expandAll: true,
+  expandAll: false,
 };
 
