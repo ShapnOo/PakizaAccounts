@@ -46,6 +46,7 @@ import { GeneralLedgerPage } from "./pages/reports/GeneralLedgerPage";
 import { BalanceSheetPage } from "./pages/balance-sheet/Index";
 import { IncomeStatementPage } from "./pages/income-statement/Index";
 import { ReceiptPaymentPage } from "./pages/receipt-payment/Index";
+import { RetainedEarningsPage } from "./pages/retained-earnings/Index";
 import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen, Repeat, UploadCloud, RefreshCw, CalendarDays } from "lucide-react";
 import { Toaster } from "sonner";
 
@@ -192,6 +193,14 @@ function ContentArea() {
             >
               <FileText className="size-3.5 text-emerald-600" />
               <span>Income Statement (P&L Report)</span>
+            </Link>
+
+            <Link
+              to="/reports/financial-statement/retained-earnings-statement"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-purple-200 bg-purple-50/50 text-purple-700 text-xs font-bold shadow-sm hover:bg-purple-100/60 transition-all cursor-pointer"
+            >
+              <Coins className="size-3.5 text-purple-600" />
+              <span>Retained Earnings Statement</span>
             </Link>
 
             <Link
@@ -377,6 +386,12 @@ export default function App() {
                   <Route path="/reports/ledger/receipt-and-payments-statement" element={<ReceiptPaymentPage />} />
                   <Route path="/receipt-payment" element={<ReceiptPaymentPage />} />
                   <Route path="/receipt-and-payments-statement" element={<Navigate to="/reports/ledger/receipt-and-payments-statement" replace />} />
+
+                  {/* Retained Earnings Statement Routes */}
+                  <Route path="/reports/financial-statement/retained-earnings-statement" element={<RetainedEarningsPage />} />
+                  <Route path="/accounts-report/retained-earnings-statement" element={<RetainedEarningsPage />} />
+                  <Route path="/financial-statement/retained-earnings-statement" element={<RetainedEarningsPage />} />
+                  <Route path="/retained-earnings" element={<Navigate to="/reports/financial-statement/retained-earnings-statement" replace />} />
 
                   <Route path="*" element={<ContentArea />} />
                 </Routes>

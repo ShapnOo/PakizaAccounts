@@ -281,6 +281,10 @@ const READY_ROUTE_PATTERNS = [
   '/reports/ledger/receipt-and-payments-statement',
   '/receipt-payment',
   '/receipt-and-payments-statement',
+  '/reports/financial-statement/retained-earnings-statement',
+  '/financial-statement/retained-earnings-statement',
+  '/accounts-report/retained-earnings-statement',
+  '/retained-earnings',
 ];
 
 function isRouteReady(path?: string): boolean {

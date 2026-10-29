@@ -1,0 +1,26 @@
+import React from 'react';
+
+export const TableSkeleton: React.FC = () => {
+  return (
+    <div className="w-full bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs animate-pulse p-4 space-y-4 font-sans">
+      <div className="h-8 bg-slate-100 rounded-md w-1/4"></div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div className="lg:col-span-7 space-y-3">
+          <div className="h-10 bg-slate-100 rounded-md"></div>
+          <div className="h-8 bg-slate-50 rounded-md w-full"></div>
+          <div className="h-8 bg-slate-50 rounded-md w-full"></div>
+          <div className="h-8 bg-slate-50 rounded-md w-full"></div>
+          <div className="h-10 bg-indigo-50/50 rounded-md w-full"></div>
+        </div>
+        <div className="lg:col-span-5 space-y-3">
+          <div className="h-10 bg-slate-100 rounded-md"></div>
+          <div className="h-8 bg-slate-50 rounded-md w-full"></div>
+          <div className="h-8 bg-slate-50 rounded-md w-full"></div>
+          <div className="h-8 bg-slate-50 rounded-md w-full"></div>
+          <div className="h-10 bg-slate-100 rounded-md w-full"></div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
