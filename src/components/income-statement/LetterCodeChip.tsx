@@ -15,3 +15,4 @@ export const LetterCodeChip: React.FC<LetterCodeChipProps> = ({ code, className 
     </span>
   );
 };
+

@@ -33,3 +33,4 @@ export const ReportTypeToggle: React.FC<ReportTypeToggleProps> = ({ value, onCha
     </div>
   );
 };
+

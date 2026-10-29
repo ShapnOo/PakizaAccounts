@@ -110,3 +110,4 @@ export const MOCK_IS_DATA: Record<string, Record<string, number[]>> = {
     financialExpenses:[20000,  20000,  0],
   },
 };
+

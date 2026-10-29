@@ -141,3 +141,4 @@ export const SUMMARY_ROWS: typeof COMPREHENSIVE_ROWS = [
   { key: 'financialExpenses', label: 'Financial Expenses', level: 1, isSectionHeader: false, isBold: false },
   { key: 'netProfitBeforeTax', label: 'Net Profit Before Tax', level: 0, isSectionHeader: false, isBold: true },
 ];
+

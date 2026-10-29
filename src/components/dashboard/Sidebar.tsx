@@ -319,6 +319,18 @@ function isPathActive(itemTo: string | undefined, currentPath: string): boolean 
   ) {
     return true;
   }
+  if (
+    (itemTo === '/reports/financial-statement/balance-sheet' || itemTo === '/accounts-report/balance-sheet' || itemTo === '/balance-sheet') &&
+    (currentPath.includes('/balance-sheet'))
+  ) {
+    return true;
+  }
+  if (
+    (itemTo === '/reports/financial-statement/income-statement' || itemTo === '/accounts-report/income-statement' || itemTo === '/income-statement') &&
+    (currentPath.includes('/income-statement'))
+  ) {
+    return true;
+  }
 
   return false;
 }

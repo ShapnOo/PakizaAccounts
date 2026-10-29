@@ -44,6 +44,7 @@ import { BulkUpdatePage } from "./pages/bulk-update/Index";
 import { FinancialPeriodSetupPage } from "./pages/financial-period/FinancialPeriodSetup";
 import { GeneralLedgerPage } from "./pages/reports/GeneralLedgerPage";
 import { BalanceSheetPage } from "./pages/balance-sheet/Index";
+import { IncomeStatementPage } from "./pages/income-statement/Index";
 import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen, Repeat, UploadCloud, RefreshCw, CalendarDays } from "lucide-react";
 import { Toaster } from "sonner";
 
@@ -182,6 +183,14 @@ function ContentArea() {
             >
               <Scale className="size-3.5 text-indigo-600" />
               <span>Balance Sheet (Comparative Report)</span>
+            </Link>
+
+            <Link
+              to="/financial-statement/income-statement"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-emerald-200 bg-emerald-50/50 text-emerald-700 text-xs font-bold shadow-sm hover:bg-emerald-100/60 transition-all cursor-pointer"
+            >
+              <FileText className="size-3.5 text-emerald-600" />
+              <span>Income Statement (P&L Report)</span>
             </Link>
           </div>
 
@@ -348,6 +357,12 @@ export default function App() {
                   <Route path="/reports/financial-statement/balance-sheet" element={<BalanceSheetPage />} />
                   <Route path="/accounts-report/balance-sheet" element={<BalanceSheetPage />} />
                   <Route path="/balance-sheet" element={<Navigate to="/financial-statement/balance-sheet" replace />} />
+
+                  {/* Income Statement Report Routes */}
+                  <Route path="/financial-statement/income-statement" element={<IncomeStatementPage />} />
+                  <Route path="/reports/financial-statement/income-statement" element={<IncomeStatementPage />} />
+                  <Route path="/accounts-report/income-statement" element={<IncomeStatementPage />} />
+                  <Route path="/income-statement" element={<Navigate to="/financial-statement/income-statement" replace />} />
 
                   <Route path="*" element={<ContentArea />} />
                 </Routes>

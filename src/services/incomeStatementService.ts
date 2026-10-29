@@ -373,3 +373,4 @@ export async function exportToPdf(
     toast.error('Failed to export Income Statement to PDF.');
   }
 }
+
