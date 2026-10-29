@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ISRow,
   ISColumnGroup,
@@ -26,6 +26,52 @@ export const IncomeStatementTable: React.FC<IncomeStatementTableProps> = ({
   fyExpanded,
 }) => {
   const isPeriodMode = filters.compareTo === 'Previous Period';
+
+  // Compute effective columns & rows when fyExpanded is false (collapsed to 1 column per FY)
+  const { effectiveColumns, effectiveRows } = useMemo(() => {
+    if (!isPeriodMode || fyExpanded) {
+      return {
+        effectiveColumns: dataColumns,
+        effectiveRows: rows,
+      };
+    }
+
+    // When collapsed, create 1 column per Fiscal Year group
+    const cols = columnGroups.map((g) => ({
+      key: g.label,
+      label: `FY ${g.label}`,
+      subLabel: 'Full Year',
+    }));
+
+    // Slices for each group's sub-columns
+    let cursor = 0;
+    const slices = columnGroups.map((g) => {
+      const len = g.subColumns?.length || 1;
+      const start = cursor;
+      const end = cursor + len;
+      cursor += len;
+      return { start, end };
+    });
+
+    const mappedRows: ISRow[] = rows.map((r) => {
+      const vals = slices.map(({ start, end }) => {
+        let sum = 0;
+        for (let i = start; i < end; i++) {
+          sum += r.values[i] || 0;
+        }
+        return sum;
+      });
+      return {
+        ...r,
+        values: vals,
+      };
+    });
+
+    return {
+      effectiveColumns: cols,
+      effectiveRows: mappedRows,
+    };
+  }, [isPeriodMode, fyExpanded, dataColumns, columnGroups, rows]);
 
   // Locate bottom-line profit row
   const bottomLine =
@@ -63,24 +109,24 @@ export const IncomeStatementTable: React.FC<IncomeStatementTableProps> = ({
         </div>
       </div>
 
-      {/* Main Table Container (Responsive Horizontal Scroll) */}
-      <div className="overflow-x-auto w-full sidebar-scroll">
-        <table className="w-full border-collapse text-left min-w-[720px] font-sans">
+      {/* Main Table Container: Uses table-scroll for smooth vertical page scrolling */}
+      <div className="w-full table-scroll">
+        <table className="w-full border-collapse text-left min-w-[700px] font-sans">
           <TableHeaderRows
             compareTo={filters.compareTo}
             columnGroups={columnGroups}
-            dataColumns={dataColumns}
+            dataColumns={effectiveColumns}
             fyExpanded={fyExpanded}
           />
 
           <tbody className="divide-y divide-slate-100">
-            {rows.map((row) => {
+            {effectiveRows.map((row) => {
               if (row.isSectionHeader) {
                 return (
                   <SectionHeaderRow
                     key={row.id}
                     row={row}
-                    colCount={dataColumns.length}
+                    colCount={effectiveColumns.length}
                     isPeriodMode={isPeriodMode}
                   />
                 );
@@ -126,10 +172,10 @@ export const IncomeStatementTable: React.FC<IncomeStatementTableProps> = ({
         </div>
 
         <div className="text-[11px] text-slate-400">
-          Showing {rows.length} lines • Currency: <strong className="text-slate-700">{filters.currency}</strong>
+          Showing {effectiveRows.length} lines • Currency:{' '}
+          <strong className="text-slate-700">{filters.currency}</strong>
         </div>
       </div>
     </div>
   );
 };
-

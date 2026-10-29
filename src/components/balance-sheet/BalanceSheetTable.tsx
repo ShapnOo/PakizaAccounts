@@ -90,7 +90,7 @@ export const BalanceSheetTable: React.FC<BalanceSheetTableProps> = ({
       </div>
 
       {/* Main Table Container */}
-      <div className="overflow-x-auto w-full sidebar-scroll">
+      <div className="w-full table-scroll">
         <table className="w-full border-collapse text-left min-w-[700px]">
           <TableHeaderRow years={years} subLedger={filters.subLedger} />
 

@@ -249,6 +249,30 @@
   background: oklch(0.5 0.05 255 / 0.6);
 }
 
+/* Horizontal Table Scrollbar with Smooth Vertical Page Scroll Passthrough */
+.table-scroll {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.75 0.02 250 / 0.4) transparent;
+}
+
+.table-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+  background: oklch(0.7 0.02 250 / 0.35);
+  border-radius: 9999px;
+}
+
+.table-scroll:hover::-webkit-scrollbar-thumb {
+  background: oklch(0.5 0.05 250 / 0.6);
+}
+
 /* ── Global: Disable up/down stepper arrows & pins on all number & amount inputs ── */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {

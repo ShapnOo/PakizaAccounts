@@ -57,7 +57,7 @@ export const useIncomeStatementStore = create<ISStore>()(
       dataColumns: [],
       rows: [],
       loading: false,
-      fyExpanded: true,
+      fyExpanded: false,
 
       setReportType: (reportType) => {
         set((s) => ({ filters: { ...s.filters, reportType } }));
@@ -127,7 +127,7 @@ export const useIncomeStatementStore = create<ISStore>()(
       resetFilters: () => {
         set({
           filters: MOCK_IS_FILTERS,
-          fyExpanded: true,
+          fyExpanded: false,
         });
         get().load();
         toast.info('Income Statement parameters reset to defaults.');
@@ -147,20 +147,52 @@ export const useIncomeStatementStore = create<ISStore>()(
       },
 
       exportReport: async (format: 'xlsx' | 'csv' | 'pdf') => {
-        const { rows, dataColumns, filters } = get();
+        const { rows, dataColumns, columnGroups, filters, fyExpanded } = get();
         const filename = `Income_Statement_${filters.reportType}_${filters.compareTo.replace(
           /\s+/g,
           '_'
         )}.${format}`;
 
+        const isPeriodMode = filters.compareTo === 'Previous Period';
+
+        // Use collapsed columns & rows if FY is collapsed
+        let activeCols = dataColumns;
+        let activeRows = rows;
+
+        if (isPeriodMode && !fyExpanded) {
+          activeCols = columnGroups.map((g) => ({
+            key: g.label,
+            label: `FY ${g.label}`,
+            subLabel: 'Full Year',
+          }));
+
+          let cursor = 0;
+          const slices = columnGroups.map((g) => {
+            const len = g.subColumns?.length || 1;
+            const start = cursor;
+            const end = cursor + len;
+            cursor += len;
+            return { start, end };
+          });
+
+          activeRows = rows.map((r) => {
+            const vals = slices.map(({ start, end }) => {
+              let sum = 0;
+              for (let i = start; i < end; i++) {
+                sum += r.values[i] || 0;
+              }
+              return sum;
+            });
+            return { ...r, values: vals };
+          });
+        }
+
         if (format === 'pdf') {
-          await exportToPdf(dataColumns, rows, filters);
+          await exportToPdf(activeCols, activeRows, filters);
           return;
         }
 
-        const isPeriodMode = filters.compareTo === 'Previous Period';
-
-        const flatData = rows.map((r) => {
+        const flatData = activeRows.map((r) => {
           const totalVal = r.values.reduce((acc, curr) => acc + curr, 0);
           const obj: Record<string, any> = {
             Particulars: `${r.letterCode ? `[${r.letterCode}] ` : ''}${
@@ -172,7 +204,7 @@ export const useIncomeStatementStore = create<ISStore>()(
             obj['Total'] = r.isSectionHeader ? '—' : totalVal;
           }
 
-          dataColumns.forEach((col, idx) => {
+          activeCols.forEach((col, idx) => {
             const rawVal = r.values[idx] || 0;
             const colTitle = col.subLabel
               ? `${col.label} ${col.subLabel}`
