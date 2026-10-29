@@ -41,3 +41,4 @@ export const CurrencySelect: React.FC<CurrencySelectProps> = ({
     </div>
   );
 };
+

@@ -172,3 +172,4 @@ export const useReceiptPaymentStore = create<RPStore>((set, get) => ({
     }
   },
 }));
+

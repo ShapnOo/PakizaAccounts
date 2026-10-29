@@ -45,6 +45,7 @@ import { FinancialPeriodSetupPage } from "./pages/financial-period/FinancialPeri
 import { GeneralLedgerPage } from "./pages/reports/GeneralLedgerPage";
 import { BalanceSheetPage } from "./pages/balance-sheet/Index";
 import { IncomeStatementPage } from "./pages/income-statement/Index";
+import { ReceiptPaymentPage } from "./pages/receipt-payment/Index";
 import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen, Repeat, UploadCloud, RefreshCw, CalendarDays } from "lucide-react";
 import { Toaster } from "sonner";
 
@@ -191,6 +192,14 @@ function ContentArea() {
             >
               <FileText className="size-3.5 text-emerald-600" />
               <span>Income Statement (P&L Report)</span>
+            </Link>
+
+            <Link
+              to="/reports/ledger/receipt-and-payments-statement"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-teal-200 bg-teal-50/50 text-teal-700 text-xs font-bold shadow-sm hover:bg-teal-100/60 transition-all cursor-pointer"
+            >
+              <Receipt className="size-3.5 text-teal-600" />
+              <span>Receipt and Payments Statement</span>
             </Link>
           </div>
 
@@ -363,6 +372,11 @@ export default function App() {
                   <Route path="/reports/financial-statement/income-statement" element={<IncomeStatementPage />} />
                   <Route path="/accounts-report/income-statement" element={<IncomeStatementPage />} />
                   <Route path="/income-statement" element={<Navigate to="/financial-statement/income-statement" replace />} />
+
+                  {/* Receipt and Payments Statement Routes */}
+                  <Route path="/reports/ledger/receipt-and-payments-statement" element={<ReceiptPaymentPage />} />
+                  <Route path="/receipt-payment" element={<ReceiptPaymentPage />} />
+                  <Route path="/receipt-and-payments-statement" element={<Navigate to="/reports/ledger/receipt-and-payments-statement" replace />} />
 
                   <Route path="*" element={<ContentArea />} />
                 </Routes>

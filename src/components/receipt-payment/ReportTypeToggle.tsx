@@ -47,3 +47,4 @@ export const ReportTypeToggle: React.FC<ReportTypeToggleProps> = ({
     </div>
   );
 };
+

@@ -41,3 +41,4 @@ export const AccountsTypeSelect: React.FC<AccountsTypeSelectProps> = ({
     </div>
   );
 };
+

@@ -278,6 +278,9 @@ const READY_ROUTE_PATTERNS = [
   '/reports/financial-statement/income-statement',
   '/accounts-report/income-statement',
   '/income-statement',
+  '/reports/ledger/receipt-and-payments-statement',
+  '/receipt-payment',
+  '/receipt-and-payments-statement',
 ];
 
 function isRouteReady(path?: string): boolean {

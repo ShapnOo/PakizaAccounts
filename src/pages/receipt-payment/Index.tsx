@@ -81,3 +81,4 @@ export const ReceiptPaymentPage: React.FC = () => {
     </div>
   );
 };
+
