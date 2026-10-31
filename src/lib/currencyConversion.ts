@@ -144,6 +144,6 @@ export function formatCurrencyAmount(
     maximumFractionDigits: decimals,
   }).format(absVal);
 
-  return `${isNegative ? '-' : ''}${info.symbol} ${formattedNum}${suffix}`;
+  return `${isNegative ? '-' : ''}${info.symbol}\u00A0${formattedNum}${suffix}`;
 }
 

@@ -12,6 +12,7 @@ interface ColumnTogglePopoverProps {
   onToggle: (key: string) => void;
   onReset?: () => void;
   disabled?: boolean;
+  className?: string;
 }
 
 export const ColumnTogglePopover: React.FC<ColumnTogglePopoverProps> = ({
@@ -19,6 +20,7 @@ export const ColumnTogglePopover: React.FC<ColumnTogglePopoverProps> = ({
   onToggle,
   onReset,
   disabled = false,
+  className = '',
 }) => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -40,17 +42,19 @@ export const ColumnTogglePopover: React.FC<ColumnTogglePopoverProps> = ({
   const totalCount = columns.length;
 
   return (
-    <div className="relative inline-block font-sans" ref={containerRef}>
+    <div className={`relative inline-block font-sans ${className}`} ref={containerRef}>
       <button
         type="button"
         disabled={disabled}
         onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition cursor-pointer select-none disabled:opacity-50"
+        className="w-full h-7.5 inline-flex items-center justify-between gap-1.5 px-2.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-[11px] font-medium shadow-2xs transition cursor-pointer select-none disabled:opacity-50"
         title="Show / Hide Columns"
       >
-        <Columns3 className="w-3.5 h-3.5 text-indigo-600" />
-        <span>Columns</span>
-        <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-slate-100 text-[10px] font-bold text-slate-600">
+        <span className="inline-flex items-center gap-1.5">
+          <Columns3 className="w-3 h-3 text-indigo-600" />
+          <span>Columns</span>
+        </span>
+        <span className="px-1.5 py-0.2 rounded-full bg-slate-100 text-[9px] font-bold text-slate-600">
           {activeCount}/{totalCount}
         </span>
       </button>

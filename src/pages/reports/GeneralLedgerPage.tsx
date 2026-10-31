@@ -17,6 +17,7 @@ import {
   SlidersHorizontal,
   ArrowLeftRight,
   Layers,
+  CheckCircle2,
 } from 'lucide-react';
 import { AdvanceFilter } from '../../components/gl/AdvanceFilter';
 import { ColumnTogglePopover, ColumnItem } from '../../components/gl/ColumnTogglePopover';
@@ -38,6 +39,8 @@ import { toast } from 'sonner';
 
 type ViewMode = 'tree' | 'details' | 'list' | 'kanban';
 
+export type GLStatusFilter = 'all' | 'Approved' | 'Pending' | 'Rejected';
+
 export type GLGroupByField =
   | 'none'
   | 'voucherNo'
@@ -54,6 +57,7 @@ export interface GLDetailsColumns {
   accounts: boolean;
   oppositeAccounts: boolean;
   details: boolean;
+  status: boolean;
   subsidiary: boolean;
   employee: boolean;
   vehicles: boolean;
@@ -72,6 +76,7 @@ const DEFAULT_GL_DETAILS_COLUMNS: GLDetailsColumns = {
   accounts: true,
   oppositeAccounts: true,
   details: true,
+  status: true,
   subsidiary: true,
   employee: true,
   vehicles: true,
@@ -107,6 +112,7 @@ export const GeneralLedgerPage: React.FC = () => {
   const [currency, setCurrency] = useState<string>('BDT');
   const [valueShowIn, setValueShowIn] = useState<ValueShowInMode>('actual');
   const [groupBy, setGroupBy] = useState<GLGroupByField>('none');
+  const [statusFilter, setStatusFilter] = useState<GLStatusFilter>('all');
   const [showSubLedger, setShowSubLedger] = useState<boolean>(true);
   const [glColumns, setGlColumns] = useState<GLDetailsColumns>(DEFAULT_GL_DETAILS_COLUMNS);
   const [treeColumns, setTreeColumns] = useState<GLTreeColumns>(DEFAULT_GL_TREE_COLUMNS);
@@ -149,6 +155,7 @@ export const GeneralLedgerPage: React.FC = () => {
       { key: 'accounts', label: 'Accounts', visible: glColumns.accounts },
       { key: 'oppositeAccounts', label: 'Opposite Accounts', visible: glColumns.oppositeAccounts },
       { key: 'details', label: 'Details', visible: glColumns.details },
+      { key: 'status', label: 'Status', visible: glColumns.status },
       { key: 'subsidiary', label: 'Subsidiary', visible: glColumns.subsidiary },
       { key: 'employee', label: 'Employee', visible: glColumns.employee },
       { key: 'vehicles', label: 'Vehicles', visible: glColumns.vehicles },
@@ -190,6 +197,7 @@ export const GeneralLedgerPage: React.FC = () => {
       glColumns.accounts,
       glColumns.oppositeAccounts,
       glColumns.details,
+      glColumns.status,
       glColumns.subsidiary,
       glColumns.employee,
       glColumns.vehicles,
@@ -210,12 +218,15 @@ export const GeneralLedgerPage: React.FC = () => {
     return getPredicate();
   }, [getPredicate, filterState]);
 
-  // Filter lines using advance filter predicate
+  // Filter lines using advance filter predicate & status filter
   const filteredLines = useMemo(() => {
     return MOCK_GL_LINES.filter((line) => {
+      if (statusFilter !== 'all' && (line.status || 'Approved') !== statusFilter) {
+        return false;
+      }
       return predicate(line);
     });
-  }, [predicate]);
+  }, [predicate, statusFilter]);
 
   // Compute opening, debit, credit, closing balances
   const initialOpeningBalance = 50000; // As on 09/01/2026 opening balance
@@ -469,133 +480,222 @@ export const GeneralLedgerPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── BASIC FILTER BAR ── */}
-      <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Date Range Selector */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5" />
-              Date:
-            </span>
-            <select
-              value={dateRangePreset}
-              onChange={(e) => setDateRangePreset(e.target.value)}
-              className="h-8 px-2.5 text-xs font-medium rounded-md border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
-            >
-              <option value="today">Today</option>
-              <option value="this-week">This Week</option>
-              <option value="this-month">This Month</option>
-              <option value="this-quarter">This Quarter</option>
-              <option value="this-fiscal">This Fiscal Year</option>
-              <option value="custom">Custom Range</option>
-            </select>
+      {/* ── FILTER & PARAMETER CONTROL CARD ── */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs mb-3.5 overflow-hidden font-sans">
+        {/* Card Header */}
+        <div className="px-3.5 py-2 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/50">
+          <div className="flex items-center gap-1.5">
+            <div className="p-1 rounded-md bg-indigo-50 text-indigo-600">
+              <SlidersHorizontal className="size-3" />
+            </div>
+            <div>
+              <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wide">
+                General Ledger Filters & Parameters
+              </span>
+              <span className="text-[10px] text-slate-400 ml-2 hidden sm:inline">
+                Adjust date range, currency, value display, status, grouping, or visible columns
+              </span>
+            </div>
           </div>
 
-          <div className="h-4 w-px bg-slate-200" />
-
-          {/* Currency Dropdown */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-              <Coins className="w-3.5 h-3.5 text-indigo-600" />
-              Currency:
-            </span>
-            <select
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              className="h-8 px-2.5 text-xs font-semibold rounded-md border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-2xs hover:border-slate-300"
-            >
-              {REPORT_CURRENCIES.map((c) => (
-                <option key={c} value={c}>
-                  {c} ({getCurrencySymbol(c)})
-                </option>
-              ))}
-            </select>
+          {/* Action Controls on Right */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {(!showSubLedger ||
+              totalVisibleGlCols < 16 ||
+              totalVisibleTreeCols < 6 ||
+              dateRangePreset !== 'this-month' ||
+              currency !== 'BDT' ||
+              valueShowIn !== 'actual' ||
+              groupBy !== 'none' ||
+              statusFilter !== 'all' ||
+              filterState.conditions.length > 0) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSubLedger(true);
+                  setGlColumns(DEFAULT_GL_DETAILS_COLUMNS);
+                  setTreeColumns(DEFAULT_GL_TREE_COLUMNS);
+                  setDateRangePreset('this-month');
+                  setCurrency('BDT');
+                  setValueShowIn('actual');
+                  setGroupBy('none');
+                  setStatusFilter('all');
+                  resetAdvanceFilter();
+                }}
+                title="Reset all filters to defaults"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/70 border border-rose-200/60 text-[11px] font-medium transition-all cursor-pointer shadow-2xs whitespace-nowrap h-7"
+              >
+                <RefreshCw className="size-2.5 text-rose-500" />
+                <span>Reset Filters</span>
+              </button>
+            )}
           </div>
-
-          <div className="h-4 w-px bg-slate-200" />
-
-          {/* Value show In Dropdown */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-600" />
-              Value show In:
-            </span>
-            <select
-              value={valueShowIn}
-              onChange={(e) => setValueShowIn(e.target.value as ValueShowInMode)}
-              className="h-8 px-2.5 text-xs font-semibold rounded-md border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-2xs hover:border-slate-300"
-            >
-              {VALUE_SHOW_IN_LABELS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Sub-Ledger Checkbox Filter - only available on Tree View, List, and Kanban (hidden in GL Details) */}
-          {viewMode !== 'details' && (
-            <>
-              <div className="h-4 w-px bg-slate-200" />
-              <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 cursor-pointer transition select-none shadow-2xs">
-                <input
-                  type="checkbox"
-                  checked={showSubLedger}
-                  onChange={(e) => handleSubLedgerCheckboxChange(e.target.checked)}
-                  className="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
-                />
-                <span className="flex items-center gap-1.5 font-semibold text-slate-700">
-                  <Building2 className="w-3.5 h-3.5 text-indigo-600" />
-                  Sub-Ledger
-                </span>
-              </label>
-            </>
-          )}
-
-          <div className="h-4 w-px bg-slate-200" />
-
-          {/* Column Show / Hide Popover */}
-          <ColumnTogglePopover
-            columns={viewMode === 'tree' ? treeColumnItems : detailColumnItems}
-            onToggle={viewMode === 'tree' ? handleToggleTreeColumn : handleToggleDetailColumn}
-            onReset={() => {
-              if (viewMode === 'tree') {
-                setTreeColumns(DEFAULT_GL_TREE_COLUMNS);
-                setShowSubLedger(true);
-              } else {
-                setGlColumns(DEFAULT_GL_DETAILS_COLUMNS);
-                setShowSubLedger(true);
-              }
-            }}
-          />
         </div>
 
-        {/* Clear / Reset All Filters */}
-        {(!showSubLedger ||
-          totalVisibleGlCols < 15 ||
-          totalVisibleTreeCols < 6 ||
-          dateRangePreset !== 'this-month' ||
-          currency !== 'BDT' ||
-          valueShowIn !== 'actual' ||
-          filterState.conditions.length > 0) && (
-          <button
-            type="button"
-            onClick={() => {
-              setShowSubLedger(true);
-              setGlColumns(DEFAULT_GL_DETAILS_COLUMNS);
-              setTreeColumns(DEFAULT_GL_TREE_COLUMNS);
-              setDateRangePreset('this-month');
-              setCurrency('BDT');
-              setValueShowIn('actual');
-              resetAdvanceFilter();
-            }}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/70 border border-rose-200/60 rounded-md transition-all cursor-pointer shadow-2xs"
-          >
-            <RefreshCw className="w-3 h-3" />
-            <span>Reset All Filters</span>
-          </button>
-        )}
+        {/* Card Body: Clean evenly-spaced Grid with Compact Typography */}
+        <div className="p-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 items-end">
+            {/* 1. Date Range */}
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <Calendar className="size-2.5 text-indigo-500" />
+                Date Range
+              </label>
+              <div className="relative">
+                <select
+                  value={dateRangePreset}
+                  onChange={(e) => setDateRangePreset(e.target.value)}
+                  className="w-full h-7.5 pl-2.5 pr-7 rounded-md border border-slate-200 bg-white text-[11px] font-medium text-slate-700 shadow-2xs hover:border-slate-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition cursor-pointer appearance-none"
+                >
+                  <option value="today">Today</option>
+                  <option value="this-week">This Week</option>
+                  <option value="this-month">This Month</option>
+                  <option value="this-quarter">This Quarter</option>
+                  <option value="this-fiscal">This Fiscal Year</option>
+                  <option value="custom">Custom Range</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                  <ChevronDown className="size-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Currency */}
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <Coins className="size-2.5 text-indigo-500" />
+                Currency
+              </label>
+              <div className="relative">
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  className="w-full h-7.5 pl-2.5 pr-7 rounded-md border border-slate-200 bg-white text-[11px] font-medium text-slate-700 shadow-2xs hover:border-slate-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition cursor-pointer appearance-none"
+                >
+                  {REPORT_CURRENCIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c} ({getCurrencySymbol(c)})
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                  <ChevronDown className="size-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Value Show In */}
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <SlidersHorizontal className="size-2.5 text-indigo-500" />
+                Value Show In
+              </label>
+              <div className="relative">
+                <select
+                  value={valueShowIn}
+                  onChange={(e) => setValueShowIn(e.target.value as ValueShowInMode)}
+                  className="w-full h-7.5 pl-2.5 pr-7 rounded-md border border-slate-200 bg-white text-[11px] font-medium text-slate-700 shadow-2xs hover:border-slate-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition cursor-pointer appearance-none"
+                >
+                  {VALUE_SHOW_IN_LABELS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                  <ChevronDown className="size-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Status Filter */}
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <CheckCircle2 className="size-2.5 text-indigo-500" />
+                Status
+              </label>
+              <div className="relative">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as GLStatusFilter)}
+                  className="w-full h-7.5 pl-2.5 pr-7 rounded-md border border-slate-200 bg-white text-[11px] font-medium text-slate-700 shadow-2xs hover:border-slate-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition cursor-pointer appearance-none"
+                >
+                  <option value="all">All</option>
+                  <option value="Approved">Approve</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Rejected">Reject</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                  <ChevronDown className="size-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* 5. Group By */}
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <Layers className="size-2.5 text-indigo-500" />
+                Group By
+              </label>
+              <div className="relative">
+                <select
+                  value={groupBy}
+                  onChange={(e) => setGroupBy(e.target.value as GLGroupByField)}
+                  className="w-full h-7.5 pl-2.5 pr-7 rounded-md border border-slate-200 bg-white text-[11px] font-medium text-slate-700 shadow-2xs hover:border-slate-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition cursor-pointer appearance-none"
+                >
+                  <option value="none">None (Chronological)</option>
+                  <option value="voucherNo">Voucher No</option>
+                  <option value="subsidiary">Subsidiary</option>
+                  <option value="accountsHead">Accounts Head</option>
+                  <option value="employee">Employee</option>
+                  <option value="reference">Reference Center</option>
+                  <option value="vehicle">Vehicle</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                  <ChevronDown className="size-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* 6. Display Options (Columns & Sub-Ledger) */}
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <Columns3 className="size-2.5 text-indigo-500" />
+                Display Options
+              </label>
+              <div className="flex items-center gap-1.5">
+                <div className="flex-1">
+                  <ColumnTogglePopover
+                    columns={viewMode === 'tree' ? treeColumnItems : detailColumnItems}
+                    onToggle={viewMode === 'tree' ? handleToggleTreeColumn : handleToggleDetailColumn}
+                    onReset={() => {
+                      if (viewMode === 'tree') {
+                        setTreeColumns(DEFAULT_GL_TREE_COLUMNS);
+                        setShowSubLedger(true);
+                      } else {
+                        setGlColumns(DEFAULT_GL_DETAILS_COLUMNS);
+                        setShowSubLedger(true);
+                      }
+                    }}
+                    className="w-full"
+                  />
+                </div>
+
+                {viewMode !== 'details' && (
+                  <label className="inline-flex items-center gap-1 h-7.5 px-2 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 cursor-pointer transition select-none shadow-2xs shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={showSubLedger}
+                      onChange={(e) => handleSubLedgerCheckboxChange(e.target.checked)}
+                      className="size-3 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
+                    />
+                    <span className="font-semibold text-slate-700 text-[10px]">Sub-Ledger</span>
+                  </label>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ── ADVANCE FILTER (SHARED COMPONENT) ── */}
@@ -615,18 +715,19 @@ export const GeneralLedgerPage: React.FC = () => {
                   {glColumns.accounts && <th className="py-2.5 px-3">Accounts</th>}
                   {glColumns.oppositeAccounts && <th className="py-2.5 px-3">Opposite Accounts</th>}
                   {glColumns.details && <th className="py-2.5 px-3">Details</th>}
+                  {glColumns.status && <th className="py-2.5 px-3">Status</th>}
                   {glColumns.subsidiary && <th className="py-2.5 px-3">Subsidiary</th>}
                   {glColumns.employee && <th className="py-2.5 px-3">Employee</th>}
                   {glColumns.vehicles && <th className="py-2.5 px-3">Vehicles</th>}
                   {glColumns.reference && <th className="py-2.5 px-3">Reference</th>}
-                  {glColumns.opening && <th className="py-2.5 px-3 text-right">Opening</th>}
-                  {glColumns.debit && <th className="py-2.5 px-3 text-right">Debit</th>}
-                  {glColumns.credit && <th className="py-2.5 px-3 text-right">Credit</th>}
+                  {glColumns.opening && <th className="py-2.5 px-3 text-right whitespace-nowrap min-w-[110px]">Opening</th>}
+                  {glColumns.debit && <th className="py-2.5 px-3 text-right whitespace-nowrap min-w-[110px]">Debit</th>}
+                  {glColumns.credit && <th className="py-2.5 px-3 text-right whitespace-nowrap min-w-[110px]">Credit</th>}
                   {glColumns.closingBalance && (
-                    <th className="py-2.5 px-3 text-right">Closing Balance</th>
+                    <th className="py-2.5 px-3 text-right whitespace-nowrap min-w-[110px]">Closing Balance</th>
                   )}
                   {glColumns.runningBalance && (
-                    <th className="py-2.5 px-3 text-right font-bold text-slate-700">Running Balance</th>
+                    <th className="py-2.5 px-3 text-right font-bold text-slate-700 whitespace-nowrap min-w-[110px]">Running Balance</th>
                   )}
                 </tr>
               </thead>
@@ -643,6 +744,7 @@ export const GeneralLedgerPage: React.FC = () => {
                   {glColumns.accounts && <td className="py-2.5 px-3 text-slate-400">—</td>}
                   {glColumns.oppositeAccounts && <td className="py-2.5 px-3 text-slate-400">—</td>}
                   {glColumns.details && <td className="py-2.5 px-3 text-slate-400">—</td>}
+                  {glColumns.status && <td className="py-2.5 px-3 text-slate-400">—</td>}
                   {glColumns.subsidiary && <td className="py-2.5 px-3 text-slate-400">—</td>}
                   {glColumns.employee && <td className="py-2.5 px-3 text-slate-400">—</td>}
                   {glColumns.vehicles && <td className="py-2.5 px-3 text-slate-400">—</td>}
@@ -668,116 +770,206 @@ export const GeneralLedgerPage: React.FC = () => {
                   )}
                 </tr>
 
-                {linesWithBalance.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50/80 transition-colors">
-                    {glColumns.voucherNo && (
-                      <td className="py-2.5 px-3 font-semibold text-indigo-600 whitespace-nowrap">
-                        {row.voucherNo}
-                      </td>
+                {groupedData.map((group) => (
+                  <React.Fragment key={group.groupKey}>
+                    {groupBy !== 'none' && (
+                      <tr className="bg-slate-100/90 border-t-2 border-b border-slate-200/90 font-semibold text-slate-800">
+                        <td colSpan={totalVisibleGlCols} className="py-2 px-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="inline-flex items-center justify-center size-5 rounded bg-indigo-100 text-indigo-700">
+                                <Layers className="w-3 h-3" />
+                              </span>
+                              <span className="font-bold text-slate-900 text-xs">
+                                {group.groupLabel}
+                              </span>
+                              <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-slate-200 text-slate-600 font-medium">
+                                {group.lines.length} {group.lines.length === 1 ? 'transaction' : 'transactions'}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-4 text-xs font-medium">
+                              <span className="text-slate-500">
+                                Total Dr:{' '}
+                                <span className="text-emerald-700 font-semibold tabular-nums">
+                                  {formatCurrencyAmount(group.subtotalDebit, currency, false, valueShowIn)}
+                                </span>
+                              </span>
+                              <span className="text-slate-500">
+                                Total Cr:{' '}
+                                <span className="text-amber-700 font-semibold tabular-nums">
+                                  {formatCurrencyAmount(group.subtotalCredit, currency, false, valueShowIn)}
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
                     )}
-                    {glColumns.date && (
-                      <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap">{row.date}</td>
-                    )}
-                    {glColumns.particulars && (
-                      <td className="py-2.5 px-3 text-slate-600 max-w-xs truncate" title={row.narration}>
-                        {row.narration}
-                      </td>
-                    )}
-                    {glColumns.accounts && (
-                      <td className="py-2.5 px-3 font-medium text-slate-800 whitespace-nowrap">
-                        {row.accountsHead}
-                      </td>
-                    )}
-                    {glColumns.oppositeAccounts && (
-                      <td className="py-2.5 px-3 text-slate-700 whitespace-nowrap font-medium">
-                        <span className="inline-flex items-center gap-1.5">
-                          <ArrowLeftRight className="w-3 h-3 text-indigo-500 shrink-0" />
-                          {row.oppositeAccount || '—'}
-                        </span>
-                      </td>
-                    )}
-                    {glColumns.details && (
-                      <td className="py-2.5 px-3 whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                            row.voucherType === 'Payment'
-                              ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                              : row.voucherType === 'Receive'
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : row.voucherType === 'Journal'
-                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                              : 'bg-amber-50 text-amber-700 border border-amber-200'
-                          }`}
+
+                    {group.lines.map((row) => (
+                      <tr key={row.id} className="hover:bg-slate-50/80 transition-colors">
+                        {glColumns.voucherNo && (
+                          <td className="py-2.5 px-3 font-semibold text-indigo-600 whitespace-nowrap">
+                            {row.voucherNo}
+                          </td>
+                        )}
+                        {glColumns.date && (
+                          <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap">{row.date}</td>
+                        )}
+                        {glColumns.particulars && (
+                          <td className="py-2.5 px-3 text-slate-600 max-w-xs truncate" title={row.narration}>
+                            {row.narration}
+                          </td>
+                        )}
+                        {glColumns.accounts && (
+                          <td className="py-2.5 px-3 font-medium text-slate-800 whitespace-nowrap">
+                            {row.accountsHead}
+                          </td>
+                        )}
+                        {glColumns.oppositeAccounts && (
+                          <td className="py-2.5 px-3 text-slate-700 whitespace-nowrap font-medium">
+                            <span className="inline-flex items-center gap-1.5">
+                              <ArrowLeftRight className="w-3 h-3 text-indigo-500 shrink-0" />
+                              {row.oppositeAccount || '—'}
+                            </span>
+                          </td>
+                        )}
+                        {glColumns.details && (
+                          <td className="py-2.5 px-3 whitespace-nowrap">
+                            <span
+                              className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                                row.voucherType === 'Payment'
+                                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                  : row.voucherType === 'Receive'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                  : row.voucherType === 'Journal'
+                                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                  : 'bg-amber-50 text-amber-700 border border-amber-200'
+                              }`}
+                            >
+                              {row.voucherType}
+                            </span>
+                          </td>
+                        )}
+                        {glColumns.status && (
+                          <td className="py-2.5 px-3 whitespace-nowrap">
+                            {row.status ? (
+                              <span
+                                className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                                  row.status === 'Approved'
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                    : row.status === 'Pending'
+                                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                    : 'bg-rose-50 text-rose-700 border border-rose-200'
+                                }`}
+                              >
+                                {row.status === 'Approved' ? 'Approve' : row.status === 'Rejected' ? 'Reject' : 'Pending'}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </td>
+                        )}
+                        {glColumns.subsidiary && (
+                          <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1">
+                              <Building2 className="w-3 h-3 text-slate-400" />
+                              {row.subsidiary}
+                            </span>
+                          </td>
+                        )}
+                        {glColumns.employee && (
+                          <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap">
+                            {row.employee || '—'}
+                          </td>
+                        )}
+                        {glColumns.vehicles && (
+                          <td
+                            className="py-2.5 px-3 text-slate-600 whitespace-nowrap max-w-[180px] truncate"
+                            title={row.vehicle}
+                          >
+                            {row.vehicle || '—'}
+                          </td>
+                        )}
+                        {glColumns.reference && (
+                          <td className="py-2.5 px-3 text-slate-500 whitespace-nowrap">{row.reference || '—'}</td>
+                        )}
+                        {glColumns.opening && (
+                          <td
+                            className="py-2.5 px-3 text-right font-medium text-slate-600 tabular-nums whitespace-nowrap"
+                            title={`Raw: ${formatCurrencyAmount(row.lineOpening, currency, false, 'actual')}`}
+                          >
+                            {formatCurrencyAmount(row.lineOpening, currency, false, valueShowIn)}
+                          </td>
+                        )}
+                        {glColumns.debit && (
+                          <td
+                            className="py-2.5 px-3 text-right font-medium text-emerald-600 tabular-nums whitespace-nowrap"
+                            title={row.debit > 0 ? `Raw: ${formatCurrencyAmount(row.debit, currency, false, 'actual')}` : undefined}
+                          >
+                            {formatCurrencyAmount(row.debit, currency, true, valueShowIn)}
+                          </td>
+                        )}
+                        {glColumns.credit && (
+                          <td
+                            className="py-2.5 px-3 text-right font-medium text-amber-600 tabular-nums whitespace-nowrap"
+                            title={row.credit > 0 ? `Raw: ${formatCurrencyAmount(row.credit, currency, false, 'actual')}` : undefined}
+                          >
+                            {formatCurrencyAmount(row.credit, currency, true, valueShowIn)}
+                          </td>
+                        )}
+                        {glColumns.closingBalance && (
+                          <td
+                            className="py-2.5 px-3 text-right font-semibold text-slate-800 tabular-nums whitespace-nowrap"
+                            title={`Raw: ${formatCurrencyAmount(row.closingBalance, currency, false, 'actual')}`}
+                          >
+                            {formatCurrencyAmount(row.closingBalance, currency, false, valueShowIn)}
+                          </td>
+                        )}
+                        {glColumns.runningBalance && (
+                          <td
+                            className="py-2.5 px-3 text-right font-bold text-slate-900 tabular-nums whitespace-nowrap"
+                            title={`Raw: ${formatCurrencyAmount(row.runningBalance, currency, false, 'actual')}`}
+                          >
+                            {formatCurrencyAmount(row.runningBalance, currency, false, valueShowIn)}
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+
+                    {groupBy !== 'none' && (
+                      <tr className="bg-indigo-50/20 font-semibold text-slate-700 border-b border-slate-200 text-xs">
+                        <td
+                          colSpan={leftGlColSpan}
+                          className="py-2 px-3 uppercase tracking-wider text-right text-[11px] text-slate-500 font-bold whitespace-nowrap"
                         >
-                          {row.voucherType}
-                        </span>
-                      </td>
+                          Subtotal ({group.groupLabel}):
+                        </td>
+                        {glColumns.opening && <td className="py-2 px-3 text-right text-slate-400 whitespace-nowrap min-w-[110px]">—</td>}
+                        {glColumns.debit && (
+                          <td className="py-2 px-3 text-right text-emerald-700 font-bold tabular-nums whitespace-nowrap min-w-[110px]">
+                            {formatCurrencyAmount(group.subtotalDebit, currency, false, valueShowIn)}
+                          </td>
+                        )}
+                        {glColumns.credit && (
+                          <td className="py-2 px-3 text-right text-amber-700 font-bold tabular-nums whitespace-nowrap min-w-[110px]">
+                            {formatCurrencyAmount(group.subtotalCredit, currency, false, valueShowIn)}
+                          </td>
+                        )}
+                        {glColumns.closingBalance && <td className="py-2 px-3 text-right text-slate-400 whitespace-nowrap min-w-[110px]">—</td>}
+                        {glColumns.runningBalance && (
+                          <td className="py-2 px-3 text-right font-bold text-slate-900 tabular-nums whitespace-nowrap min-w-[110px]">
+                            {formatCurrencyAmount(
+                              group.lines[group.lines.length - 1]?.runningBalance || 0,
+                              currency,
+                              false,
+                              valueShowIn
+                            )}
+                          </td>
+                        )}
+                      </tr>
                     )}
-                    {glColumns.subsidiary && (
-                      <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1">
-                          <Building2 className="w-3 h-3 text-slate-400" />
-                          {row.subsidiary}
-                        </span>
-                      </td>
-                    )}
-                    {glColumns.employee && (
-                      <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap">
-                        {row.employee || '—'}
-                      </td>
-                    )}
-                    {glColumns.vehicles && (
-                      <td
-                        className="py-2.5 px-3 text-slate-600 whitespace-nowrap max-w-[180px] truncate"
-                        title={row.vehicle}
-                      >
-                        {row.vehicle || '—'}
-                      </td>
-                    )}
-                    {glColumns.reference && (
-                      <td className="py-2.5 px-3 text-slate-500 whitespace-nowrap">{row.reference || '—'}</td>
-                    )}
-                    {glColumns.opening && (
-                      <td
-                        className="py-2.5 px-3 text-right font-medium text-slate-600 tabular-nums whitespace-nowrap"
-                        title={`Raw: ${formatCurrencyAmount(row.lineOpening, currency, false, 'actual')}`}
-                      >
-                        {formatCurrencyAmount(row.lineOpening, currency, false, valueShowIn)}
-                      </td>
-                    )}
-                    {glColumns.debit && (
-                      <td
-                        className="py-2.5 px-3 text-right font-medium text-emerald-600 tabular-nums whitespace-nowrap"
-                        title={row.debit > 0 ? `Raw: ${formatCurrencyAmount(row.debit, currency, false, 'actual')}` : undefined}
-                      >
-                        {formatCurrencyAmount(row.debit, currency, true, valueShowIn)}
-                      </td>
-                    )}
-                    {glColumns.credit && (
-                      <td
-                        className="py-2.5 px-3 text-right font-medium text-amber-600 tabular-nums whitespace-nowrap"
-                        title={row.credit > 0 ? `Raw: ${formatCurrencyAmount(row.credit, currency, false, 'actual')}` : undefined}
-                      >
-                        {formatCurrencyAmount(row.credit, currency, true, valueShowIn)}
-                      </td>
-                    )}
-                    {glColumns.closingBalance && (
-                      <td
-                        className="py-2.5 px-3 text-right font-semibold text-slate-800 tabular-nums whitespace-nowrap"
-                        title={`Raw: ${formatCurrencyAmount(row.closingBalance, currency, false, 'actual')}`}
-                      >
-                        {formatCurrencyAmount(row.closingBalance, currency, false, valueShowIn)}
-                      </td>
-                    )}
-                    {glColumns.runningBalance && (
-                      <td
-                        className="py-2.5 px-3 text-right font-bold text-slate-900 tabular-nums whitespace-nowrap"
-                        title={`Raw: ${formatCurrencyAmount(row.runningBalance, currency, false, 'actual')}`}
-                      >
-                        {formatCurrencyAmount(row.runningBalance, currency, false, valueShowIn)}
-                      </td>
-                    )}
-                  </tr>
+                  </React.Fragment>
                 ))}
 
                 {linesWithBalance.length === 0 && (
@@ -795,13 +987,13 @@ export const GeneralLedgerPage: React.FC = () => {
                 <tr className="bg-slate-50/90 border-t-2 border-slate-300 font-bold text-slate-800">
                   <td
                     colSpan={leftGlColSpan}
-                    className="py-2.5 px-3 uppercase tracking-wider text-right"
+                    className="py-2.5 px-3 uppercase tracking-wider text-right whitespace-nowrap text-[11px]"
                   >
                     Total / Ending Closing:
                   </td>
                   {glColumns.opening && (
                     <td
-                      className="py-2.5 px-3 text-right text-indigo-900 font-bold tabular-nums"
+                      className="py-2.5 px-3 text-right text-indigo-900 font-bold tabular-nums whitespace-nowrap min-w-[110px]"
                       title={`Raw: ${formatCurrencyAmount(initialOpeningBalance, currency, false, 'actual')}`}
                     >
                       {formatCurrencyAmount(initialOpeningBalance, currency, false, valueShowIn)}
@@ -809,7 +1001,7 @@ export const GeneralLedgerPage: React.FC = () => {
                   )}
                   {glColumns.debit && (
                     <td
-                      className="py-2.5 px-3 text-right text-emerald-700 font-bold tabular-nums"
+                      className="py-2.5 px-3 text-right text-emerald-700 font-bold tabular-nums whitespace-nowrap min-w-[110px]"
                       title={`Raw: ${formatCurrencyAmount(totalDebit, currency, false, 'actual')}`}
                     >
                       {formatCurrencyAmount(totalDebit, currency, false, valueShowIn)}
@@ -817,7 +1009,7 @@ export const GeneralLedgerPage: React.FC = () => {
                   )}
                   {glColumns.credit && (
                     <td
-                      className="py-2.5 px-3 text-right text-amber-700 font-bold tabular-nums"
+                      className="py-2.5 px-3 text-right text-amber-700 font-bold tabular-nums whitespace-nowrap min-w-[110px]"
                       title={`Raw: ${formatCurrencyAmount(totalCredit, currency, false, 'actual')}`}
                     >
                       {formatCurrencyAmount(totalCredit, currency, false, valueShowIn)}
@@ -825,7 +1017,7 @@ export const GeneralLedgerPage: React.FC = () => {
                   )}
                   {glColumns.closingBalance && (
                     <td
-                      className="py-2.5 px-3 text-right text-slate-900 font-bold tabular-nums"
+                      className="py-2.5 px-3 text-right text-slate-900 font-bold tabular-nums whitespace-nowrap min-w-[110px]"
                       title={`Raw: ${formatCurrencyAmount(finalClosing, currency, false, 'actual')}`}
                     >
                       {formatCurrencyAmount(finalClosing, currency, false, valueShowIn)}
@@ -833,7 +1025,7 @@ export const GeneralLedgerPage: React.FC = () => {
                   )}
                   {glColumns.runningBalance && (
                     <td
-                      className="py-2.5 px-3 text-right text-indigo-700 font-extrabold tabular-nums"
+                      className="py-2.5 px-3 text-right text-indigo-700 font-extrabold tabular-nums whitespace-nowrap min-w-[110px]"
                       title={`Raw: ${formatCurrencyAmount(finalClosing, currency, false, 'actual')}`}
                     >
                       {formatCurrencyAmount(finalClosing, currency, false, valueShowIn)}
@@ -1068,40 +1260,53 @@ export const GeneralLedgerPage: React.FC = () => {
 
         {/* VIEW 3: LIST VIEW */}
         {viewMode === 'list' && (
-          <div className="p-4 space-y-3">
-            <div className="text-xs text-slate-500 font-medium">
+          <div className="p-3 space-y-2 font-sans">
+            <div className="text-[11px] text-slate-500 font-medium">
               Flat ledger view with compact density ({filteredLines.length} items):
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {filteredLines.map((line) => (
                 <div
                   key={line.id}
-                  className="p-3 border border-slate-200 rounded-lg hover:border-indigo-300 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-2"
+                  className="px-3 py-2 border border-slate-200 rounded-lg hover:border-indigo-300 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-2 bg-white"
                 >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-indigo-600">{line.voucherNo}</span>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 text-slate-700 font-semibold">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-semibold text-xs text-indigo-600">{line.voucherNo}</span>
+                      <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-100 text-slate-700 font-medium">
                         {line.voucherType}
                       </span>
-                      <span className="text-slate-400 text-xs">·</span>
-                      <span className="text-slate-600 font-medium">{line.date}</span>
+                      {line.status && (
+                        <span
+                          className={`px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider ${
+                            line.status === 'Approved'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : line.status === 'Pending'
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : 'bg-rose-50 text-rose-700 border border-rose-200'
+                          }`}
+                        >
+                          {line.status === 'Approved' ? 'Approve' : line.status === 'Rejected' ? 'Reject' : 'Pending'}
+                        </span>
+                      )}
+                      <span className="text-slate-300 text-xs">·</span>
+                      <span className="text-slate-500 text-[11px]">{line.date}</span>
                     </div>
-                    <div className="text-xs text-slate-800 font-medium">
+                    <div className="text-[11px] text-slate-700 font-medium">
                       {line.accountsHead}{' '}
                       {showSubLedger && line.subsidiary && (
                         <>
-                          — <span className="text-slate-600">{line.subsidiary}</span>
+                          — <span className="text-slate-500">{line.subsidiary}</span>
                         </>
                       )}
                     </div>
-                    <div className="text-[11px] text-slate-500">{line.narration}</div>
+                    <div className="text-[10px] text-slate-400">{line.narration}</div>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs font-semibold">
+                  <div className="flex items-center gap-3 text-xs font-medium">
                     {line.debit > 0 && (
                       <span
-                        className="text-emerald-600"
+                        className="text-emerald-600 tabular-nums font-semibold text-xs"
                         title={`Raw: ${formatCurrencyAmount(line.debit, currency, false, 'actual')}`}
                       >
                         Dr: {formatCurrencyAmount(line.debit, currency, false, valueShowIn)}
@@ -1109,7 +1314,7 @@ export const GeneralLedgerPage: React.FC = () => {
                     )}
                     {line.credit > 0 && (
                       <span
-                        className="text-amber-600"
+                        className="text-amber-600 tabular-nums font-semibold text-xs"
                         title={`Raw: ${formatCurrencyAmount(line.credit, currency, false, 'actual')}`}
                       >
                         Cr: {formatCurrencyAmount(line.credit, currency, false, valueShowIn)}

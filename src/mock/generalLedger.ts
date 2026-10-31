@@ -1,7 +1,10 @@
+export type GLStatus = 'Approved' | 'Pending' | 'Rejected';
+
 export interface GLTransactionLine {
   id: string;
   voucherNo: string;
   voucherType: 'Journal' | 'Receive' | 'Payment' | 'Contra';
+  status?: GLStatus;
   date: string;
   accountsHead: string; // e.g. "Accounts Payable", "Cash in Hand", etc.
   subsidiary: string; // e.g. "Partex Tissue Ltd.", etc.
@@ -36,6 +39,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     id: 'gl-01',
     voucherNo: 'JV-2026-0042',
     voucherType: 'Journal',
+    status: 'Approved',
     date: '2026-03-01',
     accountsHead: 'Accounts Payable',
     subsidiary: 'Partex Tissue Ltd.',
@@ -54,6 +58,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     id: 'gl-02',
     voucherNo: 'PV-2026-0118',
     voucherType: 'Payment',
+    status: 'Approved',
     date: '2026-03-05',
     accountsHead: 'Accounts Payable',
     subsidiary: 'Partex Tissue Ltd.',
@@ -72,6 +77,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     id: 'gl-03',
     voucherNo: 'JV-2026-0089',
     voucherType: 'Journal',
+    status: 'Approved',
     date: '2026-03-12',
     accountsHead: 'Accounts Payable',
     subsidiary: 'Partex Tissue Ltd.',
@@ -90,6 +96,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     id: 'gl-04',
     voucherNo: 'PV-2026-0164',
     voucherType: 'Payment',
+    status: 'Pending',
     date: '2026-03-20',
     accountsHead: 'Accounts Payable',
     subsidiary: 'Partex Tissue Ltd.',
@@ -110,6 +117,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     id: 'gl-05',
     voucherNo: 'JV-2026-0033',
     voucherType: 'Journal',
+    status: 'Approved',
     date: '2026-03-02',
     accountsHead: 'Accounts Payable',
     subsidiary: 'Square Pharmaceuticals Ltd.',
@@ -128,6 +136,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     id: 'gl-06',
     voucherNo: 'PV-2026-0105',
     voucherType: 'Payment',
+    status: 'Pending',
     date: '2026-03-10',
     accountsHead: 'Accounts Payable',
     subsidiary: 'Square Pharmaceuticals Ltd.',
@@ -148,6 +157,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     id: 'gl-07',
     voucherNo: 'RV-2026-0012',
     voucherType: 'Receive',
+    status: 'Approved',
     date: '2026-03-04',
     accountsHead: 'Accounts Receivable',
     subsidiary: 'Apex Footwear Ltd.',
@@ -166,6 +176,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     id: 'gl-08',
     voucherNo: 'JV-2026-0102',
     voucherType: 'Journal',
+    status: 'Rejected',
     date: '2026-03-14',
     accountsHead: 'Accounts Receivable',
     subsidiary: 'Apex Footwear Ltd.',
@@ -186,6 +197,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     id: 'gl-09',
     voucherNo: 'CV-2026-0005',
     voucherType: 'Contra',
+    status: 'Approved',
     date: '2026-03-08',
     accountsHead: 'Cash in Hand',
     subsidiary: 'General Utilities Corporation',
@@ -204,6 +216,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     id: 'gl-10',
     voucherNo: 'PV-2026-0210',
     voucherType: 'Payment',
+    status: 'Approved',
     date: '2026-03-18',
     accountsHead: 'Printing & Stationery',
     subsidiary: 'Partex Tissue Ltd.',
