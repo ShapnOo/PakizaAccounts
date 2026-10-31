@@ -1,4 +1,5 @@
 import { ISRow, ValueShowIn } from '../types/incomeStatement';
+import { convertFromBase } from './currencyConversion';
 
 /**
  * Currency symbol mapping
@@ -152,17 +153,20 @@ export function formatValue(
 
   // 4. Default: Currency Formatted
   const sym = currencySymbol(currency);
-  const formattedNum = new Intl.NumberFormat('en-IN', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(Math.abs(value));
+  const converted = convertFromBase(value, currency);
+  const decimals = currency === 'BDT' ? 0 : 2;
+  const locale = currency === 'BDT' || currency === 'INR' ? 'en-IN' : 'en-US';
+  const formattedNum = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(Math.abs(converted));
 
-  const text = `${value < 0 ? '-' : ''}${sym} ${formattedNum}`;
+  const text = `${converted < 0 ? '-' : ''}${sym} ${formattedNum}`;
 
   return {
     text,
     isZero: false,
-    isNegative,
+    isNegative: converted < 0,
   };
 }
 

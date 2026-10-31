@@ -1,4 +1,5 @@
 import { BSTreeRow, ValueShowIn } from '../types/balanceSheet';
+import { convertFromBase } from './currencyConversion';
 
 /**
  * Generate year columns from base date + N years.
@@ -204,17 +205,20 @@ export function formatValue(
   // Mode 3: valueShowIn === 'Absolute' or natural 'N/A'
   const absVal = valueShowIn === 'Absolute' ? Math.abs(value) : value;
   const sym = currencySymbol(currency);
-  const formattedNum = new Intl.NumberFormat('en-IN', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(Math.abs(absVal));
+  const converted = convertFromBase(absVal, currency);
+  const decimals = currency === 'BDT' ? 0 : 2;
+  const locale = currency === 'BDT' || currency === 'INR' ? 'en-IN' : 'en-US';
+  const formattedNum = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(Math.abs(converted));
 
-  const text = `${absVal < 0 ? '-' : ''}${sym} ${formattedNum}`;
+  const text = `${converted < 0 ? '-' : ''}${sym} ${formattedNum}`;
 
   return {
     text,
     isZero: false,
-    isNegative: absVal < 0,
+    isNegative: converted < 0,
   };
 }
 

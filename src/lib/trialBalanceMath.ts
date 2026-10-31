@@ -5,6 +5,7 @@ import {
   Currency,
   VALUE_SHOW_IN_OPTIONS,
 } from '../types/trialBalance';
+import { convertFromBase } from './currencyConversion';
 
 export const CURRENCY_SYMBOLS: Record<Currency, string> = {
   BDT: '৳',
@@ -152,14 +153,16 @@ export function formatTBValue(
   if (valueShowIn === 'Percent') return `${scaled.toFixed(2)}%`;
   if (valueShowIn === 'Ratio') return scaled.toFixed(2);
 
+  const converted = convertFromBase(scaled, currency);
   const sym = CURRENCY_SYMBOLS[currency] ?? currency;
-  const fractionDigits = cfg.divisor > 1 ? 2 : 0;
+  const fractionDigits = cfg.divisor > 1 || currency !== 'BDT' ? 2 : 0;
+  const locale = currency === 'BDT' || currency === 'INR' ? 'en-IN' : 'en-US';
 
-  const fmt = new Intl.NumberFormat('en-IN', {
+  const fmt = new Intl.NumberFormat(locale, {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   });
 
-  return `${sym} ${fmt.format(scaled)}`;
+  return `${sym} ${fmt.format(converted)}`;
 }
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { formatValue } from '../../lib/balanceSheetMath';
+import { convertFromBase } from '../../lib/currencyConversion';
 import { ValueShowIn } from '../../types/balanceSheet';
 
 interface ValueCellProps {
@@ -31,7 +32,11 @@ export const ValueCell: React.FC<ValueCellProps> = ({
     valueShowIn
   );
 
-  const rawFormatted = new Intl.NumberFormat('en-US').format(value);
+  const rawConverted = convertFromBase(value, currency);
+  const rawFormatted = new Intl.NumberFormat(currency === 'BDT' ? 'en-IN' : 'en-US', {
+    minimumFractionDigits: currency === 'BDT' ? 0 : 2,
+    maximumFractionDigits: currency === 'BDT' ? 0 : 2,
+  }).format(rawConverted);
 
   // Exact matching font size (text-xs = 12px) and Inter font family (font-sans)
   const fontStyle = isZero

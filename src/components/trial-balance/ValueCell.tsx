@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { formatTBValue } from '../../lib/trialBalanceMath';
+import { convertFromBase } from '../../lib/currencyConversion';
 import { ValueShowIn, Currency } from '../../types/trialBalance';
 
 interface ValueCellProps {
@@ -20,7 +21,11 @@ export const ValueCell: React.FC<ValueCellProps> = ({
   const [showTooltip, setShowTooltip] = useState(false);
 
   const formatted = formatTBValue(value, valueShowIn, currency);
-  const rawFormatted = new Intl.NumberFormat('en-US').format(value);
+  const rawConverted = convertFromBase(value, currency);
+  const rawFormatted = new Intl.NumberFormat(currency === 'BDT' ? 'en-IN' : 'en-US', {
+    minimumFractionDigits: currency === 'BDT' ? 0 : 2,
+    maximumFractionDigits: currency === 'BDT' ? 0 : 2,
+  }).format(rawConverted);
   const isZero = value === 0;
 
   const fontStyle = isTotal

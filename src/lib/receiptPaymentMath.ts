@@ -7,6 +7,7 @@ import {
   BreakdownItem,
   RPStatementData,
 } from '../types/receiptPayment';
+import { convertFromBase } from './currencyConversion';
 
 export const CURRENCY_SYMBOLS: Record<Currency, string> = {
   BDT: '৳',
@@ -51,14 +52,16 @@ export function formatRPValue(
   const absVal = Math.abs(value);
   const divisor = DIVISORS[valueShowIn] || 1;
   const scaled = absVal / divisor;
+  const converted = convertFromBase(scaled, currency);
 
-  // Decide decimal places based on divisor
-  const fractionDigits = divisor > 1 ? 2 : 0;
+  // Decide decimal places based on divisor & currency
+  const fractionDigits = divisor > 1 || currency !== 'BDT' ? 2 : 0;
+  const locale = currency === 'BDT' ? 'en-IN' : 'en-US';
 
-  const formattedNum = new Intl.NumberFormat('en-IN', {
+  const formattedNum = new Intl.NumberFormat(locale, {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
-  }).format(scaled);
+  }).format(converted);
 
   const symbol = CURRENCY_SYMBOLS[currency] || '৳';
   const text = isNegative
@@ -69,7 +72,7 @@ export function formatRPValue(
     text,
     isZero: false,
     isNegative,
-    raw: value,
+    raw: convertFromBase(value, currency),
   };
 }
 

@@ -9,6 +9,7 @@ import { SectionHeaderRow } from './SectionHeaderRow';
 import { LineItemRow } from './LineItemRow';
 import { FormulaRow } from './FormulaRow';
 import { TrendingUp } from 'lucide-react';
+import { formatCurrencyAmount } from '../../lib/currencyConversion';
 
 interface IncomeStatementTableProps {
   rows: ISRow[];
@@ -104,7 +105,7 @@ export const IncomeStatementTable: React.FC<IncomeStatementTableProps> = ({
               bottomLineTotal >= 0 ? 'text-emerald-700' : 'text-rose-600'
             }`}
           >
-            {filters.currency} {new Intl.NumberFormat('en-IN').format(bottomLineTotal)}
+            {formatCurrencyAmount(bottomLineTotal, filters.currency, false)}
           </span>
         </div>
       </div>

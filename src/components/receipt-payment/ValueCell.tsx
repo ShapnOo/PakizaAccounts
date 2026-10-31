@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { formatRPValue } from '../../lib/receiptPaymentMath';
+import { convertFromBase } from '../../lib/currencyConversion';
 import { Currency, ValueShowIn } from '../../types/receiptPayment';
 
 interface ValueCellProps {
@@ -27,7 +28,11 @@ export const ValueCell: React.FC<ValueCellProps> = ({
     valueShowIn
   );
 
-  const rawFormatted = new Intl.NumberFormat('en-US').format(value);
+  const rawConverted = convertFromBase(value, currency);
+  const rawFormatted = new Intl.NumberFormat(currency === 'BDT' ? 'en-IN' : 'en-US', {
+    minimumFractionDigits: currency === 'BDT' ? 0 : 2,
+    maximumFractionDigits: currency === 'BDT' ? 0 : 2,
+  }).format(rawConverted);
 
   // Exact Inter font styling with uniform text-xs size matching row labels
   const fontStyle = isZero
