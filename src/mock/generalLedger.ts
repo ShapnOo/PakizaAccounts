@@ -5,6 +5,7 @@ export interface GLTransactionLine {
   date: string;
   accountsHead: string; // e.g. "Accounts Payable", "Cash in Hand", etc.
   subsidiary: string; // e.g. "Partex Tissue Ltd.", etc.
+  oppositeAccount?: string; // Opposite double-entry account e.g. "Islami Bank Ltd.", "Office Supplies"
   costCenter: string;
   employee: string;
   vehicle: string;
@@ -38,6 +39,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     date: '2026-03-01',
     accountsHead: 'Accounts Payable',
     subsidiary: 'Partex Tissue Ltd.',
+    oppositeAccount: 'Office Supplies & Stationery',
     costCenter: 'Head Office (Dhaka)',
     employee: 'Riazul Islam',
     vehicle: 'Dhaka Metro-GA-11-2041 (Toyota Hiace)',
@@ -55,6 +57,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     date: '2026-03-05',
     accountsHead: 'Accounts Payable',
     subsidiary: 'Partex Tissue Ltd.',
+    oppositeAccount: 'Islami Bank Bangladesh Ltd.',
     costCenter: 'Head Office (Dhaka)',
     employee: 'Farzana Akter',
     vehicle: 'Dhaka Metro-GA-11-2041 (Toyota Hiace)',
@@ -72,6 +75,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     date: '2026-03-12',
     accountsHead: 'Accounts Payable',
     subsidiary: 'Partex Tissue Ltd.',
+    oppositeAccount: 'Factory Consumable Stores',
     costCenter: 'Factory Unit-1 (Dhamrai)',
     employee: 'Kamrul Hasan',
     vehicle: 'Dhaka Metro-CHA-53-9012 (Delivery Covered Van)',
@@ -89,6 +93,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     date: '2026-03-20',
     accountsHead: 'Accounts Payable',
     subsidiary: 'Partex Tissue Ltd.',
+    oppositeAccount: 'Eastern Bank PLC',
     costCenter: 'Factory Unit-1 (Dhamrai)',
     employee: 'Tahmid Afsar',
     vehicle: 'Dhaka Metro-CHA-53-9012 (Delivery Covered Van)',
@@ -108,6 +113,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     date: '2026-03-02',
     accountsHead: 'Accounts Payable',
     subsidiary: 'Square Pharmaceuticals Ltd.',
+    oppositeAccount: 'Raw Materials - Chemicals',
     costCenter: 'Factory Unit-1 (Dhamrai)',
     employee: 'Kamrul Hasan',
     vehicle: 'Dhaka Metro-GHA-22-1099 (Prime Mover)',
@@ -125,6 +131,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     date: '2026-03-10',
     accountsHead: 'Accounts Payable',
     subsidiary: 'Square Pharmaceuticals Ltd.',
+    oppositeAccount: 'Standard Chartered Bank',
     costCenter: 'Factory Unit-1 (Dhamrai)',
     employee: 'Riazul Islam',
     vehicle: 'Dhaka Metro-GHA-22-1099 (Prime Mover)',
@@ -144,6 +151,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     date: '2026-03-04',
     accountsHead: 'Accounts Receivable',
     subsidiary: 'Apex Footwear Ltd.',
+    oppositeAccount: 'City Bank Ltd. (Foreign Branch)',
     costCenter: 'Garments Division',
     employee: 'Tanvir Hossain',
     vehicle: 'Dhaka Metro-LA-19-4501 (Director Car)',
@@ -161,6 +169,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     date: '2026-03-14',
     accountsHead: 'Accounts Receivable',
     subsidiary: 'Apex Footwear Ltd.',
+    oppositeAccount: 'Fabric Processing Revenue',
     costCenter: 'Garments Division',
     employee: 'Tanvir Hossain',
     vehicle: 'Dhaka Metro-LA-19-4501 (Director Car)',
@@ -180,6 +189,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     date: '2026-03-08',
     accountsHead: 'Cash in Hand',
     subsidiary: 'General Utilities Corporation',
+    oppositeAccount: 'Dutch-Bangla Bank Ltd.',
     costCenter: 'Head Office (Dhaka)',
     employee: 'Farzana Akter',
     vehicle: 'Dhaka Metro-GA-11-2041 (Toyota Hiace)',
@@ -197,6 +207,7 @@ export const MOCK_GL_LINES: GLTransactionLine[] = [
     date: '2026-03-18',
     accountsHead: 'Printing & Stationery',
     subsidiary: 'Partex Tissue Ltd.',
+    oppositeAccount: 'Petty Cash Float',
     costCenter: 'Head Office (Dhaka)',
     employee: 'Ayesha Khatun',
     vehicle: 'Dhaka Metro-GA-11-2041 (Toyota Hiace)',

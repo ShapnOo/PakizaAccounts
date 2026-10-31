@@ -15,8 +15,11 @@ import {
   Building2,
   Coins,
   SlidersHorizontal,
+  ArrowLeftRight,
+  Layers,
 } from 'lucide-react';
 import { AdvanceFilter } from '../../components/gl/AdvanceFilter';
+import { ColumnTogglePopover, ColumnItem } from '../../components/gl/ColumnTogglePopover';
 import { useAdvanceFilterStore } from '../../stores/advanceFilterStore';
 import {
   MOCK_GL_LINES,
@@ -35,16 +38,168 @@ import { toast } from 'sonner';
 
 type ViewMode = 'tree' | 'details' | 'list' | 'kanban';
 
+export type GLGroupByField =
+  | 'none'
+  | 'voucherNo'
+  | 'subsidiary'
+  | 'accountsHead'
+  | 'employee'
+  | 'reference'
+  | 'vehicle';
+
+export interface GLDetailsColumns {
+  voucherNo: boolean;
+  date: boolean;
+  particulars: boolean;
+  accounts: boolean;
+  oppositeAccounts: boolean;
+  details: boolean;
+  subsidiary: boolean;
+  employee: boolean;
+  vehicles: boolean;
+  reference: boolean;
+  opening: boolean;
+  debit: boolean;
+  credit: boolean;
+  closingBalance: boolean;
+  runningBalance: boolean;
+}
+
+const DEFAULT_GL_DETAILS_COLUMNS: GLDetailsColumns = {
+  voucherNo: true,
+  date: true,
+  particulars: true,
+  accounts: true,
+  oppositeAccounts: true,
+  details: true,
+  subsidiary: true,
+  employee: true,
+  vehicles: true,
+  reference: true,
+  opening: true,
+  debit: true,
+  credit: true,
+  closingBalance: true,
+  runningBalance: true,
+};
+
+export interface GLTreeColumns {
+  accountsHead: boolean;
+  subsidiary: boolean;
+  opening: boolean;
+  debit: boolean;
+  credit: boolean;
+  closing: boolean;
+}
+
+const DEFAULT_GL_TREE_COLUMNS: GLTreeColumns = {
+  accountsHead: true,
+  subsidiary: true,
+  opening: true,
+  debit: true,
+  credit: true,
+  closing: true,
+};
+
 export const GeneralLedgerPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('details');
   const [dateRangePreset, setDateRangePreset] = useState<string>('this-month');
   const [currency, setCurrency] = useState<string>('BDT');
   const [valueShowIn, setValueShowIn] = useState<ValueShowInMode>('actual');
+  const [groupBy, setGroupBy] = useState<GLGroupByField>('none');
   const [showSubLedger, setShowSubLedger] = useState<boolean>(true);
+  const [glColumns, setGlColumns] = useState<GLDetailsColumns>(DEFAULT_GL_DETAILS_COLUMNS);
+  const [treeColumns, setTreeColumns] = useState<GLTreeColumns>(DEFAULT_GL_TREE_COLUMNS);
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({
     'Current Liabilities': true,
     'Current Assets': true,
   });
+
+  const handleSubLedgerCheckboxChange = (checked: boolean) => {
+    setShowSubLedger(checked);
+    setGlColumns((prev) => ({ ...prev, subsidiary: checked }));
+    setTreeColumns((prev) => ({ ...prev, subsidiary: checked }));
+  };
+
+  const handleToggleDetailColumn = (key: string) => {
+    setGlColumns((prev) => {
+      const updated = { ...prev, [key]: !prev[key as keyof GLDetailsColumns] };
+      if (key === 'subsidiary') {
+        setShowSubLedger(updated.subsidiary);
+      }
+      return updated;
+    });
+  };
+
+  const handleToggleTreeColumn = (key: string) => {
+    setTreeColumns((prev) => {
+      const updated = { ...prev, [key]: !prev[key as keyof GLTreeColumns] };
+      if (key === 'subsidiary') {
+        setShowSubLedger(updated.subsidiary);
+      }
+      return updated;
+    });
+  };
+
+  const detailColumnItems: ColumnItem[] = useMemo(
+    () => [
+      { key: 'voucherNo', label: 'Voucher No', visible: glColumns.voucherNo },
+      { key: 'date', label: 'Date', visible: glColumns.date },
+      { key: 'particulars', label: 'Paticulars', visible: glColumns.particulars },
+      { key: 'accounts', label: 'Accounts', visible: glColumns.accounts },
+      { key: 'oppositeAccounts', label: 'Opposite Accounts', visible: glColumns.oppositeAccounts },
+      { key: 'details', label: 'Details', visible: glColumns.details },
+      { key: 'subsidiary', label: 'Subsidiary', visible: glColumns.subsidiary },
+      { key: 'employee', label: 'Employee', visible: glColumns.employee },
+      { key: 'vehicles', label: 'Vehicles', visible: glColumns.vehicles },
+      { key: 'reference', label: 'Reference', visible: glColumns.reference },
+      { key: 'opening', label: 'Opening', visible: glColumns.opening },
+      { key: 'debit', label: 'Debit', visible: glColumns.debit },
+      { key: 'credit', label: 'Credit', visible: glColumns.credit },
+      { key: 'closingBalance', label: 'Closing Balance', visible: glColumns.closingBalance },
+      { key: 'runningBalance', label: 'Running Balance', visible: glColumns.runningBalance },
+    ],
+    [glColumns]
+  );
+
+  const treeColumnItems: ColumnItem[] = useMemo(
+    () => [
+      { key: 'accountsHead', label: 'Accounts Head', visible: treeColumns.accountsHead },
+      { key: 'subsidiary', label: 'Sub-Ledger', visible: treeColumns.subsidiary },
+      { key: 'opening', label: 'Opening', visible: treeColumns.opening },
+      { key: 'debit', label: 'Debit', visible: treeColumns.debit },
+      { key: 'credit', label: 'Credit', visible: treeColumns.credit },
+      { key: 'closing', label: 'Closing', visible: treeColumns.closing },
+    ],
+    [treeColumns]
+  );
+
+  const totalVisibleGlCols = useMemo(() => {
+    return Object.values(glColumns).filter(Boolean).length;
+  }, [glColumns]);
+
+  const totalVisibleTreeCols = useMemo(() => {
+    return Object.values(treeColumns).filter(Boolean).length;
+  }, [treeColumns]);
+
+  const leftGlColSpan = useMemo(() => {
+    return [
+      glColumns.voucherNo,
+      glColumns.date,
+      glColumns.particulars,
+      glColumns.accounts,
+      glColumns.oppositeAccounts,
+      glColumns.details,
+      glColumns.subsidiary,
+      glColumns.employee,
+      glColumns.vehicles,
+      glColumns.reference,
+    ].filter(Boolean).length;
+  }, [glColumns]);
+
+  const leftTreeColSpan = useMemo(() => {
+    return [treeColumns.accountsHead, treeColumns.subsidiary].filter(Boolean).length;
+  }, [treeColumns]);
 
   // Advance filter state and compiled predicate
   const getPredicate = useAdvanceFilterStore((s) => s.getPredicate);
@@ -63,10 +218,11 @@ export const GeneralLedgerPage: React.FC = () => {
   }, [predicate]);
 
   // Compute opening, debit, credit, closing balances
-  const initialOpeningBalance = 25000; // Standard AP Partex opening balance
+  const initialOpeningBalance = 50000; // As on 09/01/2026 opening balance
   const linesWithBalance = useMemo(() => {
     let currentBal = initialOpeningBalance;
     return filteredLines.map((line) => {
+      const lineOpening = currentBal;
       // In Accounts Payable (Liability): Credit increases, Debit decreases
       const isLiabilityOrEquity =
         line.accountsHead.toLowerCase().includes('payable') ||
@@ -79,7 +235,9 @@ export const GeneralLedgerPage: React.FC = () => {
       }
       return {
         ...line,
-        balance: currentBal,
+        lineOpening,
+        closingBalance: currentBal,
+        runningBalance: currentBal,
       };
     });
   }, [filteredLines]);
@@ -95,8 +253,68 @@ export const GeneralLedgerPage: React.FC = () => {
   );
 
   const finalClosing = linesWithBalance.length > 0
-    ? linesWithBalance[linesWithBalance.length - 1].balance || 0
+    ? linesWithBalance[linesWithBalance.length - 1].runningBalance || 0
     : initialOpeningBalance;
+
+  // Grouped data based on selected `groupBy`
+  const groupedData = useMemo(() => {
+    if (groupBy === 'none') {
+      return [
+        {
+          groupKey: 'all',
+          groupLabel: '',
+          lines: linesWithBalance,
+          subtotalDebit: totalDebit,
+          subtotalCredit: totalCredit,
+        },
+      ];
+    }
+
+    const map = new Map<string, typeof linesWithBalance>();
+
+    linesWithBalance.forEach((line) => {
+      let key = '';
+      switch (groupBy) {
+        case 'voucherNo':
+          key = line.voucherNo || 'No Voucher';
+          break;
+        case 'subsidiary':
+          key = line.subsidiary || 'Undefined Subsidiary';
+          break;
+        case 'accountsHead':
+          key = line.accountsHead || 'Undefined Account';
+          break;
+        case 'employee':
+          key = line.employee || 'Unassigned Employee';
+          break;
+        case 'reference':
+          key = line.reference || 'No Reference';
+          break;
+        case 'vehicle':
+          key = line.vehicle || 'No Vehicle';
+          break;
+        default:
+          key = 'Other';
+      }
+
+      if (!map.has(key)) {
+        map.set(key, []);
+      }
+      map.get(key)!.push(line);
+    });
+
+    return Array.from(map.entries()).map(([key, lines]) => {
+      const subtotalDebit = lines.reduce((acc, curr) => acc + (curr.debit || 0), 0);
+      const subtotalCredit = lines.reduce((acc, curr) => acc + (curr.credit || 0), 0);
+      return {
+        groupKey: key,
+        groupLabel: key,
+        lines,
+        subtotalDebit,
+        subtotalCredit,
+      };
+    });
+  }, [groupBy, linesWithBalance, totalDebit, totalCredit]);
 
   // Tree View data: when showSubLedger is false, aggregate children by accountsHead
   const treeData = useMemo(() => {
@@ -316,25 +534,47 @@ export const GeneralLedgerPage: React.FC = () => {
             </select>
           </div>
 
+          {/* Sub-Ledger Checkbox Filter - only available on Tree View, List, and Kanban (hidden in GL Details) */}
+          {viewMode !== 'details' && (
+            <>
+              <div className="h-4 w-px bg-slate-200" />
+              <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 cursor-pointer transition select-none shadow-2xs">
+                <input
+                  type="checkbox"
+                  checked={showSubLedger}
+                  onChange={(e) => handleSubLedgerCheckboxChange(e.target.checked)}
+                  className="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
+                />
+                <span className="flex items-center gap-1.5 font-semibold text-slate-700">
+                  <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+                  Sub-Ledger
+                </span>
+              </label>
+            </>
+          )}
+
           <div className="h-4 w-px bg-slate-200" />
 
-          {/* Sub-Ledger Checkbox Filter */}
-          <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 cursor-pointer transition select-none shadow-2xs">
-            <input
-              type="checkbox"
-              checked={showSubLedger}
-              onChange={(e) => setShowSubLedger(e.target.checked)}
-              className="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
-            />
-            <span className="flex items-center gap-1.5 font-semibold text-slate-700">
-              <Building2 className="w-3.5 h-3.5 text-indigo-600" />
-              Sub-Ledger
-            </span>
-          </label>
+          {/* Column Show / Hide Popover */}
+          <ColumnTogglePopover
+            columns={viewMode === 'tree' ? treeColumnItems : detailColumnItems}
+            onToggle={viewMode === 'tree' ? handleToggleTreeColumn : handleToggleDetailColumn}
+            onReset={() => {
+              if (viewMode === 'tree') {
+                setTreeColumns(DEFAULT_GL_TREE_COLUMNS);
+                setShowSubLedger(true);
+              } else {
+                setGlColumns(DEFAULT_GL_DETAILS_COLUMNS);
+                setShowSubLedger(true);
+              }
+            }}
+          />
         </div>
 
         {/* Clear / Reset All Filters */}
         {(!showSubLedger ||
+          totalVisibleGlCols < 15 ||
+          totalVisibleTreeCols < 6 ||
           dateRangePreset !== 'this-month' ||
           currency !== 'BDT' ||
           valueShowIn !== 'actual' ||
@@ -343,6 +583,8 @@ export const GeneralLedgerPage: React.FC = () => {
             type="button"
             onClick={() => {
               setShowSubLedger(true);
+              setGlColumns(DEFAULT_GL_DETAILS_COLUMNS);
+              setTreeColumns(DEFAULT_GL_TREE_COLUMNS);
               setDateRangePreset('this-month');
               setCurrency('BDT');
               setValueShowIn('actual');
@@ -366,104 +608,182 @@ export const GeneralLedgerPage: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] uppercase tracking-wider font-semibold text-slate-500">
-                  <th className="py-2.5 px-3">Date</th>
-                  <th className="py-2.5 px-3">Voucher No</th>
-                  <th className="py-2.5 px-3">Type</th>
-                  <th className="py-2.5 px-3">Accounts Head</th>
-                  {showSubLedger && <th className="py-2.5 px-3">Sub-Ledger</th>}
-                  <th className="py-2.5 px-3">Reference</th>
-                  <th className="py-2.5 px-3">Narration</th>
-                  <th className="py-2.5 px-3 text-right">Debit</th>
-                  <th className="py-2.5 px-3 text-right">Credit</th>
-                  <th className="py-2.5 px-3 text-right font-bold text-slate-700">Balance</th>
+                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] uppercase tracking-wider font-semibold text-slate-500 whitespace-nowrap">
+                  {glColumns.voucherNo && <th className="py-2.5 px-3">Voucher No</th>}
+                  {glColumns.date && <th className="py-2.5 px-3">Date</th>}
+                  {glColumns.particulars && <th className="py-2.5 px-3">Paticulars</th>}
+                  {glColumns.accounts && <th className="py-2.5 px-3">Accounts</th>}
+                  {glColumns.oppositeAccounts && <th className="py-2.5 px-3">Opposite Accounts</th>}
+                  {glColumns.details && <th className="py-2.5 px-3">Details</th>}
+                  {glColumns.subsidiary && <th className="py-2.5 px-3">Subsidiary</th>}
+                  {glColumns.employee && <th className="py-2.5 px-3">Employee</th>}
+                  {glColumns.vehicles && <th className="py-2.5 px-3">Vehicles</th>}
+                  {glColumns.reference && <th className="py-2.5 px-3">Reference</th>}
+                  {glColumns.opening && <th className="py-2.5 px-3 text-right">Opening</th>}
+                  {glColumns.debit && <th className="py-2.5 px-3 text-right">Debit</th>}
+                  {glColumns.credit && <th className="py-2.5 px-3 text-right">Credit</th>}
+                  {glColumns.closingBalance && (
+                    <th className="py-2.5 px-3 text-right">Closing Balance</th>
+                  )}
+                  {glColumns.runningBalance && (
+                    <th className="py-2.5 px-3 text-right font-bold text-slate-700">Running Balance</th>
+                  )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 font-sans">
                 {/* Initial Opening Balance Line */}
                 <tr className="bg-indigo-50/40 font-medium text-slate-600">
-                  <td className="py-2 px-3 text-slate-400">—</td>
-                  <td className="py-2 px-3 text-slate-400">—</td>
-                  <td className="py-2 px-3 text-slate-400">—</td>
-                  <td
-                    className="py-2 px-3 font-semibold text-indigo-900"
-                    colSpan={showSubLedger ? 2 : 1}
-                  >
-                    Opening Balance Forwarded
-                  </td>
-                  <td className="py-2 px-3 text-slate-400">—</td>
-                  <td className="py-2 px-3 text-slate-500 italic">Pre-existing ledger balance</td>
-                  <td className="py-2 px-3 text-right">—</td>
-                  <td className="py-2 px-3 text-right">—</td>
-                  <td
-                    className="py-2 px-3 text-right font-bold text-indigo-900"
-                    title={`Raw: ${formatCurrencyAmount(initialOpeningBalance, currency, false, 'actual')}`}
-                  >
-                    {formatCurrencyAmount(initialOpeningBalance, currency, false, valueShowIn)}
-                  </td>
+                  {glColumns.voucherNo && (
+                    <td className="py-2.5 px-3 font-semibold text-slate-800 whitespace-nowrap">
+                      As on 09/01/2026
+                    </td>
+                  )}
+                  {glColumns.date && <td className="py-2.5 px-3 text-slate-400">—</td>}
+                  {glColumns.particulars && <td className="py-2.5 px-3 text-slate-400">—</td>}
+                  {glColumns.accounts && <td className="py-2.5 px-3 text-slate-400">—</td>}
+                  {glColumns.oppositeAccounts && <td className="py-2.5 px-3 text-slate-400">—</td>}
+                  {glColumns.details && <td className="py-2.5 px-3 text-slate-400">—</td>}
+                  {glColumns.subsidiary && <td className="py-2.5 px-3 text-slate-400">—</td>}
+                  {glColumns.employee && <td className="py-2.5 px-3 text-slate-400">—</td>}
+                  {glColumns.vehicles && <td className="py-2.5 px-3 text-slate-400">—</td>}
+                  {glColumns.reference && <td className="py-2.5 px-3 text-slate-400">—</td>}
+                  {glColumns.opening && (
+                    <td
+                      className="py-2.5 px-3 text-right font-bold text-indigo-900 tabular-nums whitespace-nowrap"
+                      title={`Raw: ${formatCurrencyAmount(initialOpeningBalance, currency, false, 'actual')}`}
+                    >
+                      {formatCurrencyAmount(initialOpeningBalance, currency, false, valueShowIn)}
+                    </td>
+                  )}
+                  {glColumns.debit && <td className="py-2.5 px-3 text-right text-slate-400">—</td>}
+                  {glColumns.credit && <td className="py-2.5 px-3 text-right text-slate-400">—</td>}
+                  {glColumns.closingBalance && <td className="py-2.5 px-3 text-right text-slate-400">—</td>}
+                  {glColumns.runningBalance && (
+                    <td
+                      className="py-2.5 px-3 text-right font-bold text-indigo-900 tabular-nums whitespace-nowrap"
+                      title={`Raw: ${formatCurrencyAmount(initialOpeningBalance, currency, false, 'actual')}`}
+                    >
+                      {formatCurrencyAmount(initialOpeningBalance, currency, false, valueShowIn)}
+                    </td>
+                  )}
                 </tr>
 
                 {linesWithBalance.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{row.date}</td>
-                    <td className="py-2 px-3 font-semibold text-indigo-600 whitespace-nowrap">
-                      {row.voucherNo}
-                    </td>
-                    <td className="py-2 px-3 whitespace-nowrap">
-                      <span
-                        className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                          row.voucherType === 'Payment'
-                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                            : row.voucherType === 'Receive'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : row.voucherType === 'Journal'
-                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                            : 'bg-amber-50 text-amber-700 border border-amber-200'
-                        }`}
-                      >
-                        {row.voucherType}
-                      </span>
-                    </td>
-                    <td className="py-2 px-3 font-medium text-slate-800 whitespace-nowrap">
-                      {row.accountsHead}
-                    </td>
-                    {showSubLedger && (
-                      <td className="py-2 px-3 text-slate-600 whitespace-nowrap">
+                    {glColumns.voucherNo && (
+                      <td className="py-2.5 px-3 font-semibold text-indigo-600 whitespace-nowrap">
+                        {row.voucherNo}
+                      </td>
+                    )}
+                    {glColumns.date && (
+                      <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap">{row.date}</td>
+                    )}
+                    {glColumns.particulars && (
+                      <td className="py-2.5 px-3 text-slate-600 max-w-xs truncate" title={row.narration}>
+                        {row.narration}
+                      </td>
+                    )}
+                    {glColumns.accounts && (
+                      <td className="py-2.5 px-3 font-medium text-slate-800 whitespace-nowrap">
+                        {row.accountsHead}
+                      </td>
+                    )}
+                    {glColumns.oppositeAccounts && (
+                      <td className="py-2.5 px-3 text-slate-700 whitespace-nowrap font-medium">
+                        <span className="inline-flex items-center gap-1.5">
+                          <ArrowLeftRight className="w-3 h-3 text-indigo-500 shrink-0" />
+                          {row.oppositeAccount || '—'}
+                        </span>
+                      </td>
+                    )}
+                    {glColumns.details && (
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <span
+                          className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                            row.voucherType === 'Payment'
+                              ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                              : row.voucherType === 'Receive'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : row.voucherType === 'Journal'
+                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                          }`}
+                        >
+                          {row.voucherType}
+                        </span>
+                      </td>
+                    )}
+                    {glColumns.subsidiary && (
+                      <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap">
                         <span className="inline-flex items-center gap-1">
                           <Building2 className="w-3 h-3 text-slate-400" />
                           {row.subsidiary}
                         </span>
                       </td>
                     )}
-                    <td className="py-2 px-3 text-slate-500 whitespace-nowrap">{row.reference}</td>
-                    <td className="py-2 px-3 text-slate-600 max-w-xs truncate" title={row.narration}>
-                      {row.narration}
-                    </td>
-                    <td
-                      className="py-2 px-3 text-right font-medium text-emerald-600 whitespace-nowrap"
-                      title={row.debit > 0 ? `Raw: ${formatCurrencyAmount(row.debit, currency, false, 'actual')}` : undefined}
-                    >
-                      {formatCurrencyAmount(row.debit, currency, true, valueShowIn)}
-                    </td>
-                    <td
-                      className="py-2 px-3 text-right font-medium text-amber-600 whitespace-nowrap"
-                      title={row.credit > 0 ? `Raw: ${formatCurrencyAmount(row.credit, currency, false, 'actual')}` : undefined}
-                    >
-                      {formatCurrencyAmount(row.credit, currency, true, valueShowIn)}
-                    </td>
-                    <td
-                      className="py-2 px-3 text-right font-bold text-slate-900 whitespace-nowrap"
-                      title={`Raw: ${formatCurrencyAmount(row.balance || 0, currency, false, 'actual')}`}
-                    >
-                      {formatCurrencyAmount(row.balance || 0, currency, false, valueShowIn)}
-                    </td>
+                    {glColumns.employee && (
+                      <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap">
+                        {row.employee || '—'}
+                      </td>
+                    )}
+                    {glColumns.vehicles && (
+                      <td
+                        className="py-2.5 px-3 text-slate-600 whitespace-nowrap max-w-[180px] truncate"
+                        title={row.vehicle}
+                      >
+                        {row.vehicle || '—'}
+                      </td>
+                    )}
+                    {glColumns.reference && (
+                      <td className="py-2.5 px-3 text-slate-500 whitespace-nowrap">{row.reference || '—'}</td>
+                    )}
+                    {glColumns.opening && (
+                      <td
+                        className="py-2.5 px-3 text-right font-medium text-slate-600 tabular-nums whitespace-nowrap"
+                        title={`Raw: ${formatCurrencyAmount(row.lineOpening, currency, false, 'actual')}`}
+                      >
+                        {formatCurrencyAmount(row.lineOpening, currency, false, valueShowIn)}
+                      </td>
+                    )}
+                    {glColumns.debit && (
+                      <td
+                        className="py-2.5 px-3 text-right font-medium text-emerald-600 tabular-nums whitespace-nowrap"
+                        title={row.debit > 0 ? `Raw: ${formatCurrencyAmount(row.debit, currency, false, 'actual')}` : undefined}
+                      >
+                        {formatCurrencyAmount(row.debit, currency, true, valueShowIn)}
+                      </td>
+                    )}
+                    {glColumns.credit && (
+                      <td
+                        className="py-2.5 px-3 text-right font-medium text-amber-600 tabular-nums whitespace-nowrap"
+                        title={row.credit > 0 ? `Raw: ${formatCurrencyAmount(row.credit, currency, false, 'actual')}` : undefined}
+                      >
+                        {formatCurrencyAmount(row.credit, currency, true, valueShowIn)}
+                      </td>
+                    )}
+                    {glColumns.closingBalance && (
+                      <td
+                        className="py-2.5 px-3 text-right font-semibold text-slate-800 tabular-nums whitespace-nowrap"
+                        title={`Raw: ${formatCurrencyAmount(row.closingBalance, currency, false, 'actual')}`}
+                      >
+                        {formatCurrencyAmount(row.closingBalance, currency, false, valueShowIn)}
+                      </td>
+                    )}
+                    {glColumns.runningBalance && (
+                      <td
+                        className="py-2.5 px-3 text-right font-bold text-slate-900 tabular-nums whitespace-nowrap"
+                        title={`Raw: ${formatCurrencyAmount(row.runningBalance, currency, false, 'actual')}`}
+                      >
+                        {formatCurrencyAmount(row.runningBalance, currency, false, valueShowIn)}
+                      </td>
+                    )}
                   </tr>
                 ))}
 
                 {linesWithBalance.length === 0 && (
                   <tr>
                     <td
-                      colSpan={showSubLedger ? 10 : 9}
+                      colSpan={totalVisibleGlCols}
                       className="py-12 text-center text-slate-400 italic"
                     >
                       No ledger lines match the current advance filter criteria.
@@ -474,29 +794,51 @@ export const GeneralLedgerPage: React.FC = () => {
               <tfoot>
                 <tr className="bg-slate-50/90 border-t-2 border-slate-300 font-bold text-slate-800">
                   <td
-                    colSpan={showSubLedger ? 7 : 6}
+                    colSpan={leftGlColSpan}
                     className="py-2.5 px-3 uppercase tracking-wider text-right"
                   >
                     Total / Ending Closing:
                   </td>
-                  <td
-                    className="py-2.5 px-3 text-right text-emerald-700 font-bold"
-                    title={`Raw: ${formatCurrencyAmount(totalDebit, currency, false, 'actual')}`}
-                  >
-                    {formatCurrencyAmount(totalDebit, currency, false, valueShowIn)}
-                  </td>
-                  <td
-                    className="py-2.5 px-3 text-right text-amber-700 font-bold"
-                    title={`Raw: ${formatCurrencyAmount(totalCredit, currency, false, 'actual')}`}
-                  >
-                    {formatCurrencyAmount(totalCredit, currency, false, valueShowIn)}
-                  </td>
-                  <td
-                    className="py-2.5 px-3 text-right text-indigo-700 font-extrabold text-sm"
-                    title={`Raw: ${formatCurrencyAmount(finalClosing, currency, false, 'actual')}`}
-                  >
-                    {formatCurrencyAmount(finalClosing, currency, false, valueShowIn)}
-                  </td>
+                  {glColumns.opening && (
+                    <td
+                      className="py-2.5 px-3 text-right text-indigo-900 font-bold tabular-nums"
+                      title={`Raw: ${formatCurrencyAmount(initialOpeningBalance, currency, false, 'actual')}`}
+                    >
+                      {formatCurrencyAmount(initialOpeningBalance, currency, false, valueShowIn)}
+                    </td>
+                  )}
+                  {glColumns.debit && (
+                    <td
+                      className="py-2.5 px-3 text-right text-emerald-700 font-bold tabular-nums"
+                      title={`Raw: ${formatCurrencyAmount(totalDebit, currency, false, 'actual')}`}
+                    >
+                      {formatCurrencyAmount(totalDebit, currency, false, valueShowIn)}
+                    </td>
+                  )}
+                  {glColumns.credit && (
+                    <td
+                      className="py-2.5 px-3 text-right text-amber-700 font-bold tabular-nums"
+                      title={`Raw: ${formatCurrencyAmount(totalCredit, currency, false, 'actual')}`}
+                    >
+                      {formatCurrencyAmount(totalCredit, currency, false, valueShowIn)}
+                    </td>
+                  )}
+                  {glColumns.closingBalance && (
+                    <td
+                      className="py-2.5 px-3 text-right text-slate-900 font-bold tabular-nums"
+                      title={`Raw: ${formatCurrencyAmount(finalClosing, currency, false, 'actual')}`}
+                    >
+                      {formatCurrencyAmount(finalClosing, currency, false, valueShowIn)}
+                    </td>
+                  )}
+                  {glColumns.runningBalance && (
+                    <td
+                      className="py-2.5 px-3 text-right text-indigo-700 font-extrabold tabular-nums"
+                      title={`Raw: ${formatCurrencyAmount(finalClosing, currency, false, 'actual')}`}
+                    >
+                      {formatCurrencyAmount(finalClosing, currency, false, valueShowIn)}
+                    </td>
+                  )}
                 </tr>
               </tfoot>
             </table>
@@ -509,12 +851,14 @@ export const GeneralLedgerPage: React.FC = () => {
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-[11px] uppercase tracking-wider font-semibold text-slate-500">
-                  <th className="py-2.5 px-3">Accounts Head</th>
-                  {showSubLedger && <th className="py-2.5 px-3">Sub-Ledger</th>}
-                  <th className="py-2.5 px-3 text-right">Opening</th>
-                  <th className="py-2.5 px-3 text-right">Debit</th>
-                  <th className="py-2.5 px-3 text-right">Credit</th>
-                  <th className="py-2.5 px-3 text-right font-bold text-slate-700">Closing</th>
+                  {treeColumns.accountsHead && <th className="py-2.5 px-3">Accounts Head</th>}
+                  {treeColumns.subsidiary && <th className="py-2.5 px-3">Sub-Ledger</th>}
+                  {treeColumns.opening && <th className="py-2.5 px-3 text-right">Opening</th>}
+                  {treeColumns.debit && <th className="py-2.5 px-3 text-right">Debit</th>}
+                  {treeColumns.credit && <th className="py-2.5 px-3 text-right">Credit</th>}
+                  {treeColumns.closing && (
+                    <th className="py-2.5 px-3 text-right font-bold text-slate-700">Closing</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium">
@@ -527,34 +871,56 @@ export const GeneralLedgerPage: React.FC = () => {
                         onClick={() => toggleNode(group.accountsHead)}
                         className="bg-slate-50/60 hover:bg-slate-100 cursor-pointer select-none font-bold text-slate-900 transition-colors"
                       >
-                        <td className="py-2.5 px-3 flex items-center gap-1.5">
-                          {isExpanded ? (
-                            <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-                          ) : (
-                            <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-                          )}
-                          <span>{group.accountsHead}</span>
-                          <span className="text-[10px] text-slate-400 font-normal">
-                            #{group.accountCode}
-                          </span>
-                        </td>
-                        {showSubLedger && (
+                        {treeColumns.accountsHead && (
+                          <td className="py-2.5 px-3 flex items-center gap-1.5">
+                            {isExpanded ? (
+                              <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                            ) : (
+                              <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                            )}
+                            <span>{group.accountsHead}</span>
+                            <span className="text-[10px] text-slate-400 font-normal">
+                              #{group.accountCode}
+                            </span>
+                          </td>
+                        )}
+                        {treeColumns.subsidiary && (
                           <td className="py-2.5 px-3 text-slate-500 font-normal">
                             {group.subsidiary}
                           </td>
                         )}
-                        <td className="py-2.5 px-3 text-right">
-                          {formatCurrencyAmount(group.openingBalance, currency, false)}
-                        </td>
-                        <td className="py-2.5 px-3 text-right text-emerald-600">
-                          {formatCurrencyAmount(group.totalDebit, currency, false)}
-                        </td>
-                        <td className="py-2.5 px-3 text-right text-amber-600">
-                          {formatCurrencyAmount(group.totalCredit, currency, false)}
-                        </td>
-                        <td className="py-2.5 px-3 text-right font-bold text-indigo-900">
-                          {formatCurrencyAmount(group.closingBalance, currency, false)}
-                        </td>
+                        {treeColumns.opening && (
+                          <td
+                            className="py-2.5 px-3 text-right"
+                            title={`Raw: ${formatCurrencyAmount(group.openingBalance, currency, false, 'actual')}`}
+                          >
+                            {formatCurrencyAmount(group.openingBalance, currency, false, valueShowIn)}
+                          </td>
+                        )}
+                        {treeColumns.debit && (
+                          <td
+                            className="py-2.5 px-3 text-right text-emerald-600"
+                            title={`Raw: ${formatCurrencyAmount(group.totalDebit, currency, false, 'actual')}`}
+                          >
+                            {formatCurrencyAmount(group.totalDebit, currency, false, valueShowIn)}
+                          </td>
+                        )}
+                        {treeColumns.credit && (
+                          <td
+                            className="py-2.5 px-3 text-right text-amber-600"
+                            title={`Raw: ${formatCurrencyAmount(group.totalCredit, currency, false, 'actual')}`}
+                          >
+                            {formatCurrencyAmount(group.totalCredit, currency, false, valueShowIn)}
+                          </td>
+                        )}
+                        {treeColumns.closing && (
+                          <td
+                            className="py-2.5 px-3 text-right font-bold text-indigo-900"
+                            title={`Raw: ${formatCurrencyAmount(group.closingBalance, currency, false, 'actual')}`}
+                          >
+                            {formatCurrencyAmount(group.closingBalance, currency, false, valueShowIn)}
+                          </td>
+                        )}
                       </tr>
 
                       {/* Children rows */}
@@ -564,28 +930,50 @@ export const GeneralLedgerPage: React.FC = () => {
                             key={`${child.accountsHead}-${child.subsidiary || idx}`}
                             className="hover:bg-slate-50 bg-white transition-colors"
                           >
-                            <td className="py-2 px-3 pl-8 text-slate-700 font-semibold flex items-center gap-2">
-                              <span className="w-2 h-px bg-slate-300" />
-                              {child.accountsHead}
-                              <span className="text-[10px] text-slate-400 font-normal">
-                                #{child.accountCode}
-                              </span>
-                            </td>
-                            {showSubLedger && (
+                            {treeColumns.accountsHead && (
+                              <td className="py-2 px-3 pl-8 text-slate-700 font-semibold flex items-center gap-2">
+                                <span className="w-2 h-px bg-slate-300" />
+                                {child.accountsHead}
+                                <span className="text-[10px] text-slate-400 font-normal">
+                                  #{child.accountCode}
+                                </span>
+                              </td>
+                            )}
+                            {treeColumns.subsidiary && (
                               <td className="py-2 px-3 text-slate-600">{child.subsidiary}</td>
                             )}
-                            <td className="py-2 px-3 text-right">
-                              {formatCurrencyAmount(child.openingBalance, currency, false)}
-                            </td>
-                            <td className="py-2 px-3 text-right text-emerald-600">
-                              {formatCurrencyAmount(child.totalDebit, currency, false)}
-                            </td>
-                            <td className="py-2 px-3 text-right text-amber-600">
-                              {formatCurrencyAmount(child.totalCredit, currency, false)}
-                            </td>
-                            <td className="py-2 px-3 text-right font-bold text-slate-800">
-                              {formatCurrencyAmount(child.closingBalance, currency, false)}
-                            </td>
+                            {treeColumns.opening && (
+                              <td
+                                className="py-2 px-3 text-right"
+                                title={`Raw: ${formatCurrencyAmount(child.openingBalance, currency, false, 'actual')}`}
+                              >
+                                {formatCurrencyAmount(child.openingBalance, currency, false, valueShowIn)}
+                              </td>
+                            )}
+                            {treeColumns.debit && (
+                              <td
+                                className="py-2 px-3 text-right text-emerald-600"
+                                title={`Raw: ${formatCurrencyAmount(child.totalDebit, currency, false, 'actual')}`}
+                              >
+                                {formatCurrencyAmount(child.totalDebit, currency, false, valueShowIn)}
+                              </td>
+                            )}
+                            {treeColumns.credit && (
+                              <td
+                                className="py-2 px-3 text-right text-amber-600"
+                                title={`Raw: ${formatCurrencyAmount(child.totalCredit, currency, false, 'actual')}`}
+                              >
+                                {formatCurrencyAmount(child.totalCredit, currency, false, valueShowIn)}
+                              </td>
+                            )}
+                            {treeColumns.closing && (
+                              <td
+                                className="py-2 px-3 text-right font-bold text-slate-800"
+                                title={`Raw: ${formatCurrencyAmount(child.closingBalance, currency, false, 'actual')}`}
+                              >
+                                {formatCurrencyAmount(child.closingBalance, currency, false, valueShowIn)}
+                              </td>
+                            )}
                           </tr>
                         ))}
                     </React.Fragment>
@@ -595,39 +983,83 @@ export const GeneralLedgerPage: React.FC = () => {
               <tfoot>
                 <tr className="bg-slate-50/90 border-t-2 border-slate-300 font-bold text-slate-800">
                   <td
-                    colSpan={showSubLedger ? 2 : 1}
+                    colSpan={leftTreeColSpan}
                     className="py-2.5 px-3 uppercase tracking-wider text-right"
                   >
                     Consolidated Total:
                   </td>
-                  <td className="py-2.5 px-3 text-right">
-                    {formatCurrencyAmount(
-                      treeData.reduce((acc, g) => acc + g.openingBalance, 0),
-                      currency,
-                      false
-                    )}
-                  </td>
-                  <td className="py-2.5 px-3 text-right text-emerald-700">
-                    {formatCurrencyAmount(
-                      treeData.reduce((acc, g) => acc + g.totalDebit, 0),
-                      currency,
-                      false
-                    )}
-                  </td>
-                  <td className="py-2.5 px-3 text-right text-amber-700">
-                    {formatCurrencyAmount(
-                      treeData.reduce((acc, g) => acc + g.totalCredit, 0),
-                      currency,
-                      false
-                    )}
-                  </td>
-                  <td className="py-2.5 px-3 text-right text-indigo-700 font-extrabold text-sm">
-                    {formatCurrencyAmount(
-                      treeData.reduce((acc, g) => acc + g.closingBalance, 0),
-                      currency,
-                      false
-                    )}
-                  </td>
+                  {treeColumns.opening && (
+                    <td
+                      className="py-2.5 px-3 text-right"
+                      title={`Raw: ${formatCurrencyAmount(
+                        treeData.reduce((acc, g) => acc + g.openingBalance, 0),
+                        currency,
+                        false,
+                        'actual'
+                      )}`}
+                    >
+                      {formatCurrencyAmount(
+                        treeData.reduce((acc, g) => acc + g.openingBalance, 0),
+                        currency,
+                        false,
+                        valueShowIn
+                      )}
+                    </td>
+                  )}
+                  {treeColumns.debit && (
+                    <td
+                      className="py-2.5 px-3 text-right text-emerald-700"
+                      title={`Raw: ${formatCurrencyAmount(
+                        treeData.reduce((acc, g) => acc + g.totalDebit, 0),
+                        currency,
+                        false,
+                        'actual'
+                      )}`}
+                    >
+                      {formatCurrencyAmount(
+                        treeData.reduce((acc, g) => acc + g.totalDebit, 0),
+                        currency,
+                        false,
+                        valueShowIn
+                      )}
+                    </td>
+                  )}
+                  {treeColumns.credit && (
+                    <td
+                      className="py-2.5 px-3 text-right text-amber-700"
+                      title={`Raw: ${formatCurrencyAmount(
+                        treeData.reduce((acc, g) => acc + g.totalCredit, 0),
+                        currency,
+                        false,
+                        'actual'
+                      )}`}
+                    >
+                      {formatCurrencyAmount(
+                        treeData.reduce((acc, g) => acc + g.totalCredit, 0),
+                        currency,
+                        false,
+                        valueShowIn
+                      )}
+                    </td>
+                  )}
+                  {treeColumns.closing && (
+                    <td
+                      className="py-2.5 px-3 text-right text-indigo-700 font-extrabold text-sm"
+                      title={`Raw: ${formatCurrencyAmount(
+                        treeData.reduce((acc, g) => acc + g.closingBalance, 0),
+                        currency,
+                        false,
+                        'actual'
+                      )}`}
+                    >
+                      {formatCurrencyAmount(
+                        treeData.reduce((acc, g) => acc + g.closingBalance, 0),
+                        currency,
+                        false,
+                        valueShowIn
+                      )}
+                    </td>
+                  )}
                 </tr>
               </tfoot>
             </table>
@@ -668,13 +1100,19 @@ export const GeneralLedgerPage: React.FC = () => {
 
                   <div className="flex items-center gap-4 text-xs font-semibold">
                     {line.debit > 0 && (
-                      <span className="text-emerald-600">
-                        Dr: {formatCurrencyAmount(line.debit, currency, false)}
+                      <span
+                        className="text-emerald-600"
+                        title={`Raw: ${formatCurrencyAmount(line.debit, currency, false, 'actual')}`}
+                      >
+                        Dr: {formatCurrencyAmount(line.debit, currency, false, valueShowIn)}
                       </span>
                     )}
                     {line.credit > 0 && (
-                      <span className="text-amber-600">
-                        Cr: {formatCurrencyAmount(line.credit, currency, false)}
+                      <span
+                        className="text-amber-600"
+                        title={`Raw: ${formatCurrencyAmount(line.credit, currency, false, 'actual')}`}
+                      >
+                        Cr: {formatCurrencyAmount(line.credit, currency, false, valueShowIn)}
                       </span>
                     )}
                   </div>
@@ -728,8 +1166,9 @@ export const GeneralLedgerPage: React.FC = () => {
                             className={
                               item.debit > 0 ? 'text-emerald-600' : 'text-amber-600'
                             }
+                            title={`Raw: ${formatCurrencyAmount(item.debit || item.credit, currency, false, 'actual')}`}
                           >
-                            {formatCurrencyAmount(item.debit || item.credit, currency, false)}
+                            {formatCurrencyAmount(item.debit || item.credit, currency, false, valueShowIn)}
                           </span>
                         </div>
                       </div>
