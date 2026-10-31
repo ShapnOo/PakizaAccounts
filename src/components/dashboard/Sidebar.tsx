@@ -79,10 +79,10 @@ export const nav: NavItem[] = [
       {
         label: "Accounts Report Customization",
         subitems: [
-          { label: "Journal", to: "/accounts-report/journal" },
-          { label: "General Ledger", to: "/accounts-report/general-ledger" },
-          { label: "Income Statement", to: "/accounts-report/income-statement" },
-          { label: "Balance Sheet", to: "/accounts-report/balance-sheet" },
+          { label: "Journal Customization", to: "/accounts-report/journal" },
+          { label: "General Ledger Customization", to: "/accounts-report/general-ledger" },
+          { label: "Income Statement Customization", to: "/accounts-report/income-statement" },
+          { label: "Balance Sheet Customization", to: "/accounts-report/balance-sheet" },
         ],
       },
       {

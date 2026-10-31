@@ -14,7 +14,7 @@ import { AccountsHeadPicker } from './AccountsHeadPicker';
 import { AdvanceFilterToggle } from './AdvanceFilterToggle';
 import { ExportMenu } from './ExportMenu';
 import { AdvanceFilter } from '../gl/AdvanceFilter';
-import { RotateCcw, Sliders } from 'lucide-react';
+import { RotateCcw, SlidersHorizontal } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export const TopControlBar: React.FC = () => {
@@ -41,23 +41,23 @@ export const TopControlBar: React.FC = () => {
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-xs mb-4 transition-all overflow-hidden font-sans">
       {/* Top Header of Control Card */}
-      <div className="px-4 py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/40">
-        <div className="flex items-center gap-2">
+      <div className="px-3.5 py-2 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/50">
+        <div className="flex items-center gap-1.5">
           <div className="p-1 rounded-md bg-indigo-50 text-indigo-600">
-            <Sliders className="size-3.5" />
+            <SlidersHorizontal className="size-3" />
           </div>
           <div>
-            <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">
-              Statement Parameters & Filters
+            <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wide">
+              Receipt & Payment Parameters & Filters
             </span>
-            <span className="text-[11px] text-slate-500 ml-2 hidden sm:inline">
-              Adjust filters to recalculate receipts, payments, and closing balances
+            <span className="text-[10px] text-slate-400 ml-2 hidden sm:inline">
+              Adjust report type, date range, currency, value display, account scopes, or advance criteria
             </span>
           </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
           <AdvanceFilterToggle
             collapsed={filters.advancedFilterCollapsed}
             onToggle={toggleAdvancedFilter}
@@ -68,9 +68,9 @@ export const TopControlBar: React.FC = () => {
             type="button"
             onClick={resetFilters}
             title="Reset parameters to defaults"
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 text-xs font-medium transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+            className="inline-flex items-center gap-1 px-2.5 h-7 rounded-md text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 text-[11px] font-medium transition-all cursor-pointer shadow-2xs whitespace-nowrap"
           >
-            <RotateCcw className="size-3 text-slate-400" />
+            <RotateCcw className="size-2.5 text-slate-400" />
             <span>Reset</span>
           </button>
 
@@ -78,31 +78,13 @@ export const TopControlBar: React.FC = () => {
         </div>
       </div>
 
-      {/* Primary Filter Grid - Row 1 & Row 2 evenly distributed */}
-      <div className="p-4 space-y-4">
-        {/* Row 1: Report Type, Accounts Type, Approval Status, Currency, Date Range */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 items-end">
+      {/* Primary Filter Grid - 2 balanced, symmetrical rows of 4 columns */}
+      <div className="p-3.5 space-y-3 bg-white">
+        {/* Row 1: Core Parameters & Reporting Mode */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
           <ReportTypeToggle
             value={filters.reportType}
             onChange={setReportType}
-            disabled={loading}
-          />
-
-          <AccountsTypeSelect
-            value={filters.accountsType}
-            onChange={setAccountsType}
-            disabled={loading}
-          />
-
-          <ApprovalStatusSelect
-            value={filters.approvalStatus}
-            onChange={setApprovalStatus}
-            disabled={loading}
-          />
-
-          <CurrencySelect
-            value={filters.currency}
-            onChange={setCurrency}
             disabled={loading}
           />
 
@@ -114,19 +96,37 @@ export const TopControlBar: React.FC = () => {
             onDateChange={setDateRange}
             disabled={loading}
           />
-        </div>
 
-        {/* Row 2: Accounts Details Type, Value Show In, Accounts Head Picker */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 items-end pt-2 border-t border-slate-100">
-          <AccountsDetailsTypeMultiSelect
-            selected={filters.accountsDetailsTypes}
-            onChange={setAccountsDetailsTypes}
+          <CurrencySelect
+            value={filters.currency}
+            onChange={setCurrency}
             disabled={loading}
           />
 
           <ValueShowInSelect
             value={filters.valueShowIn}
             onChange={setValueShowIn}
+            disabled={loading}
+          />
+        </div>
+
+        {/* Row 2: Accounts & Transaction Scope (perfectly aligned with Row 1) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end pt-3 border-t border-slate-100">
+          <AccountsTypeSelect
+            value={filters.accountsType}
+            onChange={setAccountsType}
+            disabled={loading}
+          />
+
+          <AccountsDetailsTypeMultiSelect
+            selected={filters.accountsDetailsTypes}
+            onChange={setAccountsDetailsTypes}
+            disabled={loading}
+          />
+
+          <ApprovalStatusSelect
+            value={filters.approvalStatus}
+            onChange={setApprovalStatus}
             disabled={loading}
           />
 
@@ -149,10 +149,10 @@ export const TopControlBar: React.FC = () => {
             className="border-t border-slate-200 bg-slate-50/50 p-4 overflow-hidden"
           >
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wide">
                 Advanced Criteria Filter (Account / Subsidiary / Reference)
               </span>
-              <span className="text-[11px] text-indigo-600 font-medium">
+              <span className="text-[10px] text-indigo-600 font-medium">
                 Filters opposite accounts and ledger vouchers
               </span>
             </div>

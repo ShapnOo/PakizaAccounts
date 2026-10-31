@@ -93,25 +93,25 @@ const searchableMenus: SearchMenuLink[] = [
 
   // Accounts Report Customization
   {
-    label: "Journal",
+    label: "Journal Customization",
     parent: "Accounts Report Customization",
     to: "/accounts-report/journal",
     description: "General journal transaction ledger and audit posting reports",
   },
   {
-    label: "General Ledger",
+    label: "General Ledger Customization",
     parent: "Accounts Report Customization",
     to: "/accounts-report/general-ledger",
     description: "Detailed account head debit/credit activity with date filters",
   },
   {
-    label: "Income Statement",
+    label: "Income Statement Customization",
     parent: "Accounts Report Customization",
     to: "/accounts-report/income-statement",
     description: "Profit & Loss statement, operational revenue and expenses breakdown",
   },
   {
-    label: "Balance Sheet",
+    label: "Balance Sheet Customization",
     parent: "Accounts Report Customization",
     to: "/accounts-report/balance-sheet",
     description: "Corporate financial balance sheet, current assets and liabilities",
@@ -651,17 +651,15 @@ export function Topbar() {
                         setIsSearchOpen(false);
                         setSearchQuery("");
                       }}
-                      className={`w-full group text-left flex items-center gap-3 p-2.5 rounded-xl transition duration-150 border ${
-                        isFocused
+                      className={`w-full group text-left flex items-center gap-3 p-2.5 rounded-xl transition duration-150 border ${isFocused
                           ? "bg-primary/[0.08] dark:bg-primary/[0.12] border-primary/20 text-primary"
                           : "hover:bg-slate-50/70 dark:hover:bg-slate-900/40 border-transparent text-slate-700 dark:text-slate-300"
-                      }`}
+                        }`}
                     >
                       {/* Left: Category Icon Box */}
                       <div
-                        className={`size-8 rounded-lg flex items-center justify-center border shrink-0 transition-transform duration-300 ${
-                          isFocused ? "scale-105" : ""
-                        } bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400`}
+                        className={`size-8 rounded-lg flex items-center justify-center border shrink-0 transition-transform duration-300 ${isFocused ? "scale-105" : ""
+                          } bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400`}
                       >
                         <CategoryIcon className="size-4" />
                       </div>

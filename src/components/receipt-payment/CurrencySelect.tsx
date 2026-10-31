@@ -1,6 +1,6 @@
 import React from 'react';
 import { Currency, CURRENCIES } from '../../types/receiptPayment';
-import { Coins } from 'lucide-react';
+import { Coins, ChevronDown } from 'lucide-react';
 
 interface CurrencySelectProps {
   value: Currency;
@@ -8,15 +8,22 @@ interface CurrencySelectProps {
   disabled?: boolean;
 }
 
+const CURRENCY_SYMBOLS: Record<Currency, string> = {
+  BDT: '৳',
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+};
+
 export const CurrencySelect: React.FC<CurrencySelectProps> = ({
   value,
   onChange,
   disabled = false,
 }) => {
   return (
-    <div className="flex flex-col gap-1 min-w-[100px]">
-      <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-1">
-        <Coins className="size-3 text-indigo-500" />
+    <div className="flex flex-col gap-1 w-full">
+      <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+        <Coins className="size-2.5 text-indigo-500" />
         Currency
       </label>
       <div className="relative">
@@ -24,18 +31,16 @@ export const CurrencySelect: React.FC<CurrencySelectProps> = ({
           value={value}
           disabled={disabled}
           onChange={(e) => onChange(e.target.value as Currency)}
-          className="w-full h-8 pl-2.5 pr-7 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 shadow-2xs focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition cursor-pointer appearance-none disabled:opacity-50"
+          className="w-full h-7.5 pl-2.5 pr-7 rounded-md border border-slate-200 bg-white text-[11px] font-medium text-slate-700 shadow-2xs hover:border-slate-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition cursor-pointer appearance-none disabled:opacity-50"
         >
           {CURRENCIES.map((curr) => (
             <option key={curr} value={curr}>
-              {curr}
+              {curr} ({CURRENCY_SYMBOLS[curr] || curr})
             </option>
           ))}
         </select>
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
-          <svg className="size-3.5 fill-current" viewBox="0 0 20 20">
-            <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-          </svg>
+          <ChevronDown className="size-3" />
         </div>
       </div>
     </div>
