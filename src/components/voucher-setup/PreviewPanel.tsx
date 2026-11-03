@@ -53,6 +53,12 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     debouncedCustom.orientation
   );
 
+  const canvasPadding = isHalfPage
+    ? '12px 14px'
+    : isLandscape
+    ? '16px 20px'
+    : '20px 20px';
+
   const handlePrint = () => {
     document.body.classList.add('voucher-print-active');
     setTimeout(() => {
@@ -107,17 +113,21 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
               width: `${widthPx}px`,
               height: `${heightPx}px`,
               fontFamily: debouncedCustom.fontFamily || 'Inter',
-              padding: isLandscape ? '16px 20px' : '20px 20px',
+              padding: canvasPadding,
+              boxSizing: 'border-box',
             }}
           >
             {/* Hover Margin Guides */}
             {isHovered && (
-              <div className="absolute inset-4 pointer-events-none border border-dashed border-indigo-400/50 transition-opacity z-20" />
+              <div
+                className="absolute pointer-events-none border border-dashed border-indigo-400/50 transition-opacity z-20"
+                style={{ inset: canvasPadding }}
+              />
             )}
 
             {/* Template Render Content */}
             {!isHalfPage ? (
-              <div className="w-full h-full flex flex-col justify-between">
+              <div className="w-full h-full flex flex-col justify-between box-border">
                 <TemplateRenderer
                   templateId={templateId}
                   data={previewData}
@@ -126,8 +136,8 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
               </div>
             ) : halfOption === 'duplicate' ? (
               /* Half Page: 2 Vouchers on 1 Sheet (2-in-1) */
-              <div className="w-full h-full flex flex-col justify-between">
-                <div className="w-full h-[calc(50%-14px)] overflow-hidden flex flex-col justify-between">
+              <div className="w-full h-full flex flex-col justify-between box-border">
+                <div className="w-full h-[calc(50%-8px)] flex flex-col justify-between box-border">
                   <TemplateRenderer
                     templateId={templateId}
                     data={previewData}
@@ -136,16 +146,16 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 </div>
 
                 {showCutLine && (
-                  <div className="w-full py-1.5 flex items-center gap-2 select-none">
+                  <div className="w-full py-1 flex items-center gap-2 select-none shrink-0">
                     <div className="flex-1 border-b border-dashed border-slate-300" />
-                    <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+                    <span className="text-[9.5px] text-slate-400 font-semibold flex items-center gap-1">
                       <Scissors className="size-3 text-slate-400" /> Cut along line
                     </span>
                     <div className="flex-1 border-b border-dashed border-slate-300" />
                   </div>
                 )}
 
-                <div className="w-full h-[calc(50%-14px)] overflow-hidden flex flex-col justify-between">
+                <div className="w-full h-[calc(50%-8px)] flex flex-col justify-between box-border">
                   <TemplateRenderer
                     templateId={templateId}
                     data={previewData}
@@ -155,8 +165,8 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
               </div>
             ) : (
               /* Half Page: Single Copy (Top Half) */
-              <div className="w-full h-full flex flex-col justify-between">
-                <div className="w-full h-[calc(50%-14px)] overflow-hidden flex flex-col justify-between">
+              <div className="w-full h-full flex flex-col justify-between box-border">
+                <div className="w-full h-[calc(50%-8px)] flex flex-col justify-between box-border">
                   <TemplateRenderer
                     templateId={templateId}
                     data={previewData}
@@ -165,16 +175,16 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 </div>
 
                 {showCutLine && (
-                  <div className="w-full py-1.5 flex items-center gap-2 select-none">
+                  <div className="w-full py-1 flex items-center gap-2 select-none shrink-0">
                     <div className="flex-1 border-b border-dashed border-slate-300" />
-                    <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+                    <span className="text-[9.5px] text-slate-400 font-semibold flex items-center gap-1">
                       <Scissors className="size-3 text-slate-400" /> Half Page Cut Line
                     </span>
                     <div className="flex-1 border-b border-dashed border-slate-300" />
                   </div>
                 )}
 
-                <div className="w-full h-[calc(50%-14px)] rounded-lg border border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center text-slate-400 text-[11px] select-none gap-0.5">
+                <div className="w-full h-[calc(50%-8px)] rounded-lg border border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center text-slate-400 text-[11px] select-none gap-0.5">
                   <span className="font-semibold text-slate-400">Lower Half Sheet</span>
                   <span className="text-[10px] text-slate-400">
                     Blank for paper cutting or A5 feeding
@@ -211,7 +221,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
               height: `${pageHeightMm}mm`,
               maxWidth: `${pageWidthMm}mm`,
               maxHeight: `${pageHeightMm}mm`,
-              padding: isLandscape ? '4mm 6mm' : '5mm 6mm',
+              padding: isHalfPage ? '3mm 5mm' : isLandscape ? '4mm 6mm' : '5mm 6mm',
               boxSizing: 'border-box',
               overflow: 'hidden',
               backgroundColor: '#ffffff',
@@ -307,7 +317,6 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   />
                 </div>
 
-                {/* Scissor Cut Line */}
                 {showCutLine && (
                   <div
                     style={{

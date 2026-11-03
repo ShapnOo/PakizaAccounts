@@ -1,4 +1,4 @@
-import React, { useRef, useState, useLayoutEffect } from 'react';
+import React from 'react';
 import type {
   TemplateId,
   VoucherPreviewData,
@@ -24,9 +24,6 @@ export const TemplateRenderer: React.FC<TemplateRendererProps> = ({
   data,
   custom,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState<number>(1);
-
   const isHalfPage = custom.pageCoverage === 'half';
 
   const {
@@ -59,46 +56,6 @@ export const TemplateRenderer: React.FC<TemplateRendererProps> = ({
   );
   const borderWeight = custom.borderWeight ?? 1;
 
-  // Responsive Auto-Fit calculation for Half Page mode
-  useLayoutEffect(() => {
-    if (!isHalfPage) {
-      setScale(1);
-      return;
-    }
-
-    const el = containerRef.current;
-    if (!el) return;
-
-    const computeScale = () => {
-      const parent = el.parentElement;
-      if (!parent) return;
-
-      const availH = parent.clientHeight;
-      const neededH = el.scrollHeight;
-
-      if (availH > 100 && neededH > availH) {
-        // Auto-scale to fit within half-page height with 2px buffer
-        const computed = Math.max(0.72, (availH - 2) / neededH);
-        setScale(computed);
-      } else {
-        setScale(1);
-      }
-    };
-
-    computeScale();
-
-    // Recheck on resize or template changes
-    const timer = setTimeout(computeScale, 50);
-    const observer = new ResizeObserver(computeScale);
-    observer.observe(el);
-    if (el.parentElement) observer.observe(el.parentElement);
-
-    return () => {
-      clearTimeout(timer);
-      observer.disconnect();
-    };
-  }, [isHalfPage, custom, data, templateId]);
-
   const renderTemplate = () => {
     switch (templateId) {
       case 'standard':
@@ -115,20 +72,7 @@ export const TemplateRenderer: React.FC<TemplateRendererProps> = ({
   };
 
   return (
-    <div
-      ref={containerRef}
-      className={`relative w-full h-full voucher-tpl-scope-${templateId} transition-transform duration-100`}
-      style={
-        isHalfPage && scale < 0.999
-          ? {
-              transform: `scale(${scale})`,
-              transformOrigin: 'top center',
-              width: `${(100 / scale).toFixed(2)}%`,
-              height: `${(100 / scale).toFixed(2)}%`,
-            }
-          : { width: '100%', height: '100%' }
-      }
-    >
+    <div className={`relative w-full h-full voucher-tpl-scope-${templateId} box-border overflow-hidden`}>
       {/* Dynamic Scoped Border Styling */}
       <style>{`
         .voucher-tpl-scope-${templateId} .template-outer-frame,
