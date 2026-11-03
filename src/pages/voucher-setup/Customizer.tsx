@@ -96,6 +96,13 @@ export const VoucherSetupCustomizerPage: React.FC = () => {
     }
   };
 
+  const handlePrint = () => {
+    document.body.classList.add('voucher-print-active');
+    setTimeout(() => {
+      window.print();
+    }, 50);
+  };
+
   const handleCancel = () => {
     navigate('/voucher-setup');
   };
@@ -122,6 +129,7 @@ export const VoucherSetupCustomizerPage: React.FC = () => {
           isDirty={isDirty}
           onReset={handleReset}
           onSave={handleSave}
+          onPrint={handlePrint}
           saving={saving}
         />
 
@@ -167,9 +175,9 @@ export const VoucherSetupCustomizerPage: React.FC = () => {
 
         {/* Main Workspace Panels */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-          {/* Panel A: Template Picker (~220px on desktop) */}
+          {/* Panel A: Template Picker (~220px on desktop, sticky) */}
           <div
-            className={`lg:col-span-3 xl:col-span-2 bg-white rounded-xl border border-slate-200 p-4 shadow-2xs ${
+            className={`lg:col-span-3 xl:col-span-2 bg-white rounded-xl border border-slate-200 p-4 shadow-2xs lg:sticky lg:top-4 lg:self-start ${
               mobileTab !== 'template' ? 'hidden lg:block' : ''
             }`}
           >
@@ -194,10 +202,10 @@ export const VoucherSetupCustomizerPage: React.FC = () => {
             />
           </div>
 
-          {/* Panel C: Live Preview Paper Canvas (flexible, ≥500px) */}
+          {/* Panel C: Live Preview Paper Canvas (flexible, ≥500px, Sticky Floating) */}
           <div
-            className={`lg:col-span-5 xl:col-span-7 bg-white rounded-xl border border-slate-200 p-4 shadow-2xs ${
-              mobileTab !== 'preview' ? 'hidden lg:block' : ''
+            className={`lg:col-span-5 xl:col-span-7 bg-white rounded-xl border border-slate-200 p-4 shadow-2xs lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] flex flex-col ${
+              mobileTab !== 'preview' ? 'hidden lg:flex' : 'flex'
             }`}
           >
             <PreviewPanel

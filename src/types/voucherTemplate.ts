@@ -1,9 +1,24 @@
 export type VoucherType = 'Journal' | 'Payment' | 'Receive' | 'Contra';
 export type TemplateId = 'standard' | 'minimal' | 'cleanGrid' | 'framedLedger';
 
+export type PageCoverage = 'full' | 'half';
+export type HalfPageOption = 'single' | 'duplicate';
+
+export type WatermarkSource =
+  | 'none'
+  | 'groupName'
+  | 'companyName'
+  | 'companyShortName'
+  | 'approvalStatus'
+  | 'voucherName'
+  | 'custom';
+
 export type TemplateCustomization = {
   paperSize: 'A4' | 'A5' | 'Letter' | 'Legal';
   orientation: 'Portrait' | 'Landscape';
+  pageCoverage?: PageCoverage;
+  halfPageOption?: HalfPageOption;
+  showCutLine?: boolean;
   margin: { top: number; bottom: number; left: number; right: number };
   fontFamily: string;
   fontSize: number;
@@ -23,7 +38,60 @@ export type TemplateCustomization = {
   showAuxRow?: boolean;
   zebraStripes?: boolean;
   visibleColumns?: Record<string, boolean>;
+  borderColor?: string;
+  borderWeight?: number;
+  borderOpacity?: number;
+  watermarkSource?: WatermarkSource;
+  watermarkCustomText?: string;
+  watermarkText?: string;
+  watermarkPlacement?: 'table' | 'full';
+  watermarkOpacity?: number;
 };
+
+export function resolveWatermarkText(
+  source: WatermarkSource | undefined,
+  customText: string | undefined,
+  companyName: string = 'Pakiza Software Ltd.',
+  voucherType: string = 'Journal'
+): string {
+  if (!source || source === 'none') {
+    return customText || '';
+  }
+  switch (source) {
+    case 'groupName':
+      return 'PAKIZA GROUP';
+    case 'companyName':
+      return companyName.toUpperCase();
+    case 'companyShortName':
+      return 'PSL';
+    case 'approvalStatus':
+      return 'APPROVED';
+    case 'voucherName':
+      return `${voucherType.toUpperCase()} VOUCHER`;
+    case 'custom':
+      return customText || '';
+    default:
+      return customText || '';
+  }
+}
+
+export function resolveBorderColor(
+  color: string = '#000000',
+  opacity: number = 1.0
+): string {
+  if (opacity >= 0.99) return color;
+  if (color.startsWith('#')) {
+    let hex = color.slice(1);
+    if (hex.length === 3) {
+      hex = hex.split('').map((c) => c + c).join('');
+    }
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, opacity))})`;
+  }
+  return color;
+}
 
 export interface ColumnDefinition {
   id: string;
@@ -208,11 +276,17 @@ export const FONT_FAMILIES = [
 export const DEFAULT_CUSTOMIZATION: TemplateCustomization = {
   paperSize: 'A4',
   orientation: 'Portrait',
+  pageCoverage: 'full',
+  halfPageOption: 'single',
+  showCutLine: true,
   margin: { top: 0.08, bottom: 0.08, left: 0.04, right: 0.04 },
   fontFamily: 'Inter',
   fontSize: 9,
   primaryColor: '#0f172a',
   accentColor: '#1e40af',
+  borderColor: '#000000',
+  borderWeight: 1,
+  borderOpacity: 1.0,
   companyLogo: '/company_logo.png',
   showCompanyHeader: true,
   showNarration: true,

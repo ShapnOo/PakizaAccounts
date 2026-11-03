@@ -6,6 +6,7 @@ interface AuxDimensionsRowProps {
   colSpan?: number;
   isGrid?: boolean;
   visibleColumns?: Record<string, boolean>;
+  compact?: boolean;
 }
 
 export const AuxDimensionsRow: React.FC<AuxDimensionsRowProps> = ({
@@ -13,6 +14,7 @@ export const AuxDimensionsRow: React.FC<AuxDimensionsRowProps> = ({
   colSpan = 8,
   isGrid = false,
   visibleColumns,
+  compact = false,
 }) => {
   const isFieldVisible = (id: string) => {
     if (!visibleColumns) return true;
@@ -36,7 +38,7 @@ export const AuxDimensionsRow: React.FC<AuxDimensionsRowProps> = ({
 
   return (
     <tr
-      className={`text-[8.5px] ${
+      className={`${compact ? 'text-[7.5px]' : 'text-[8.5px]'} ${
         isGrid
           ? 'bg-slate-50/60 border-b border-slate-300'
           : 'border-b border-slate-200 text-slate-500'
@@ -44,14 +46,18 @@ export const AuxDimensionsRow: React.FC<AuxDimensionsRowProps> = ({
     >
       <td
         colSpan={colSpan}
-        className={`py-1 px-3 ${isGrid ? 'border-l border-r border-b border-slate-300' : ''}`}
+        className={`${compact ? 'py-0.5 px-1.5' : 'py-1 px-3'} ${
+          isGrid ? 'border-l border-r border-b border-slate-300' : ''
+        }`}
       >
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-0.5">
+        <div className={`flex flex-wrap items-center ${compact ? 'gap-x-3 gap-y-0.5' : 'gap-x-6 gap-y-0.5'}`}>
           {items.map((it) => (
-            <span key={it.id} className="inline-flex items-center gap-1.5">
-              <span className="text-slate-600 font-medium">{it.label}:</span>
-              <span className="text-slate-800">{it.val ? it.val : '–'}</span>
-            </span>
+            <div key={it.id} className="flex items-center gap-1">
+              <span className="font-semibold text-slate-700">{it.label}:</span>
+              <span className="text-slate-900 font-normal">
+                {it.val ? it.val : '—'}
+              </span>
+            </div>
           ))}
         </div>
       </td>

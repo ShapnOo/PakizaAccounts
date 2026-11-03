@@ -1,13 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import type { VoucherType } from '../../types/voucherTemplate';
-import { ChevronRight, RotateCcw, Save, ArrowLeft } from 'lucide-react';
+import { ChevronRight, RotateCcw, Save, ArrowLeft, Printer } from 'lucide-react';
 
 interface CustomizerHeaderProps {
   voucherType: VoucherType;
   isDirty: boolean;
   onReset: () => void;
   onSave: () => void;
+  onPrint?: () => void;
   saving?: boolean;
 }
 
@@ -16,6 +17,7 @@ export const CustomizerHeader: React.FC<CustomizerHeaderProps> = ({
   isDirty,
   onReset,
   onSave,
+  onPrint,
   saving = false,
 }) => {
   return (
@@ -33,6 +35,17 @@ export const CustomizerHeader: React.FC<CustomizerHeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-2.5">
+        {onPrint && (
+          <button
+            type="button"
+            onClick={onPrint}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-[13px] font-medium shadow-2xs transition-all cursor-pointer"
+          >
+            <Printer className="size-3.5 text-slate-500" />
+            <span>Print A4</span>
+          </button>
+        )}
+
         <button
           type="button"
           onClick={onReset}
@@ -59,4 +72,5 @@ export const CustomizerHeader: React.FC<CustomizerHeaderProps> = ({
     </div>
   );
 };
+
 

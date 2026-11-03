@@ -10,6 +10,7 @@ import { CompanySection } from './CompanySection';
 import { SectionsToggles } from './SectionsToggles';
 import { TemplateSpecificToggles } from './TemplateSpecificToggles';
 import { ColumnsVisibilitySection } from './ColumnsVisibilitySection';
+import { WatermarkSection } from './WatermarkSection';
 import {
   FileText,
   Type,
@@ -18,6 +19,7 @@ import {
   Sliders,
   Sparkles,
   Columns3,
+  Stamp,
   ChevronDown,
   RotateCcw,
 } from 'lucide-react';
@@ -39,8 +41,9 @@ export const CustomizationControls: React.FC<CustomizationControlsProps> = ({
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     columns: true,
     paper: true,
-    typography: true,
+    typography: false,
     colors: false,
+    watermark: false,
     company: false,
     sections: false,
     templateSpecific: true,
@@ -81,10 +84,18 @@ export const CustomizationControls: React.FC<CustomizationControlsProps> = ({
     },
     {
       key: 'colors',
-      title: 'Colors & Branding',
+      title: 'Colors & Borders',
       icon: <Palette className="size-4 text-indigo-500" />,
       component: (
         <ColorsSection customization={customization} onChange={onChange} />
+      ),
+    },
+    {
+      key: 'watermark',
+      title: 'Background Watermark',
+      icon: <Stamp className="size-4 text-indigo-500" />,
+      component: (
+        <WatermarkSection customization={customization} onChange={onChange} />
       ),
     },
     {

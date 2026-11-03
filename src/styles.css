@@ -287,24 +287,69 @@ input[type="number"] {
 
 /* ── Print Media Optimizations for Voucher Designer ── */
 @media print {
-  @page {
-    margin: 0;
-  }
-
+  html,
   body {
     background: #ffffff !important;
     color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
+  /* Force background colors, borders, and text colors on all elements */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    text-shadow: none !important;
+  }
+
+  /* When voucher print is active, completely hide React screen UI */
+  body.voucher-print-active #root {
+    display: none !important;
+  }
+
+  /* Show only the voucher print portal */
+  body.voucher-print-active #voucher-print-portal {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .voucher-print-sheet {
+    box-sizing: border-box !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    overflow: hidden !important;
+    margin: 0 auto !important;
+  }
+
+  /* Universal fallback: hide UI Chrome if printed without portal */
   header,
   nav,
   aside,
+  footer,
   button,
   .no-print,
   [role="banner"],
-  [role="navigation"] {
+  [role="navigation"],
+  [role="dialog"],
+  [data-sonner-toaster] {
     display: none !important;
   }
 
@@ -314,6 +359,6 @@ input[type="number"] {
     margin: 0 auto !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+    transform: none !important;
   }
 }
-
