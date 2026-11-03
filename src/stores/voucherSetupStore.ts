@@ -5,12 +5,14 @@ import type {
   TemplateCustomization,
   TemplateSetup,
 } from '../types/voucherTemplate';
+import { VOUCHER_TYPES } from '../types/voucherTemplate';
 import {
   DEFAULT_SETUPS,
 } from '../mock/voucherPreviewData';
 import {
   listSetups,
   saveSetup,
+  saveAllSetups,
   resetAllSetups,
 } from '../services/voucherTemplateService';
 
@@ -28,6 +30,7 @@ export interface VoucherSetupStore {
   resetCustomization: (vt: VoucherType) => void;
   resetAllToDefaults: () => Promise<void>;
   save: (vt: VoucherType) => Promise<void>;
+  applyToAll: (sourceVt: VoucherType) => Promise<void>;
 }
 
 export const useVoucherSetupStore = create<VoucherSetupStore>((set, get) => ({
@@ -140,6 +143,29 @@ export const useVoucherSetupStore = create<VoucherSetupStore>((set, get) => ({
     set({ loading: true });
     await saveSetup(current);
     set({
+      loading: false,
+      dirtyVoucherType: null,
+    });
+  },
+
+  applyToAll: async (sourceVt: VoucherType) => {
+    const source = get().setups[sourceVt] || DEFAULT_SETUPS[sourceVt];
+    const newSetups: Record<VoucherType, TemplateSetup> = { ...get().setups };
+
+    VOUCHER_TYPES.forEach((vt) => {
+      newSetups[vt] = {
+        voucherType: vt,
+        templateId: source.templateId,
+        customization: {
+          ...source.customization,
+        },
+      };
+    });
+
+    set({ loading: true });
+    await saveAllSetups(newSetups);
+    set({
+      setups: newSetups,
       loading: false,
       dirtyVoucherType: null,
     });

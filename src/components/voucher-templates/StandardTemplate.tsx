@@ -54,7 +54,9 @@ export const StandardTemplate: React.FC<StandardTemplateProps> = ({
 
   return (
     <div
-      className={`template-outer-frame w-full h-full border ${
+      className={`template-outer-frame w-full h-full ${
+        custom.showOuterBorder ? 'border' : ''
+      } ${
         isHalfPage ? 'p-2 sm:p-2.5' : 'p-3 sm:p-4'
       } flex flex-col justify-between bg-white box-border`}
       style={{
@@ -114,7 +116,7 @@ export const StandardTemplate: React.FC<StandardTemplateProps> = ({
 
         {/* 3. Table (Single-Row with Gray Header & Full Grid Borders) */}
         <div className="overflow-x-auto mb-2">
-          <table className="w-full text-[8.5px] sm:text-[9px] border-collapse border border-black">
+          <table className="w-full text-[8.5px] sm:text-[9px] border-collapse border border-black voucher-table">
             <thead>
               <tr className="bg-slate-300 text-black font-bold">
                 {isVisible('accountsHead') && (

@@ -25,7 +25,6 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   const [zoom, setZoom] = useState<number>(1.0);
   const [debouncedCustom, setDebouncedCustom] =
     useState<TemplateCustomization>(customization);
-  const [isHovered, setIsHovered] = useState<boolean>(false);
 
   // 80ms debounce on customization changes
   useEffect(() => {
@@ -41,7 +40,6 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
 
   const isHalfPage = debouncedCustom.pageCoverage === 'half';
   const halfOption = debouncedCustom.halfPageOption || 'single';
-  const showCutLine = debouncedCustom.showCutLine ?? true;
 
   // Exact physical print millimeter dimensions
   const pageWidthMm = isLandscape ? paperInfo.h : paperInfo.w;
@@ -106,8 +104,6 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         >
           {/* Paper Canvas for on-screen inspection */}
           <div
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
             className="bg-white shadow-xl ring-1 ring-slate-200 relative transition-all box-border"
             style={{
               width: `${widthPx}px`,
@@ -117,14 +113,6 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
               boxSizing: 'border-box',
             }}
           >
-            {/* Hover Margin Guides */}
-            {isHovered && (
-              <div
-                className="absolute pointer-events-none border border-dashed border-indigo-400/50 transition-opacity z-20"
-                style={{ inset: canvasPadding }}
-              />
-            )}
-
             {/* Template Render Content */}
             {!isHalfPage ? (
               <div className="w-full h-full flex flex-col justify-between box-border">
@@ -137,7 +125,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             ) : halfOption === 'duplicate' ? (
               /* Half Page: 2 Vouchers on 1 Sheet (2-in-1) */
               <div className="w-full h-full flex flex-col justify-between box-border">
-                <div className="w-full h-[calc(50%-8px)] flex flex-col justify-between box-border">
+                <div className="w-full h-1/2 flex flex-col justify-between box-border pb-1">
                   <TemplateRenderer
                     templateId={templateId}
                     data={previewData}
@@ -145,17 +133,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   />
                 </div>
 
-                {showCutLine && (
-                  <div className="w-full py-1 flex items-center gap-2 select-none shrink-0">
-                    <div className="flex-1 border-b border-dashed border-slate-300" />
-                    <span className="text-[9.5px] text-slate-400 font-semibold flex items-center gap-1">
-                      <Scissors className="size-3 text-slate-400" /> Cut along line
-                    </span>
-                    <div className="flex-1 border-b border-dashed border-slate-300" />
-                  </div>
-                )}
-
-                <div className="w-full h-[calc(50%-8px)] flex flex-col justify-between box-border">
+                <div className="w-full h-1/2 flex flex-col justify-between box-border pt-1">
                   <TemplateRenderer
                     templateId={templateId}
                     data={previewData}
@@ -166,7 +144,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             ) : (
               /* Half Page: Single Copy (Top Half) */
               <div className="w-full h-full flex flex-col justify-between box-border">
-                <div className="w-full h-[calc(50%-8px)] flex flex-col justify-between box-border">
+                <div className="w-full h-1/2 flex flex-col justify-between box-border pb-1">
                   <TemplateRenderer
                     templateId={templateId}
                     data={previewData}
@@ -174,17 +152,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   />
                 </div>
 
-                {showCutLine && (
-                  <div className="w-full py-1 flex items-center gap-2 select-none shrink-0">
-                    <div className="flex-1 border-b border-dashed border-slate-300" />
-                    <span className="text-[9.5px] text-slate-400 font-semibold flex items-center gap-1">
-                      <Scissors className="size-3 text-slate-400" /> Half Page Cut Line
-                    </span>
-                    <div className="flex-1 border-b border-dashed border-slate-300" />
-                  </div>
-                )}
-
-                <div className="w-full h-[calc(50%-8px)] rounded-lg border border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center text-slate-400 text-[11px] select-none gap-0.5">
+                <div className="w-full h-1/2 rounded-lg bg-slate-50/60 flex flex-col items-center justify-center text-slate-400 text-[11px] select-none gap-0.5">
                   <span className="font-semibold text-slate-400">Lower Half Sheet</span>
                   <span className="text-[10px] text-slate-400">
                     Blank for paper cutting or A5 feeding
@@ -246,12 +214,13 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 {/* Top Voucher */}
                 <div
                   style={{
-                    height: showCutLine ? 'calc(50% - 3mm)' : '50%',
+                    height: '50%',
                     overflow: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
                     boxSizing: 'border-box',
+                    paddingBottom: '2mm',
                   }}
                 >
                   <TemplateRenderer
@@ -261,33 +230,16 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   />
                 </div>
 
-                {/* Scissor Cut Line */}
-                {showCutLine && (
-                  <div
-                    style={{
-                      height: '6mm',
-                      borderBottom: '1px dashed #94a3b8',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '8pt',
-                      color: '#94a3b8',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    ✄ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                  </div>
-                )}
-
                 {/* Bottom Duplicate Voucher */}
                 <div
                   style={{
-                    height: showCutLine ? 'calc(50% - 3mm)' : '50%',
+                    height: '50%',
                     overflow: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
                     boxSizing: 'border-box',
+                    paddingTop: '2mm',
                   }}
                 >
                   <TemplateRenderer
@@ -302,7 +254,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 {/* Single Top Half Voucher */}
                 <div
                   style={{
-                    height: showCutLine ? 'calc(50% - 3mm)' : '50%',
+                    height: '50%',
                     overflow: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
@@ -317,25 +269,8 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   />
                 </div>
 
-                {showCutLine && (
-                  <div
-                    style={{
-                      height: '6mm',
-                      borderBottom: '1px dashed #94a3b8',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '8pt',
-                      color: '#94a3b8',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    ✄ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                  </div>
-                )}
-
                 {/* Blank lower half */}
-                <div style={{ height: 'calc(50% - 3mm)' }} />
+                <div style={{ height: '50%' }} />
               </div>
             )}
           </div>

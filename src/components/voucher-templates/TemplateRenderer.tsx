@@ -75,15 +75,50 @@ export const TemplateRenderer: React.FC<TemplateRendererProps> = ({
     <div className={`relative w-full h-full voucher-tpl-scope-${templateId} box-border overflow-hidden`}>
       {/* Dynamic Scoped Border Styling */}
       <style>{`
+        ${
+          custom.showOuterBorder
+            ? `
         .voucher-tpl-scope-${templateId} .template-outer-frame,
         .voucher-tpl-scope-${templateId} > div > .template-outer-frame,
         .voucher-tpl-scope-${templateId} > .template-outer-frame {
           border-color: ${effectiveBorderColor} !important;
           border-width: ${borderWeight}px !important;
+          border-style: solid !important;
         }
-        .voucher-tpl-scope-${templateId} table,
-        .voucher-tpl-scope-${templateId} th,
-        .voucher-tpl-scope-${templateId} td,
+        `
+            : `
+        .voucher-tpl-scope-${templateId} .template-outer-frame,
+        .voucher-tpl-scope-${templateId} > div > .template-outer-frame,
+        .voucher-tpl-scope-${templateId} > .template-outer-frame {
+          border: none !important;
+          border-width: 0 !important;
+        }
+        `
+        }
+        ${
+          custom.showTableBorder !== false
+            ? `
+        .voucher-tpl-scope-${templateId} table.voucher-table,
+        .voucher-tpl-scope-${templateId} .voucher-table {
+          border-color: ${effectiveBorderColor} !important;
+          border-width: ${borderWeight}px !important;
+          border-style: solid !important;
+        }
+        .voucher-tpl-scope-${templateId} .voucher-table > thead > tr {
+          border-bottom-color: ${effectiveBorderColor} !important;
+          border-bottom-width: ${borderWeight}px !important;
+          border-bottom-style: solid !important;
+        }
+        `
+            : `
+        .voucher-tpl-scope-${templateId} table.voucher-table,
+        .voucher-tpl-scope-${templateId} .voucher-table {
+          border: none !important;
+        }
+        `
+        }
+        .voucher-tpl-scope-${templateId} .voucher-table th,
+        .voucher-tpl-scope-${templateId} .voucher-table td,
         .voucher-tpl-scope-${templateId} .border-black,
         .voucher-tpl-scope-${templateId} .border-slate-300,
         .voucher-tpl-scope-${templateId} .border-slate-400 {

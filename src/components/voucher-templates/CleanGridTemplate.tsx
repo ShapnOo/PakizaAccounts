@@ -27,6 +27,7 @@ export const CleanGridTemplate: React.FC<CleanGridTemplateProps> = ({
     showBalanceIndicator = true,
     showLineDescription = true,
     showAuxRow = true,
+    showDifferenceRow = true,
     primaryColor = '#0f172a',
     accentColor = '#1e40af',
     companyLogo = custom.companyLogo || companyLogoImg || '/company_logo.png',
@@ -61,7 +62,9 @@ export const CleanGridTemplate: React.FC<CleanGridTemplateProps> = ({
 
   return (
     <div
-      className={`template-outer-frame w-full h-full border ${
+      className={`template-outer-frame w-full h-full ${
+        custom.showOuterBorder ? 'border' : ''
+      } ${
         isHalfPage ? 'p-2 sm:p-2.5' : 'p-3 sm:p-4'
       } flex flex-col justify-between bg-white box-border`}
       style={{
@@ -134,7 +137,7 @@ export const CleanGridTemplate: React.FC<CleanGridTemplateProps> = ({
 
         {/* 4. Table (Full Grid Borders with Navy Header & White Text) */}
         <div className={isHalfPage ? 'mb-1' : 'mb-2'}>
-          <table className={`w-full ${isHalfPage ? 'text-[8px]' : 'text-[8.5px] sm:text-[9px]'} border-collapse border border-slate-300`}>
+          <table className={`w-full ${isHalfPage ? 'text-[8px]' : 'text-[8.5px] sm:text-[9px]'} border-collapse border border-slate-300 voucher-table`}>
             <thead>
               <tr
                 className="text-white font-bold text-left"
@@ -277,20 +280,56 @@ export const CleanGridTemplate: React.FC<CleanGridTemplateProps> = ({
               )}
             </div>
 
-            {/* Right Side: Grand Total (BDT) */}
-            <div className={`col-span-5 flex flex-col justify-end ${isHalfPage ? 'pt-0.5' : 'pt-3 sm:pt-4'}`}>
-              <div className={`border border-slate-300 bg-slate-50/60 ${isHalfPage ? 'py-0.5 px-1.5 text-[8px]' : 'py-0.5 sm:py-1 px-2 text-[9px] sm:text-[9.5px]'} flex items-center justify-between`}>
-                <span className="font-bold text-slate-900 uppercase">
-                  GRAND TOTAL (BDT)
-                </span>
-                <div className="flex gap-2 sm:gap-4 font-bold tabular-nums text-slate-900">
-                  {showColDebitBDT && (
-                    <span>{formatCurrency(data.totals.debitBDT, 'BDT')}</span>
-                  )}
-                  {showColCreditBDT && (
-                    <span>{formatCurrency(data.totals.creditBDT, 'BDT')}</span>
+            {/* Right Side: Grand Total (BDT) Table */}
+            <div className={showCurrencySummary ? 'col-span-5' : 'col-span-6 ml-auto'}>
+              <div>
+                <div className="mb-0.5">
+                  <span className={`${isHalfPage ? 'text-[7.5px]' : 'text-[8.5px]'} font-bold uppercase tracking-wider text-slate-700`}>
+                    GRAND TOTAL (BDT)
+                  </span>
+                  {!isHalfPage && (
+                    <p className="text-[7.5px] text-slate-400 italic">
+                      Total equivalent amount in base currency (BDT).
+                    </p>
                   )}
                 </div>
+
+                <table className={`w-full ${isHalfPage ? 'text-[7.5px]' : 'text-[8px] sm:text-[8.5px]'} border-collapse border border-slate-300 mt-0.5`}>
+                  <thead>
+                    <tr className="bg-slate-100 text-slate-600 font-semibold">
+                      <th className="py-0.5 px-1.5 text-left border border-slate-300">Summary</th>
+                      {showColDebitBDT && (
+                        <th className="py-0.5 px-1.5 text-right border border-slate-300">Debit (BDT)</th>
+                      )}
+                      {showColCreditBDT && (
+                        <th className="py-0.5 px-1.5 text-right border border-slate-300">Credit (BDT)</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="font-bold text-slate-900 bg-slate-50/60">
+                      <td className="py-0.5 px-1.5 border border-slate-300 uppercase">Grand Total</td>
+                      {showColDebitBDT && (
+                        <td className="py-0.5 px-1.5 text-right tabular-nums border border-slate-300">
+                          {formatCurrency(data.totals.debitBDT, 'BDT')}
+                        </td>
+                      )}
+                      {showColCreditBDT && (
+                        <td className="py-0.5 px-1.5 text-right tabular-nums border border-slate-300">
+                          {formatCurrency(data.totals.creditBDT, 'BDT')}
+                        </td>
+                      )}
+                    </tr>
+                    {showDifferenceRow && !data.totals.isBalanced && (
+                      <tr className="font-bold text-red-600 bg-red-50/50">
+                        <td className="py-0.5 px-1.5 border border-slate-300 uppercase">Difference</td>
+                        <td colSpan={2} className="py-0.5 px-1.5 text-right tabular-nums border border-slate-300">
+                          {formatCurrency(data.totals.difference, 'BDT')}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

@@ -16,6 +16,8 @@ export const customizationSchema = z.object({
   fontSize: z.number().int().min(8).max(12),
   primaryColor: z.string().regex(/^#([0-9a-f]{3}){1,2}$/i),
   accentColor: z.string().regex(/^#([0-9a-f]{3}){1,2}$/i),
+  showOuterBorder: z.boolean().optional(),
+  showTableBorder: z.boolean().optional(),
   borderColor: z.string().optional(),
   borderWeight: z.number().min(0.2).max(10).optional(),
   borderOpacity: z.number().min(0).max(1).optional(),

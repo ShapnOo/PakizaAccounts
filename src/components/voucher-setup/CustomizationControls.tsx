@@ -3,6 +3,7 @@ import type {
   TemplateId,
   TemplateCustomization,
 } from '../../types/voucherTemplate';
+import { TEMPLATE_INFO } from '../../types/voucherTemplate';
 import { PaperSection } from './PaperSection';
 import { TypographySection } from './TypographySection';
 import { ColorsSection } from './ColorsSection';
@@ -22,12 +23,21 @@ import {
   Stamp,
   ChevronDown,
   RotateCcw,
+  LayoutGrid,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const TEMPLATES: TemplateId[] = [
+  'standard',
+  'minimal',
+  'cleanGrid',
+  'framedLedger',
+];
 
 interface CustomizationControlsProps {
   templateId: TemplateId;
   customization: TemplateCustomization;
+  onSelectTemplate: (tid: TemplateId) => void;
   onChange: (patch: Partial<TemplateCustomization>) => void;
   onResetTemplate: () => void;
 }
@@ -35,9 +45,11 @@ interface CustomizationControlsProps {
 export const CustomizationControls: React.FC<CustomizationControlsProps> = ({
   templateId,
   customization,
+  onSelectTemplate,
   onChange,
   onResetTemplate,
 }) => {
+  const [isTemplateSectionOpen, setIsTemplateSectionOpen] = useState(true);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     columns: true,
     paper: true,
@@ -51,6 +63,17 @@ export const CustomizationControls: React.FC<CustomizationControlsProps> = ({
 
   const toggleSection = (key: string) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const isAnySectionOpen = Object.values(openSections).some(Boolean);
+
+  const handleToggleAllSections = () => {
+    const nextState = !isAnySectionOpen;
+    const updated: Record<string, boolean> = {};
+    sections.forEach((sec) => {
+      updated[sec.key] = nextState;
+    });
+    setOpenSections(updated);
   };
 
   const sections = [
@@ -130,13 +153,84 @@ export const CustomizationControls: React.FC<CustomizationControlsProps> = ({
 
   return (
     <div className="space-y-3 font-sans">
-      <div className="pb-1">
-        <h3 className="text-[13px] font-bold text-slate-800 uppercase tracking-wide">
-          Customization Controls
-        </h3>
-        <p className="text-[12px] text-slate-500">
-          Visual styling for the active template
-        </p>
+      {/* ── Compact Template Selector (Collapsible with Chevron) ── */}
+      <div className="space-y-1.5 pb-2.5 border-b border-slate-100">
+        <button
+          type="button"
+          onClick={() => setIsTemplateSectionOpen((prev) => !prev)}
+          className="w-full flex items-center justify-between cursor-pointer select-none group text-left"
+        >
+          <div className="flex items-center gap-1.5">
+            <LayoutGrid className="size-3.5 text-indigo-600" />
+            <span className="text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+              Print Template
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
+              {TEMPLATE_INFO[templateId]?.label || templateId}
+            </span>
+            <ChevronDown
+              className={`size-4 text-slate-400 transition-transform duration-200 group-hover:text-slate-600 ${
+                isTemplateSectionOpen ? 'rotate-180' : ''
+              }`}
+            />
+          </div>
+        </button>
+
+        <AnimatePresence initial={false}>
+          {isTemplateSectionOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="overflow-hidden pt-1"
+            >
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                {TEMPLATES.map((tid) => {
+                  const isSelected = templateId === tid;
+                  const info = TEMPLATE_INFO[tid];
+                  return (
+                    <button
+                      key={tid}
+                      type="button"
+                      onClick={() => onSelectTemplate(tid)}
+                      className={`py-1.5 px-2 rounded-lg border text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 select-none ${
+                        isSelected
+                          ? 'bg-indigo-50 border-indigo-600 text-indigo-700 font-bold shadow-2xs ring-1 ring-indigo-600'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-medium'
+                      }`}
+                    >
+                      {isSelected && (
+                        <span className="size-1.5 rounded-full bg-indigo-600 shrink-0" />
+                      )}
+                      <span className="text-[12px] truncate">{info.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <div className="flex items-center justify-between pb-0.5">
+        <div>
+          <h3 className="text-[12px] font-bold text-slate-700 uppercase tracking-wide">
+            Customization Controls
+          </h3>
+          <p className="text-[11.5px] text-slate-500">
+            Visual styling for the active template
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleToggleAllSections}
+          className="text-[11px] text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer"
+        >
+          {isAnySectionOpen ? 'Collapse All' : 'Expand All'}
+        </button>
       </div>
 
       <div className="space-y-2">

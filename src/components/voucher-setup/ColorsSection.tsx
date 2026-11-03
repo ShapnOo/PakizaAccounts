@@ -99,7 +99,7 @@ export const ColorsSection: React.FC<ColorsSectionProps> = ({
         <div className="flex items-center justify-between">
           <label className="text-[12px] font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
             <Square className="size-3.5 text-indigo-600" />
-            <span>Border & Frame Styling</span>
+            <span>Table Border & Styling</span>
           </label>
 
           {/* Live sample chip */}
@@ -227,6 +227,28 @@ export const ColorsSection: React.FC<ColorsSectionProps> = ({
               );
             })}
           </div>
+        </div>
+        {/* Table Border Toggle */}
+        <div className="space-y-1.5 pt-2 border-t border-slate-100">
+          <label className="flex items-center justify-between text-[11.5px] text-slate-700 cursor-pointer">
+            <span className="font-medium">Show Table Border (Line Items Box)</span>
+            <input
+              type="checkbox"
+              checked={customization.showTableBorder !== false}
+              onChange={(e) => onChange({ showTableBorder: e.target.checked })}
+              className="size-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+            />
+          </label>
+
+          <label className="flex items-center justify-between text-[11.5px] text-slate-500 cursor-pointer">
+            <span>Show Page Outer Border (4 Sides of Page)</span>
+            <input
+              type="checkbox"
+              checked={Boolean(customization.showOuterBorder)}
+              onChange={(e) => onChange({ showOuterBorder: e.target.checked })}
+              className="size-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+            />
+          </label>
         </div>
       </div>
     </div>

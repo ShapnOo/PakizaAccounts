@@ -36,6 +36,13 @@ export async function saveSetup(setup: TemplateSetup): Promise<void> {
   localStorage.setItem(LS_SETUPS, JSON.stringify(all));
 }
 
+export async function saveAllSetups(
+  setups: Record<VoucherType, TemplateSetup>
+): Promise<void> {
+  await delay(400);
+  localStorage.setItem(LS_SETUPS, JSON.stringify(setups));
+}
+
 export async function resetAllSetups(): Promise<Record<VoucherType, TemplateSetup>> {
   await delay(300);
   localStorage.removeItem(LS_SETUPS);

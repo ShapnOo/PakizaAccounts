@@ -26,6 +26,7 @@ export const FramedLedgerTemplate: React.FC<FramedLedgerTemplateProps> = ({
     showBalanceIndicator = true,
     showLineDescription = true,
     showAuxRow = true,
+    showDifferenceRow = true,
     zebraStripes = true,
     primaryColor = '#0f172a',
     accentColor = '#1e40af',
@@ -50,7 +51,9 @@ export const FramedLedgerTemplate: React.FC<FramedLedgerTemplateProps> = ({
 
   return (
     <div
-      className={`template-outer-frame w-full h-full border ${
+      className={`template-outer-frame w-full h-full ${
+        custom.showOuterBorder ? 'border' : ''
+      } ${
         isHalfPage ? 'p-2 sm:p-2.5' : 'p-3 sm:p-4'
       } flex flex-col justify-between bg-white box-border`}
       style={{
@@ -121,7 +124,7 @@ export const FramedLedgerTemplate: React.FC<FramedLedgerTemplateProps> = ({
 
         {/* 3. Table (Ledger Style with Double-Rule & Paired Row Striping) */}
         <div className="mb-2">
-          <table className="w-full text-[8.5px] sm:text-[9px] border-collapse border border-slate-300">
+          <table className="w-full text-[8.5px] sm:text-[9px] border-collapse border border-slate-300 voucher-table">
             <thead>
               <tr className="border-t-2 border-b-2 border-slate-700 bg-slate-100 text-slate-800 font-bold text-left">
                 <th className="py-0.5 sm:py-1 px-1 border-r border-slate-300">Accounts Head</th>

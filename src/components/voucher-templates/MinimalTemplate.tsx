@@ -27,6 +27,7 @@ export const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
     showBalanceIndicator = true,
     showLineDescription = true,
     showAuxRow = true,
+    showDifferenceRow = true,
     primaryColor = '#0f172a',
     accentColor = '#1e40af',
     companyLogo = custom.companyLogo || companyLogoImg || '/company_logo.png',
@@ -61,7 +62,9 @@ export const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
 
   return (
     <div
-      className={`template-outer-frame w-full h-full border ${
+      className={`template-outer-frame w-full h-full ${
+        custom.showOuterBorder ? 'border' : ''
+      } ${
         isHalfPage ? 'p-2 sm:p-2.5' : 'p-3 sm:p-4'
       } flex flex-col justify-between bg-white box-border`}
       style={{
@@ -133,11 +136,11 @@ export const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
           </div>
         </div>
 
-        {/* 3. Table (Dual-Row, Hairline Borders) */}
+        {/* 3. Table (Dual-Row, Bordered Frame) */}
         <div className={isHalfPage ? 'mb-1' : 'mb-2'}>
-          <table className={`w-full ${isHalfPage ? 'text-[8px]' : 'text-[8.5px] sm:text-[9px]'} border-collapse`}>
+          <table className={`w-full ${isHalfPage ? 'text-[8px]' : 'text-[8.5px] sm:text-[9px]'} border-collapse border border-slate-900 voucher-table`}>
             <thead>
-              <tr className="border-y border-slate-400 text-slate-700 font-semibold text-left">
+              <tr className="border-b border-slate-900 text-slate-800 font-semibold text-left">
                 <th className={`${isHalfPage ? 'py-0.5 px-1' : 'py-0.5 sm:py-1 px-1'}`}>Accounts Head</th>
                 {showColLineDesc && (
                   <th className={`${isHalfPage ? 'py-0.5 px-1' : 'py-0.5 sm:py-1 px-1'}`}>Line Description</th>
@@ -162,7 +165,7 @@ export const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
               {data.lines.map((l) => (
                 <React.Fragment key={l.id}>
                   {/* Row 1: Amounts */}
-                  <tr className="border-b border-slate-100 hover:bg-slate-50/50">
+                  <tr className="border-b border-slate-200 hover:bg-slate-50/50">
                     <td className="py-0.5 sm:py-1 px-1 font-medium text-slate-900">
                       {l.accountsHead || '–'}
                     </td>
@@ -271,20 +274,56 @@ export const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
               )}
             </div>
 
-            {/* Right Side: Grand Total (BDT) */}
-            <div className={`col-span-5 flex flex-col justify-end ${isHalfPage ? 'pt-0.5' : 'pt-3 sm:pt-4'}`}>
-              <div className={`border-t border-b border-slate-700 ${isHalfPage ? 'py-0.5' : 'py-0.5 sm:py-1'} flex items-center justify-between text-[9px] sm:text-[9.5px]`}>
-                <span className="font-bold text-slate-900 uppercase">
-                  GRAND TOTAL (BDT)
-                </span>
-                <div className="flex gap-2 sm:gap-4 font-bold tabular-nums text-slate-900">
-                  {showColDebitBDT && (
-                    <span>{formatCurrency(data.totals.debitBDT, 'BDT')}</span>
-                  )}
-                  {showColCreditBDT && (
-                    <span>{formatCurrency(data.totals.creditBDT, 'BDT')}</span>
+            {/* Right Side: Grand Total (BDT) Table */}
+            <div className={showCurrencySummary ? 'col-span-5' : 'col-span-6 ml-auto'}>
+              <div>
+                <div className="mb-0.5">
+                  <span className={`${isHalfPage ? 'text-[7.5px]' : 'text-[8.5px]'} font-bold uppercase tracking-wider text-slate-700`}>
+                    GRAND TOTAL (BDT)
+                  </span>
+                  {!isHalfPage && (
+                    <p className="text-[7.5px] text-slate-400 italic">
+                      Total equivalent amount in base currency (BDT).
+                    </p>
                   )}
                 </div>
+
+                <table className={`w-full ${isHalfPage ? 'text-[7.5px]' : 'text-[8px] sm:text-[8.5px]'} border-collapse mt-0.5`}>
+                  <thead>
+                    <tr className="border-b border-slate-300 text-slate-500 font-medium">
+                      <th className="py-0.5 px-1 text-left">Summary</th>
+                      {showColDebitBDT && (
+                        <th className="py-0.5 px-1 text-right">Debit (BDT)</th>
+                      )}
+                      {showColCreditBDT && (
+                        <th className="py-0.5 px-1 text-right">Credit (BDT)</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-slate-900 font-bold text-slate-900">
+                      <td className="py-0.5 px-1 uppercase">Grand Total</td>
+                      {showColDebitBDT && (
+                        <td className="py-0.5 px-1 text-right tabular-nums">
+                          {formatCurrency(data.totals.debitBDT, 'BDT')}
+                        </td>
+                      )}
+                      {showColCreditBDT && (
+                        <td className="py-0.5 px-1 text-right tabular-nums">
+                          {formatCurrency(data.totals.creditBDT, 'BDT')}
+                        </td>
+                      )}
+                    </tr>
+                    {showDifferenceRow && !data.totals.isBalanced && (
+                      <tr className="border-b border-red-300 font-bold text-red-600">
+                        <td className="py-0.5 px-1 uppercase">Difference</td>
+                        <td colSpan={2} className="py-0.5 px-1 text-right tabular-nums">
+                          {formatCurrency(data.totals.difference, 'BDT')}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

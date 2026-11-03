@@ -4,7 +4,7 @@ import type {
   PageCoverage,
   HalfPageOption,
 } from '../../types/voucherTemplate';
-import { Maximize2, Split, Scissors, Copy } from 'lucide-react';
+import { Maximize2, Split, Copy } from 'lucide-react';
 
 interface PaperSectionProps {
   customization: TemplateCustomization;
@@ -17,7 +17,6 @@ export const PaperSection: React.FC<PaperSectionProps> = ({
 }) => {
   const pageCoverage: PageCoverage = customization.pageCoverage || 'full';
   const halfPageOption: HalfPageOption = customization.halfPageOption || 'single';
-  const showCutLine = customization.showCutLine ?? true;
 
   return (
     <div className="space-y-3 font-sans text-[13px]">
@@ -92,19 +91,6 @@ export const PaperSection: React.FC<PaperSectionProps> = ({
                 </button>
               </div>
             </div>
-
-            <label className="flex items-center justify-between text-[11.5px] text-slate-700 cursor-pointer pt-1 border-t border-indigo-100">
-              <span className="flex items-center gap-1.5">
-                <Scissors className="size-3.5 text-indigo-600" />
-                <span>Show Cut Guideline (✄)</span>
-              </span>
-              <input
-                type="checkbox"
-                checked={showCutLine}
-                onChange={(e) => onChange({ showCutLine: e.target.checked })}
-                className="size-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-              />
-            </label>
           </div>
         )}
       </div>

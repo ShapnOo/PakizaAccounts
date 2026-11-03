@@ -1,13 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import type { VoucherType } from '../../types/voucherTemplate';
-import { ChevronRight, RotateCcw, Save, ArrowLeft, Printer } from 'lucide-react';
+import { ChevronRight, RotateCcw, Save, ArrowLeft, Printer, CopyCheck } from 'lucide-react';
 
 interface CustomizerHeaderProps {
   voucherType: VoucherType;
   isDirty: boolean;
   onReset: () => void;
   onSave: () => void;
+  onApplyToAll?: () => void;
   onPrint?: () => void;
   saving?: boolean;
 }
@@ -17,6 +18,7 @@ export const CustomizerHeader: React.FC<CustomizerHeaderProps> = ({
   isDirty,
   onReset,
   onSave,
+  onApplyToAll,
   onPrint,
   saving = false,
 }) => {
@@ -56,6 +58,19 @@ export const CustomizerHeader: React.FC<CustomizerHeaderProps> = ({
           <span>Reset to Default</span>
         </button>
 
+        {onApplyToAll && (
+          <button
+            type="button"
+            onClick={onApplyToAll}
+            disabled={saving}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[13px] font-semibold shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+            title="Apply current template and customization settings to all voucher types"
+          >
+            <CopyCheck className="size-3.5 text-indigo-600" />
+            <span>Apply to All Types</span>
+          </button>
+        )}
+
         <button
           type="button"
           onClick={onSave}
@@ -72,5 +87,6 @@ export const CustomizerHeader: React.FC<CustomizerHeaderProps> = ({
     </div>
   );
 };
+
 
 

@@ -38,6 +38,8 @@ export type TemplateCustomization = {
   showAuxRow?: boolean;
   zebraStripes?: boolean;
   visibleColumns?: Record<string, boolean>;
+  showOuterBorder?: boolean;
+  showTableBorder?: boolean;
   borderColor?: string;
   borderWeight?: number;
   borderOpacity?: number;
@@ -278,12 +280,14 @@ export const DEFAULT_CUSTOMIZATION: TemplateCustomization = {
   orientation: 'Portrait',
   pageCoverage: 'full',
   halfPageOption: 'single',
-  showCutLine: true,
+  showCutLine: false,
   margin: { top: 0.08, bottom: 0.08, left: 0.04, right: 0.04 },
   fontFamily: 'Inter',
   fontSize: 9,
   primaryColor: '#0f172a',
   accentColor: '#1e40af',
+  showOuterBorder: false,
+  showTableBorder: true,
   borderColor: '#000000',
   borderWeight: 1,
   borderOpacity: 1.0,
