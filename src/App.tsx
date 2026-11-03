@@ -18,8 +18,8 @@ import { SubledgerListPage } from "./pages/subledger/SubledgerList";
 import { SubledgerFormPage } from "./pages/subledger/SubledgerForm";
 import { CustomFieldBuilderPage } from "./pages/custom-fields/Builder";
 import { CustomFieldFormPage } from "./pages/custom-fields/Form";
-import { VoucherTemplateDesignerPage } from "./pages/voucher-template/Designer";
-import { VoucherTemplateListPage } from "./pages/voucher-template/TemplateListPage";
+import { VoucherSetupCustomizerPage } from "./pages/voucher-setup/Customizer";
+import { VoucherSetupListPage } from "./pages/voucher-setup/List";
 import { CustomerListPage } from "./pages/customers/List";
 import { CustomerFormPage } from "./pages/customers/Form";
 import { BankSetupList } from "./pages/banks/List";
@@ -326,10 +326,12 @@ export default function App() {
                   <Route path="/custom-fields/:id/edit" element={<CustomFieldFormPage />} />
 
                   {/* Voucher Print Template Routes */}
-                  <Route path="/accounts-report/journal" element={<VoucherTemplateListPage />} />
-                  <Route path="/voucher-template" element={<VoucherTemplateListPage />} />
-                  <Route path="/voucher-template/designer" element={<VoucherTemplateDesignerPage />} />
-                  <Route path="/voucher-template/:id/edit" element={<VoucherTemplateDesignerPage />} />
+                  <Route path="/accounts-report/journal" element={<VoucherSetupListPage />} />
+                  <Route path="/voucher-setup" element={<VoucherSetupListPage />} />
+                  <Route path="/voucher-setup/:voucherType" element={<VoucherSetupCustomizerPage />} />
+                  <Route path="/voucher-template" element={<VoucherSetupListPage />} />
+                  <Route path="/voucher-template/designer" element={<VoucherSetupCustomizerPage />} />
+                  <Route path="/voucher-template/:id/edit" element={<VoucherSetupCustomizerPage />} />
 
                   {/* Customer Master Setup Routes */}
                   <Route path="/customers" element={<CustomerListPage />} />

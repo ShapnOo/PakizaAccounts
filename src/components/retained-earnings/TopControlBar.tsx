@@ -25,7 +25,7 @@ export const TopControlBar: React.FC = () => {
       report.equity.find((e) => e.source === 'linked')?.amount;
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-xs mb-4 p-4 font-sans transition-all">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-xs mb-4 p-4 font-sans transition-all relative z-20">
       <div className="flex flex-wrap items-center justify-between gap-4">
         {/* Left: Filter Controls */}
         <div className="flex flex-wrap items-center gap-4">

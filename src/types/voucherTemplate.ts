@@ -1,112 +1,200 @@
 export type VoucherType = 'Journal' | 'Payment' | 'Receive' | 'Contra';
-export type PaperSize = 'A4' | 'A5' | 'Letter' | 'Legal' | 'Custom';
-export type Orientation = 'Portrait' | 'Landscape';
-export type Align = 'Left' | 'Center' | 'Right';
+export type TemplateId = 'standard' | 'minimal' | 'cleanGrid' | 'framedLedger';
 
-export type TableColumnKey =
-  | 'accounts'
-  | 'costCenter'
-  | 'subsidiary'
-  | 'employee'
-  | 'vehicles'
-  | 'reference'
-  | 'description'
-  | 'currency'
-  | 'exchangeRate'
-  | 'debit'
-  | 'credit'
-  | 'debitBDT'
-  | 'creditBDT'
-  | string; // for dynamic custom fields
+export type TemplateCustomization = {
+  paperSize: 'A4' | 'A5' | 'Letter' | 'Legal';
+  orientation: 'Portrait' | 'Landscape';
+  margin: { top: number; bottom: number; left: number; right: number };
+  fontFamily: string;
+  fontSize: number;
+  primaryColor: string;
+  accentColor: string;
+  companyLogo?: string;
+  showCompanyHeader: boolean;
+  showNarration: boolean;
+  showValueInWords: boolean;
+  showSignatures: boolean;
+  showFooter: boolean;
+  // Template-specific
+  showDifferenceRow?: boolean;
+  showCurrencySummary?: boolean;
+  showBalanceIndicator?: boolean;
+  showLineDescription?: boolean;
+  showAuxRow?: boolean;
+  zebraStripes?: boolean;
+  visibleColumns?: Record<string, boolean>;
+};
 
-export interface TableColumnConfig {
-  visible: boolean;
+export interface ColumnDefinition {
+  id: string;
   label: string;
-  isCustom?: boolean;
-  align?: Align;
-  width?: number; // Relative weight / width percentage
+  description?: string;
+  required?: boolean;
+  category?: 'main' | 'aux';
 }
 
-export const BASE_TABLE_COLUMNS: { key: string; label: string }[] = [
-  { key: 'accounts', label: 'Accounts Head' },
-  { key: 'costCenter', label: 'Cost Center' },
-  { key: 'subsidiary', label: 'Subsidiary' },
-  { key: 'employee', label: 'Employee' },
-  { key: 'vehicles', label: 'Vehicles' },
-  { key: 'reference', label: 'Reference' },
-  { key: 'description', label: 'Description' },
-  { key: 'currency', label: 'Currency' },
-  { key: 'exchangeRate', label: 'Exc. Rate' },
-  { key: 'debit', label: 'Debit' },
-  { key: 'credit', label: 'Credit' },
-  { key: 'debitBDT', label: 'Debit (BDT)' },
-  { key: 'creditBDT', label: 'Credit (BDT)' },
+export const STANDARD_TEMPLATE_COLUMNS: ColumnDefinition[] = [
+  { id: 'accountsHead', label: 'Accounts Head', required: true, description: 'Ledger account name' },
+  { id: 'costCenter', label: 'Cost Center', description: 'Assigned cost center branch/dept' },
+  { id: 'subsidiary', label: 'Subsidiary', description: 'Vendor, Customer or party name' },
+  { id: 'vehicle', label: 'Vehicles', description: 'Transport vehicle registration' },
+  { id: 'reference', label: 'Reference', description: 'PO or invoice tracking number' },
+  { id: 'lineDescription', label: 'Line Description', description: 'Line item narration' },
+  { id: 'currency', label: 'Currency', description: 'Transaction currency code (BDT, USD, etc.)' },
+  { id: 'exchangeRate', label: 'Exc. Rate', description: 'Conversion rate to base currency' },
+  { id: 'debit', label: 'Debit', description: 'Debit amount in transaction currency' },
+  { id: 'credit', label: 'Credit', description: 'Credit amount in transaction currency' },
+  { id: 'debitBDT', label: 'Debit (BDT)', description: 'Debit equivalent in base currency' },
+  { id: 'creditBDT', label: 'Credit (BDT)', description: 'Credit equivalent in base currency' },
 ];
 
-export interface VoucherTemplate {
-  id: string;
-  name: string;
-  description?: string;
-  voucherType: VoucherType;
-  variant?: string; // "General"
-  isDefault?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-  paper: {
-    size: PaperSize;
-    orientation: Orientation;
-    customWidthMm?: number;
-    customHeightMm?: number;
-  };
-  margin: {
-    top: number;
-    bottom: number;
-    left: number;
-    right: number;
-  };
-  font: {
-    family: string;
-    theme: string;
-    pdfFont: string;
-    color: string;
-    size: number;
-    background?: string;
-    backgroundColor?: string;
-    watermarkPlacement?: 'table' | 'full'; // 'table' (over table) | 'full' (full page)
-    watermarkOpacity?: number;
-  };
-  header: {
-    companyNameSize: number;
-    addressSize: number;
-    align: Align;
-    showLogo?: boolean;
-    logoUrl?: string;
-    logoWidth?: number;
-    logoPosition?: 'left' | 'center' | 'right';
-  };
-  footer: {
-    text?: string;
-    showPrintDateTime: boolean;
-    showPageNumber: boolean;
-    name: string;
-  };
-  table: {
-    columns: Record<string, TableColumnConfig>;
-    columnOrder?: string[];
-    showBorder: boolean;
-    fontSize: number;
-    showApprovalSignature: boolean;
-    autoFit?: boolean;
-    density?: 'compact' | 'normal' | 'relaxed';
-  };
-}
+export const DUAL_ROW_TEMPLATE_COLUMNS: ColumnDefinition[] = [
+  { id: 'accountsHead', label: 'Accounts Head', required: true, category: 'main', description: 'Ledger account title' },
+  { id: 'lineDescription', label: 'Line Description', category: 'main', description: 'Line specific description' },
+  { id: 'currency', label: 'Currency (Cur.)', category: 'main', description: 'Currency code' },
+  { id: 'exchangeRate', label: 'Rate', category: 'main', description: 'Currency exchange rate' },
+  { id: 'debit', label: 'Debit (Currency)', category: 'main', description: 'Debit in transaction currency' },
+  { id: 'credit', label: 'Credit (Currency)', category: 'main', description: 'Credit in transaction currency' },
+  { id: 'debitBDT', label: 'Debit (BDT)', category: 'main', description: 'Debit in base BDT currency' },
+  { id: 'creditBDT', label: 'Credit (BDT)', category: 'main', description: 'Credit in base BDT currency' },
+];
 
-export const PAPER_SIZES_MM: Record<PaperSize, { w: number; h: number }> = {
+export const AUX_DIMENSION_COLUMNS: ColumnDefinition[] = [
+  { id: 'costCenter', label: 'Cost Center', category: 'aux', description: 'Cost center allocation' },
+  { id: 'subsidiary', label: 'Subsidiary', category: 'aux', description: 'Vendor/Customer name' },
+  { id: 'employee', label: 'Employee', category: 'aux', description: 'Assigned staff/officer' },
+  { id: 'vehicle', label: 'Vehicle', category: 'aux', description: 'Assigned vehicle number' },
+  { id: 'reference', label: 'Reference', category: 'aux', description: 'Reference/PO number' },
+];
+
+export type TemplateSetup = {
+  voucherType: VoucherType;
+  templateId: TemplateId;
+  customization: TemplateCustomization;
+};
+
+export type PreviewLine = {
+  id: string;
+  accountsHead: string;
+  costCenter: string;
+  subsidiary: string;
+  employee: string;
+  vehicle: string;
+  reference: string;
+  lineDescription: string;
+  currency: string;
+  exchangeRate: number;
+  debit: number;
+  credit: number;
+  debitBDT: number;
+  creditBDT: number;
+  curNum: number;
+};
+
+export type VoucherPreviewData = {
+  voucherType: VoucherType;
+  voucherNo: string;
+  voucherDate: string;
+  narration: string;
+  valueInWords: string;
+  source: string;
+  lines: PreviewLine[];
+  company: {
+    name: string;
+    addressLine1: string;
+    addressLine2: string;
+    website: string;
+  };
+  signatureSlots: { label: string; name: string }[];
+  currencySummary: {
+    currency: string;
+    debitCur: number;
+    creditCur: number;
+    debitBDT: number;
+    creditBDT: number;
+  }[];
+  totals: {
+    debitBDT: number;
+    creditBDT: number;
+    difference: number;
+    isBalanced: boolean;
+  };
+};
+
+export const VOUCHER_TYPES: VoucherType[] = [
+  'Journal',
+  'Payment',
+  'Receive',
+  'Contra',
+];
+
+export const TEMPLATE_INFO: Record<
+  TemplateId,
+  {
+    label: string;
+    description: string;
+    hasCurrencySummary: boolean;
+    hasBalanceIndicator: boolean;
+    hasFixedThreeSignatures: boolean;
+    entryRowStyle: 'single' | 'double';
+    borderStyle: 'thin' | 'hairline' | 'grid' | 'double-rule';
+    supportsZebra: boolean;
+  }
+> = {
+  standard: {
+    label: 'Standard',
+    description:
+      'Traditional voucher — company header, single-row entries, 3 fixed signatures.',
+    hasCurrencySummary: false,
+    hasBalanceIndicator: false,
+    hasFixedThreeSignatures: true,
+    entryRowStyle: 'single',
+    borderStyle: 'thin',
+    supportsZebra: false,
+  },
+  minimal: {
+    label: 'Minimal',
+    description:
+      'Airy layout — hairline table, dual-row entries, dynamic signature labels.',
+    hasCurrencySummary: true,
+    hasBalanceIndicator: true,
+    hasFixedThreeSignatures: false,
+    entryRowStyle: 'double',
+    borderStyle: 'hairline',
+    supportsZebra: false,
+  },
+  cleanGrid: {
+    label: 'Clean Grid',
+    description:
+      'Boxed grid — full borders, dual-row entries, dynamic signatures.',
+    hasCurrencySummary: true,
+    hasBalanceIndicator: true,
+    hasFixedThreeSignatures: false,
+    entryRowStyle: 'double',
+    borderStyle: 'grid',
+    supportsZebra: true,
+  },
+  framedLedger: {
+    label: 'Framed Ledger',
+    description:
+      'Classic ledger — double-rule header, framed page, dynamic signatures.',
+    hasCurrencySummary: true,
+    hasBalanceIndicator: true,
+    hasFixedThreeSignatures: false,
+    entryRowStyle: 'double',
+    borderStyle: 'double-rule',
+    supportsZebra: true,
+  },
+};
+
+export const PAPER_SIZES_MM: Record<
+  TemplateCustomization['paperSize'],
+  { w: number; h: number }
+> = {
   A4: { w: 210, h: 297 },
   A5: { w: 148, h: 210 },
   Letter: { w: 216, h: 279 },
   Legal: { w: 216, h: 356 },
-  Custom: { w: 210, h: 297 },
 };
 
 export const FONT_FAMILIES = [
@@ -114,27 +202,26 @@ export const FONT_FAMILIES = [
   'Noto Sans',
   'Roboto',
   'Arial',
-  'Helvetica',
   'Times New Roman',
-  'Courier New',
 ];
 
-export const PDF_FONTS = [
-  'Noto Sans',
-  'Noto Serif',
-  'Roboto',
-  'Arial',
-  'Helvetica',
-];
-
-export const COLOR_THEMES = [
-  'Classic',
-  'Modern',
-  'Corporate',
-  'Minimal',
-  'Bold',
-];
-
-export type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+export const DEFAULT_CUSTOMIZATION: TemplateCustomization = {
+  paperSize: 'A4',
+  orientation: 'Portrait',
+  margin: { top: 0.08, bottom: 0.08, left: 0.04, right: 0.04 },
+  fontFamily: 'Inter',
+  fontSize: 9,
+  primaryColor: '#0f172a',
+  accentColor: '#1e40af',
+  companyLogo: '/company_logo.png',
+  showCompanyHeader: true,
+  showNarration: true,
+  showValueInWords: true,
+  showSignatures: true,
+  showFooter: true,
 };
+
+// Legacy compatibility types if needed during migration
+export type PaperSize = 'A4' | 'A5' | 'Letter' | 'Legal';
+export type Orientation = 'Portrait' | 'Landscape';
+export type Align = 'Left' | 'Center' | 'Right';

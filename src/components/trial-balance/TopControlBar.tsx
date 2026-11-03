@@ -37,9 +37,9 @@ export const TopControlBar: React.FC = () => {
   const activeFilterCount = advanceFilterState.conditions.length;
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-xs mb-4 transition-all overflow-hidden font-sans">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-xs mb-4 transition-all relative z-20 font-sans">
       {/* Top Header of Control Card */}
-      <div className="px-4 py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/40">
+      <div className="px-4 py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/40 rounded-t-xl">
         <div className="flex items-center gap-2">
           <div className="p-1 rounded-md bg-indigo-50 text-indigo-600">
             <Sliders className="size-3.5" />
@@ -151,7 +151,7 @@ export const TopControlBar: React.FC = () => {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="border-t border-slate-200 bg-slate-50/50 p-4 overflow-hidden"
+            className="border-t border-slate-200 bg-slate-50/50 p-4 overflow-hidden rounded-b-xl"
           >
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">

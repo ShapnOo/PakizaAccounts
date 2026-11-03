@@ -39,9 +39,9 @@ export const TopControlBar: React.FC = () => {
       : filters.numberOfYears + 1;
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-xs mb-4 transition-all overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-xs mb-4 transition-all relative z-20 font-sans">
       {/* Top Header of Control Card */}
-      <div className="px-4 py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/40">
+      <div className="px-4 py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/40 rounded-t-xl">
         <div className="flex items-center gap-2">
           <div className="p-1 rounded-md bg-indigo-50 text-indigo-600">
             <Sliders className="size-3.5" />
@@ -79,7 +79,7 @@ export const TopControlBar: React.FC = () => {
 
       {/* Evenly Distributed Grid of Filter Inputs */}
       <div className="p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3">
           <AsOnDatePicker
             value={filters.asOn}
             onChange={setAsOn}
@@ -125,7 +125,7 @@ export const TopControlBar: React.FC = () => {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="border-t border-slate-200 bg-slate-50/50 p-4 overflow-hidden"
+            className="border-t border-slate-200 bg-slate-50/50 p-4 overflow-hidden rounded-b-xl"
           >
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">

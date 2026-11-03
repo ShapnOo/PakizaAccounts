@@ -37,7 +37,7 @@ export function getPaperDimensions(
   customHeightMm?: number
 ): CanvasDimensions {
   const baseMm =
-    size === 'Custom' && customWidthMm && customHeightMm
+    customWidthMm && customHeightMm
       ? { w: customWidthMm, h: customHeightMm }
       : PAPER_SIZES_MM[size] || PAPER_SIZES_MM.A4;
 

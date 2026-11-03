@@ -20,7 +20,7 @@ export const DateRangeSelect: React.FC<DateRangeSelectProps> = ({
   disabled = false,
 }) => {
   return (
-    <div className="flex flex-col gap-1 min-w-[190px] font-sans">
+    <div className="flex flex-col gap-1 w-full font-sans">
       <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-1">
         <Calendar className="size-3 text-indigo-500" />
         Date Range

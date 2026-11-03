@@ -322,7 +322,7 @@ function isPathActive(itemTo: string | undefined, currentPath: string): boolean 
   if (itemTo === '/journal-books/bulk-data-upload' && (currentPath.startsWith('/bulk-upload') || currentPath.startsWith('/journal-books/bulk-data-upload'))) return true;
   if (itemTo === '/bulk-update' && (currentPath.startsWith('/bulk-update') || currentPath.startsWith('/journal-books/bulk-update'))) return true;
   if (itemTo === '/journal-books/bulk-update' && (currentPath.startsWith('/bulk-update') || currentPath.startsWith('/journal-books/bulk-update'))) return true;
-  if (itemTo === '/accounts-report/journal' && (currentPath === '/accounts-report/journal' || currentPath.startsWith('/voucher-template'))) return true;
+  if (itemTo === '/accounts-report/journal' && (currentPath === '/accounts-report/journal' || currentPath.startsWith('/voucher-template') || currentPath.startsWith('/voucher-setup'))) return true;
   if (
     (itemTo === '/reports/ledger/general-ledger' || itemTo === '/accounts-report/general-ledger') &&
     (currentPath.startsWith('/reports/ledger/general-ledger') || currentPath.startsWith('/accounts-report/general-ledger') || currentPath.startsWith('/general-ledger'))

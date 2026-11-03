@@ -1,0 +1,181 @@
+import type {
+  VoucherPreviewData,
+  VoucherType,
+  TemplateSetup,
+} from '../types/voucherTemplate';
+import { DEFAULT_CUSTOMIZATION } from '../types/voucherTemplate';
+
+export const MOCK_PREVIEW_DATA: VoucherPreviewData = {
+  voucherType: 'Journal',
+  voucherNo: 'JV-2600001',
+  voucherDate: '2026-10-01',
+  narration: 'Sample narration – replace with actual narration.',
+  valueInWords: 'Five Lakh Taka Only',
+  source: 'Manual Journal',
+
+  lines: [
+    {
+      id: 'l1',
+      accountsHead: 'Cash In Hand',
+      costCenter: 'Head Office',
+      subsidiary: '',
+      employee: '',
+      vehicle: '',
+      reference: 'REF-001',
+      lineDescription: 'Cash received',
+      currency: 'BDT',
+      exchangeRate: 1,
+      debit: 500000,
+      credit: 0,
+      debitBDT: 500000,
+      creditBDT: 0,
+      curNum: 1,
+    },
+    {
+      id: 'l2',
+      accountsHead: 'Advance to Supplier',
+      costCenter: 'Mobile app',
+      subsidiary: 'BD Com (Vendor)',
+      employee: 'Md. Karim',
+      vehicle: 'DHA-METRO-GA-11-2345',
+      reference: 'PO-2026-014',
+      lineDescription: 'Advance against PO',
+      currency: 'USD',
+      exchangeRate: 120,
+      debit: 0,
+      credit: 1000,
+      debitBDT: 0,
+      creditBDT: 120000,
+      curNum: 2,
+    },
+    {
+      id: 'l3',
+      accountsHead: 'Advance to Supplier',
+      costCenter: 'Web',
+      subsidiary: 'Euro Trade GmbH (Vendor)',
+      employee: 'Md. Karim',
+      vehicle: '',
+      reference: 'PO-2026-015',
+      lineDescription: 'Advance – imported parts',
+      currency: 'EUR',
+      exchangeRate: 130,
+      debit: 0,
+      credit: 1000,
+      debitBDT: 0,
+      creditBDT: 130000,
+      curNum: 3,
+    },
+    {
+      id: 'l4',
+      accountsHead: 'Advance Received From Customer',
+      costCenter: 'Web',
+      subsidiary: 'XYZ (Customer)',
+      employee: 'Rahim Uddin',
+      vehicle: 'DHA-METRO-CHA-15-4521',
+      reference: 'INV-0099',
+      lineDescription: 'Customer advance',
+      currency: 'BDT',
+      exchangeRate: 1,
+      debit: 0,
+      credit: 250000,
+      debitBDT: 0,
+      creditBDT: 250000,
+      curNum: 1,
+    },
+  ],
+
+  company: {
+    name: 'Pakiza Software Ltd.',
+    addressLine1: 'ABC Khan Trade Palace',
+    addressLine2: 'Dhaka, Bangladesh',
+    website: 'www.Pakizasoftware.com',
+  },
+
+  signatureSlots: [
+    { label: 'Prepared By', name: 'Md. Karim' },
+    { label: 'Checked By', name: 'Accounts Officer' },
+    { label: 'Approved By', name: 'Finance Manager' },
+    { label: '', name: 'Managing Director' },
+  ],
+
+  currencySummary: [
+    {
+      currency: 'BDT',
+      debitCur: 500000,
+      creditCur: 250000,
+      debitBDT: 500000,
+      creditBDT: 250000,
+    },
+    {
+      currency: 'USD',
+      debitCur: 0,
+      creditCur: 1000,
+      debitBDT: 0,
+      creditBDT: 120000,
+    },
+    {
+      currency: 'EUR',
+      debitCur: 0,
+      creditCur: 1000,
+      debitBDT: 0,
+      creditBDT: 130000,
+    },
+  ],
+
+  totals: {
+    debitBDT: 500000,
+    creditBDT: 500000,
+    difference: 0,
+    isBalanced: true,
+  },
+};
+
+export const DEFAULT_SETUPS: Record<VoucherType, TemplateSetup> = {
+  Journal: {
+    voucherType: 'Journal',
+    templateId: 'cleanGrid',
+    customization: {
+      ...DEFAULT_CUSTOMIZATION,
+      zebraStripes: false,
+      showCurrencySummary: true,
+      showBalanceIndicator: true,
+      showLineDescription: true,
+      showAuxRow: true,
+    },
+  },
+  Payment: {
+    voucherType: 'Payment',
+    templateId: 'minimal',
+    customization: {
+      ...DEFAULT_CUSTOMIZATION,
+      showCurrencySummary: true,
+      showBalanceIndicator: true,
+      showLineDescription: true,
+      showAuxRow: true,
+    },
+  },
+  Receive: {
+    voucherType: 'Receive',
+    templateId: 'minimal',
+    customization: {
+      ...DEFAULT_CUSTOMIZATION,
+      showCurrencySummary: true,
+      showBalanceIndicator: true,
+      showLineDescription: true,
+      showAuxRow: true,
+    },
+  },
+  Contra: {
+    voucherType: 'Contra',
+    templateId: 'framedLedger',
+    customization: {
+      ...DEFAULT_CUSTOMIZATION,
+      zebraStripes: true,
+      showCurrencySummary: true,
+      showBalanceIndicator: true,
+      showLineDescription: true,
+      showAuxRow: true,
+    },
+  },
+};
+

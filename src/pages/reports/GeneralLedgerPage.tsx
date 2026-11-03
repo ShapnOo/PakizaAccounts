@@ -481,9 +481,9 @@ export const GeneralLedgerPage: React.FC = () => {
       </div>
 
       {/* ── FILTER & PARAMETER CONTROL CARD ── */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs mb-3.5 overflow-hidden font-sans">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs mb-3.5 relative z-20 font-sans">
         {/* Card Header */}
-        <div className="px-3.5 py-2 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/50">
+        <div className="px-3.5 py-2 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/50 rounded-t-xl">
           <div className="flex items-center gap-1.5">
             <div className="p-1 rounded-md bg-indigo-50 text-indigo-600">
               <SlidersHorizontal className="size-3" />
@@ -532,9 +532,9 @@ export const GeneralLedgerPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Card Body: Clean evenly-spaced Grid with Compact Typography */}
+        {/* Card Body: Responsive Grid with Compact Typography */}
         <div className="p-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-7 gap-2.5 items-end">
             {/* 1. Date Range */}
             <div className="flex flex-col gap-0.5">
               <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
@@ -657,43 +657,46 @@ export const GeneralLedgerPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 6. Display Options (Columns & Sub-Ledger) */}
+            {/* 6. Columns Toggle */}
             <div className="flex flex-col gap-0.5">
               <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                 <Columns3 className="size-2.5 text-indigo-500" />
-                Display Options
+                Columns
               </label>
-              <div className="flex items-center gap-1.5">
-                <div className="flex-1">
-                  <ColumnTogglePopover
-                    columns={viewMode === 'tree' ? treeColumnItems : detailColumnItems}
-                    onToggle={viewMode === 'tree' ? handleToggleTreeColumn : handleToggleDetailColumn}
-                    onReset={() => {
-                      if (viewMode === 'tree') {
-                        setTreeColumns(DEFAULT_GL_TREE_COLUMNS);
-                        setShowSubLedger(true);
-                      } else {
-                        setGlColumns(DEFAULT_GL_DETAILS_COLUMNS);
-                        setShowSubLedger(true);
-                      }
-                    }}
-                    className="w-full"
-                  />
-                </div>
-
-                {viewMode !== 'details' && (
-                  <label className="inline-flex items-center gap-1 h-7.5 px-2 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 cursor-pointer transition select-none shadow-2xs shrink-0">
-                    <input
-                      type="checkbox"
-                      checked={showSubLedger}
-                      onChange={(e) => handleSubLedgerCheckboxChange(e.target.checked)}
-                      className="size-3 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
-                    />
-                    <span className="font-semibold text-slate-700 text-[10px]">Sub-Ledger</span>
-                  </label>
-                )}
-              </div>
+              <ColumnTogglePopover
+                columns={viewMode === 'tree' ? treeColumnItems : detailColumnItems}
+                onToggle={viewMode === 'tree' ? handleToggleTreeColumn : handleToggleDetailColumn}
+                onReset={() => {
+                  if (viewMode === 'tree') {
+                    setTreeColumns(DEFAULT_GL_TREE_COLUMNS);
+                    setShowSubLedger(true);
+                  } else {
+                    setGlColumns(DEFAULT_GL_DETAILS_COLUMNS);
+                    setShowSubLedger(true);
+                  }
+                }}
+                className="w-full"
+              />
             </div>
+
+            {/* 7. Sub-Ledger (Only on Tree, List, Kanban) */}
+            {viewMode !== 'details' && (
+              <div className="flex flex-col gap-0.5">
+                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                  <Layers className="size-2.5 text-indigo-500" />
+                  Sub-Ledger
+                </label>
+                <label className="inline-flex items-center gap-1.5 h-7.5 px-2.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 cursor-pointer transition select-none shadow-2xs w-full justify-center sm:justify-start">
+                  <input
+                    type="checkbox"
+                    checked={showSubLedger}
+                    onChange={(e) => handleSubLedgerCheckboxChange(e.target.checked)}
+                    className="size-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
+                  />
+                  <span className="font-medium text-slate-700 text-[11px]">Sub-Ledger</span>
+                </label>
+              </div>
+            )}
           </div>
         </div>
       </div>
