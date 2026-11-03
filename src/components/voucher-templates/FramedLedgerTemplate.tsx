@@ -310,20 +310,56 @@ export const FramedLedgerTemplate: React.FC<FramedLedgerTemplateProps> = ({
               )}
             </div>
 
-            {/* Right Side: Grand Total (BDT) with Double Bottom Rule */}
-            <div className="col-span-5 flex flex-col justify-end pt-3 sm:pt-4">
-              <div className="border-t border-b-2 border-slate-700 py-0.5 sm:py-1 flex items-center justify-between text-[9px] sm:text-[9.5px]">
-                <span className="font-bold text-slate-900 uppercase">
-                  GRAND TOTAL (BDT)
-                </span>
-                <div className="flex gap-3 sm:gap-4 font-bold tabular-nums text-slate-900">
-                  {showColDebitBDT && (
-                    <span>{formatCurrency(data.totals.debitBDT, 'BDT')}</span>
-                  )}
-                  {showColCreditBDT && (
-                    <span>{formatCurrency(data.totals.creditBDT, 'BDT')}</span>
+            {/* Right Side: Grand Total (BDT) Table with Ledger Rule */}
+            <div className={showCurrencySummary ? 'col-span-5' : 'col-span-6 ml-auto'}>
+              <div>
+                <div className="mb-0.5">
+                  <span className={`${isHalfPage ? 'text-[7.5px]' : 'text-[8.5px]'} font-bold uppercase tracking-wider text-slate-700`}>
+                    GRAND TOTAL (BDT)
+                  </span>
+                  {!isHalfPage && (
+                    <p className="text-[7.5px] text-slate-400 italic">
+                      Total equivalent amount in base currency (BDT).
+                    </p>
                   )}
                 </div>
+
+                <table className={`w-full ${isHalfPage ? 'text-[7.5px]' : 'text-[8px] sm:text-[8.5px]'} border-collapse mt-0.5`}>
+                  <thead>
+                    <tr className="border-b-2 border-slate-700 text-slate-700 font-bold">
+                      <th className="py-0.5 px-1.5 text-left">Summary</th>
+                      {showColDebitBDT && (
+                        <th className="py-0.5 px-1.5 text-right">Debit (BDT)</th>
+                      )}
+                      {showColCreditBDT && (
+                        <th className="py-0.5 px-1.5 text-right">Credit (BDT)</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b-2 border-slate-700 font-bold text-slate-900 bg-slate-50/50">
+                      <td className="py-0.5 px-1.5 uppercase">Grand Total</td>
+                      {showColDebitBDT && (
+                        <td className="py-0.5 px-1.5 text-right tabular-nums">
+                          {formatCurrency(data.totals.debitBDT, 'BDT')}
+                        </td>
+                      )}
+                      {showColCreditBDT && (
+                        <td className="py-0.5 px-1.5 text-right tabular-nums">
+                          {formatCurrency(data.totals.creditBDT, 'BDT')}
+                        </td>
+                      )}
+                    </tr>
+                    {showDifferenceRow && !data.totals.isBalanced && (
+                      <tr className="border-b-2 border-red-600 font-bold text-red-600">
+                        <td className="py-0.5 px-1.5 uppercase">Difference</td>
+                        <td colSpan={2} className="py-0.5 px-1.5 text-right tabular-nums">
+                          {formatCurrency(data.totals.difference, 'BDT')}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
