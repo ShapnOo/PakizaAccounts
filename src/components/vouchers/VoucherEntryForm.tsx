@@ -23,9 +23,13 @@ import {
   Wallet,
   Landmark,
   CheckCircle2,
+  Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCustomFields } from '../../hooks/useCustomFields';
+import { useVouchers } from '../../context/VoucherContext';
+import { interpolateNarration, extractNarrationContext } from '../../utils/narrationInterpolator';
 
 interface VoucherEntryFormProps {
   type: VoucherType;
@@ -41,6 +45,61 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({ type, onSave
   const [headerAccountName, setHeaderAccountName] = useState<string>('');
   const [headerCostCenterId, setHeaderCostCenterId] = useState<string>('');
   const [narration, setNarration] = useState<string>('');
+
+  // Dynamic multiple narration setup from Voucher Definition
+  const { vouchers } = useVouchers();
+  const [selectedNarrationId, setSelectedNarrationId] = useState<string>('');
+
+  const activeVoucherDef = useMemo(() => {
+    return vouchers.find((v) => v.voucherType === type) || vouchers[0];
+  }, [vouchers, type]);
+
+  const availableNarrations = useMemo(() => {
+    if (!activeVoucherDef) return [];
+    if (activeVoucherDef.narrations && activeVoucherDef.narrations.length > 0) {
+      return activeVoucherDef.narrations;
+    }
+    if (activeVoucherDef.narrationTemplate) {
+      return [
+        {
+          id: `def-${activeVoucherDef.id}`,
+          title: 'Standard Default Narration',
+          template: activeVoucherDef.narrationTemplate,
+          isDefault: true,
+        },
+      ];
+    }
+    return [];
+  }, [activeVoucherDef]);
+
+  const applyNarrationTemplate = (templateText: string, optionTitle?: string) => {
+    const totalAmt = lines.reduce((acc, l) => acc + (Number(l.debit) || Number(l.credit) || 0), 0);
+    const context = extractNarrationContext(date, lines, headerAccountName, totalAmt);
+    const filled = interpolateNarration(templateText, context);
+    setNarration(filled);
+    if (optionTitle) {
+      toast.success(`Narration populated from "${optionTitle}"`);
+    }
+  };
+
+  const handleSelectNarration = (narrationId: string) => {
+    setSelectedNarrationId(narrationId);
+    if (!narrationId) return;
+    const chosen = availableNarrations.find((n) => n.id === narrationId);
+    if (chosen) {
+      applyNarrationTemplate(chosen.template, chosen.title);
+    }
+  };
+
+  useEffect(() => {
+    if (!narration && activeVoucherDef?.autoNarrationEnabled !== false && availableNarrations.length > 0) {
+      const defaultOption = availableNarrations.find((n) => n.isDefault) || availableNarrations[0];
+      if (defaultOption) {
+        setSelectedNarrationId(defaultOption.id);
+        applyNarrationTemplate(defaultOption.template);
+      }
+    }
+  }, [activeVoucherDef?.id]);
 
   // Initial seed lines
   const [lines, setLines] = useState<VoucherLine[]>(() => {
