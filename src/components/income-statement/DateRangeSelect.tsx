@@ -33,31 +33,36 @@ export const DateRangeSelect: React.FC<DateRangeSelectProps> = ({
         )}
       </label>
 
-      <select
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full text-xs font-medium text-slate-800 bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 h-9 transition-all outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer"
-      >
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
+      {/* Row containing the Select dropdown and (when Custom Range) the DualDateRangePicker side-by-side ("pashe") */}
+      <div className="flex items-center gap-2">
+        <select
+          value={value}
+          disabled={disabled}
+          onChange={(e) => onChange(e.target.value)}
+          className={`text-xs font-medium text-slate-800 bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 h-9 transition-all outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer ${
+            value === 'Custom Range' ? 'w-[130px] sm:w-[140px] shrink-0' : 'w-full'
+          }`}
+        >
+          {options.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </select>
 
-      {/* When Custom Range is selected, render the dual calendar date picker right underneath ("niche") */}
-      {value === 'Custom Range' && (
-        <div className="mt-1 animate-in fade-in-50 duration-150 relative z-30">
-          <DualDateRangePicker
-            value={customDateRange}
-            onChange={(val) => onCustomDateRangeChange?.(val)}
-            disabled={disabled}
-            placeholder="MM/DD/YYYY - MM/DD/YYYY"
-            align="left"
-          />
-        </div>
-      )}
+        {/* When Custom Range is selected, render the dual calendar date picker beside it ("pashe") */}
+        {value === 'Custom Range' && (
+          <div className="animate-in fade-in-50 duration-150 relative z-30 flex-1 min-w-[190px]">
+            <DualDateRangePicker
+              value={customDateRange}
+              onChange={(val) => onCustomDateRangeChange?.(val)}
+              disabled={disabled}
+              placeholder="MM/DD/YYYY - MM/DD/YYYY"
+              align="left"
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

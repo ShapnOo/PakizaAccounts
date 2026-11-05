@@ -98,7 +98,11 @@ export const TopControlBar: React.FC = () => {
 
       {/* Primary Evenly Distributed Grid of Controls */}
       <div className="p-4 space-y-3.5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 items-start">
+        <div
+          className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 ${
+            filters.dateRange === 'Custom Range' ? 'xl:grid-cols-7' : 'xl:grid-cols-6'
+          } gap-3 items-start`}
+        >
           <ReportTypeToggle
             value={filters.reportType}
             onChange={setReportType}
@@ -109,13 +113,25 @@ export const TopControlBar: React.FC = () => {
             onChange={setCompareTo}
           />
 
-          <DateRangeSelect
-            value={filters.dateRange}
-            onChange={setDateRange}
-            customDateRange={filters.customDateRange || filters.customDateRanges?.[0] || '01/01/2026 - 31/01/2026'}
-            onCustomDateRangeChange={setCustomDateRangeSingle}
-            disabled={loading}
-          />
+          <div
+            className={
+              filters.dateRange === 'Custom Range'
+                ? 'xl:col-span-2 col-span-1 sm:col-span-2 md:col-span-2'
+                : 'w-full'
+            }
+          >
+            <DateRangeSelect
+              value={filters.dateRange}
+              onChange={setDateRange}
+              customDateRange={
+                filters.customDateRange ||
+                filters.customDateRanges?.[0] ||
+                '01/01/2026 - 31/01/2026'
+              }
+              onCustomDateRangeChange={setCustomDateRangeSingle}
+              disabled={loading}
+            />
+          </div>
 
           <CurrencySelect
             value={filters.currency}
