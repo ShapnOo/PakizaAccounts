@@ -1,5 +1,5 @@
 import { ISRow, ValueShowIn } from '../types/incomeStatement';
-import { convertFromBase } from './currencyConversion';
+import { convertFromBase, formatCurrencyAmount, ValueShowInMode } from './currencyConversion';
 
 /**
  * Currency symbol mapping
@@ -161,22 +161,18 @@ export function formatValue(
     };
   }
 
-  // 4. Default: Currency Formatted
-  const sym = currencySymbol(currency);
-  const converted = convertFromBase(value, currency);
-  const decimals = currency === 'BDT' ? 0 : 2;
-  const locale = currency === 'BDT' || currency === 'INR' ? 'en-IN' : 'en-US';
-  const formattedNum = new Intl.NumberFormat(locale, {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(Math.abs(converted));
+  // 4. Currency Formatted (supports actual, auto, thousand, lakh, million, crore, billion)
+  const mode: ValueShowInMode =
+    valueShowIn === 'N/A' || !valueShowIn
+      ? 'actual'
+      : (valueShowIn as ValueShowInMode);
 
-  const text = `${converted < 0 ? '-' : ''}${sym} ${formattedNum}`;
+  const text = formatCurrencyAmount(value, currency, true, mode);
 
   return {
     text,
     isZero: false,
-    isNegative: converted < 0,
+    isNegative: value < 0,
   };
 }
 

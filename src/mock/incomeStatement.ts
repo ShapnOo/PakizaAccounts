@@ -16,7 +16,7 @@ export const MOCK_IS_FILTERS: ISFilterState = {
   ],
   displayedBy: 'Quarter',
   showInPercent: false,
-  valueShowIn: 'N/A',
+  valueShowIn: 'actual',
   currency: 'BDT',
   selectedCompanies: [
     'Pakiza Software Ltd.',

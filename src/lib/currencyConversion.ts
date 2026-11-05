@@ -25,14 +25,18 @@ export type ValueShowInMode =
   | 'actual'
   | 'auto'
   | 'thousand'
+  | 'lakh'
   | 'million'
+  | 'crore'
   | 'billion';
 
 export const VALUE_SHOW_IN_LABELS: { value: ValueShowInMode; label: string }[] = [
   { value: 'actual', label: 'Actual (N/A)' },
   { value: 'auto', label: 'Auto (K, M, B)' },
   { value: 'thousand', label: 'In Thousands (K)' },
+  { value: 'lakh', label: 'Lakh (L)' },
   { value: 'million', label: 'In Millions (M)' },
+  { value: 'crore', label: 'Crore (C)' },
   { value: 'billion', label: 'In Billions (B)' },
 ];
 
@@ -72,10 +76,22 @@ export function formatCompactValue(
     return { scaled, suffix: 'K', decimals };
   }
 
+  if (mode === 'lakh') {
+    const scaled = amount / 100000;
+    const decimals = Number.isInteger(scaled) ? 0 : 2;
+    return { scaled, suffix: 'L', decimals };
+  }
+
   if (mode === 'million') {
     const scaled = amount / 1000000;
     const decimals = Number.isInteger(scaled) ? 0 : 2;
     return { scaled, suffix: 'M', decimals };
+  }
+
+  if (mode === 'crore') {
+    const scaled = amount / 10000000;
+    const decimals = Number.isInteger(scaled) ? 0 : 2;
+    return { scaled, suffix: 'C', decimals };
   }
 
   if (mode === 'billion') {

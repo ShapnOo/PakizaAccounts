@@ -1,3 +1,5 @@
+import { ValueShowInMode, VALUE_SHOW_IN_LABELS } from '../lib/currencyConversion';
+
 export type ReportType = 'Comprehensive' | 'Summary';
 
 export type CompareMode =
@@ -9,7 +11,7 @@ export type CompareMode =
 
 export type DisplayedBy = 'Month' | 'Quarter' | 'Year';
 
-export type ValueShowIn = 'N/A' | 'Absolute' | 'Percent' | 'Ratio';
+export type ValueShowIn = ValueShowInMode | 'N/A' | 'Absolute' | 'Percent' | 'Ratio';
 
 export type Currency = 'BDT' | 'USD' | 'EUR' | 'GBP' | 'INR';
 
@@ -86,12 +88,7 @@ export const DISPLAYED_BY_OPTIONS: DisplayedBy[] = [
   'Year',
 ];
 
-export const VALUE_SHOW_IN_OPTIONS: ValueShowIn[] = [
-  'N/A',
-  'Absolute',
-  'Percent',
-  'Ratio',
-];
+export const VALUE_SHOW_IN_OPTIONS = VALUE_SHOW_IN_LABELS;
 
 export const CURRENCIES: Currency[] = ['BDT', 'USD', 'EUR', 'GBP', 'INR'];
 
