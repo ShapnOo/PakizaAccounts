@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Sparkles, AlertCircle, Check } from 'lucide-react';
 import {
   NarrationTemplate,
-  VoucherTypeOption,
-  VOUCHER_TYPE_OPTIONS,
   NARRATION_CATEGORIES,
   AVAILABLE_VARIABLES,
+  STANDARD_VOUCHER_NAMES,
 } from '../../types/narrationSetup';
+import { getStoredVouchers } from '../../mock/vouchers';
 
 interface NarrationModalProps {
   isOpen: boolean;
@@ -14,7 +14,8 @@ interface NarrationModalProps {
   onSave: (data: {
     code: string;
     title: string;
-    voucherType: VoucherTypeOption;
+    voucherName: string;
+    voucherType?: string;
     category: string;
     template: string;
     isActive: boolean;
@@ -30,7 +31,7 @@ export const NarrationModal: React.FC<NarrationModalProps> = ({
 }) => {
   const [code, setCode] = useState('');
   const [title, setTitle] = useState('');
-  const [voucherType, setVoucherType] = useState<VoucherTypeOption>('All');
+  const [voucherName, setVoucherName] = useState('All');
   const [category, setCategory] = useState(NARRATION_CATEGORIES[0]);
   const [template, setTemplate] = useState('');
   const [isActive, setIsActive] = useState(true);
@@ -39,18 +40,25 @@ export const NarrationModal: React.FC<NarrationModalProps> = ({
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Dynamic voucher definitions list
+  const storedVouchers = getStoredVouchers();
+  const voucherNameOptions = [
+    { name: 'All', type: 'All Books' },
+    ...storedVouchers.map((v) => ({ name: v.name, type: v.voucherType })),
+  ];
+
   useEffect(() => {
     if (initialData) {
       setCode(initialData.code);
       setTitle(initialData.title);
-      setVoucherType(initialData.voucherType);
+      setVoucherName(initialData.voucherName || 'All');
       setCategory(initialData.category);
       setTemplate(initialData.template);
       setIsActive(initialData.isActive);
     } else {
       setCode(`NARR-${Math.floor(100 + Math.random() * 900)}`);
       setTitle('');
-      setVoucherType('Payment');
+      setVoucherName('Bank Payment Voucher');
       setCategory(NARRATION_CATEGORIES[0]);
       setTemplate('');
       setIsActive(true);
@@ -97,12 +105,16 @@ export const NarrationModal: React.FC<NarrationModalProps> = ({
       return;
     }
 
+    const matchedDef = storedVouchers.find((v) => v.name === voucherName);
+    const voucherType = voucherName === 'All' ? 'All' : (matchedDef?.voucherType || 'General');
+
     setSubmitting(true);
     setError('');
     try {
       await onSave({
         code: code.trim().toUpperCase(),
         title: title.trim(),
+        voucherName,
         voucherType,
         category,
         template: template.trim(),
@@ -137,7 +149,7 @@ export const NarrationModal: React.FC<NarrationModalProps> = ({
               {initialData ? 'Edit Narration Setup' : 'Add New Narration Setup'}
             </h3>
             <p className="text-xs text-slate-500">
-              Configure standard narration boilerplate and dynamic transaction placeholders
+              Configure standard boilerplate narration mapped to a specific voucher definition
             </p>
           </div>
           <button
@@ -168,24 +180,24 @@ export const NarrationModal: React.FC<NarrationModalProps> = ({
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                placeholder="e.g. PAY-VEND-01"
+                placeholder="e.g. BPV-VEND-01"
                 className="w-full text-xs font-medium text-slate-800 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 uppercase tracking-wider"
               />
             </div>
 
-            {/* Voucher Type */}
+            {/* Voucher Name (Voucher Name Wise) */}
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-700">
-                Voucher Type <span className="text-rose-500">*</span>
+                Voucher Name <span className="text-rose-500">*</span>
               </label>
               <select
-                value={voucherType}
-                onChange={(e) => setVoucherType(e.target.value as VoucherTypeOption)}
+                value={voucherName}
+                onChange={(e) => setVoucherName(e.target.value)}
                 className="w-full text-xs font-medium text-slate-800 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer"
               >
-                {VOUCHER_TYPE_OPTIONS.map((vt) => (
-                  <option key={vt} value={vt}>
-                    {vt === 'All' ? 'All Vouchers' : `${vt} Voucher`}
+                {voucherNameOptions.map((v) => (
+                  <option key={v.name} value={v.name}>
+                    {v.name === 'All' ? 'All Voucher Names' : `${v.name} (${v.type})`}
                   </option>
                 ))}
               </select>
@@ -201,7 +213,7 @@ export const NarrationModal: React.FC<NarrationModalProps> = ({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Monthly Staff Salary Disbursal"
+              placeholder="e.g. Supplier Cheque Bill Settlement"
               className="w-full text-xs font-medium text-slate-800 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
@@ -236,7 +248,7 @@ export const NarrationModal: React.FC<NarrationModalProps> = ({
               rows={3}
               value={template}
               onChange={(e) => setTemplate(e.target.value)}
-              placeholder="e.g. Being payment made to {party_name} against invoice #{invoice_no} via Cheque #{cheque_no} drawn on {bank_name}."
+              placeholder="e.g. Being payment made to {party_name} against bill #{invoice_no} via Cheque #{cheque_no} drawn on {bank_name}."
               className="w-full text-xs font-normal text-slate-800 bg-white border border-slate-200 rounded-lg p-2.5 outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 resize-none leading-relaxed"
             />
 
@@ -313,4 +325,3 @@ export const NarrationModal: React.FC<NarrationModalProps> = ({
     </div>
   );
 };
-

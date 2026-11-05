@@ -1,10 +1,9 @@
-export type VoucherTypeOption = 'All' | 'Journal' | 'Payment' | 'Receive' | 'Contra';
-
 export interface NarrationTemplate {
   id: string;
   code: string;
   title: string;
-  voucherType: VoucherTypeOption;
+  voucherName: string; // e.g. "Cash Payment Voucher", "Bank Payment Voucher", "Journal Voucher", "All"
+  voucherType?: string; // "Payment Voucher", "Receive Voucher", "Journal Voucher", "Contra Voucher", "All"
   category: string;
   template: string;
   isActive: boolean;
@@ -15,12 +14,18 @@ export interface NarrationTemplate {
   updatedAt: string;
 }
 
-export const VOUCHER_TYPE_OPTIONS: VoucherTypeOption[] = [
+export const STANDARD_VOUCHER_NAMES = [
   'All',
-  'Journal',
-  'Payment',
-  'Receive',
-  'Contra',
+  'Journal Voucher',
+  'Cash Payment Voucher',
+  'Cash Receive Voucher',
+  'Bank Payment Voucher',
+  'Bank Receive Voucher',
+  'Contra Voucher',
+  'Foreign Currency Adjustment Voucher',
+  'Employee Salary & Wages Voucher',
+  'Direct Tax & VAT Payment Voucher',
+  'Asset Depreciation & Amortization Voucher',
 ];
 
 export const NARRATION_CATEGORIES = [
@@ -32,6 +37,7 @@ export const NARRATION_CATEGORIES = [
   'Office Rent & Utilities',
   'Taxes, VAT & Statutory Dues',
   'Petty Cash & Miscellaneous',
+  'Asset & Depreciation',
 ];
 
 export const AVAILABLE_VARIABLES = [
@@ -44,4 +50,3 @@ export const AVAILABLE_VARIABLES = [
   { key: '{amount}', label: 'Amount', desc: 'Voucher settlement amount' },
   { key: '{purpose}', label: 'Purpose', desc: 'Operational description' },
 ];
-

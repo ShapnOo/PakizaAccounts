@@ -13,6 +13,13 @@ export interface DefaultAccountRow {
   active: boolean;
 }
 
+export interface NarrationItem {
+  id: string;
+  title: string;
+  template: string;
+  isDefault?: boolean;
+}
+
 export interface VoucherDefinition {
   id: string;
   name: string; // "Cash Payment Voucher"
@@ -23,6 +30,10 @@ export interface VoucherDefinition {
   accountCategory?: 'Bank & Cash Both' | 'Cash Only' | 'Bank Only';
   activeStatus: 'Active' | 'Inactive';
   defaultAccounts: DefaultAccountRow[];
+  narrationTemplate?: string;
+  autoNarrationEnabled?: boolean;
+  narrations?: NarrationItem[];
+  alternativeNarrations?: string[];
   createdAt?: string;
   updatedAt?: string;
 }

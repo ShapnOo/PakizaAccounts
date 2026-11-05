@@ -17,7 +17,12 @@ import {
   UserCheck,
   Truck,
   Layers,
+  Sparkles,
+  FileText,
+  RefreshCw,
 } from 'lucide-react';
+import { useVouchers } from '../../context/VoucherContext';
+import { interpolateNarration, extractNarrationContext } from '../../utils/narrationInterpolator';
 import {
   VoucherType,
   VoucherEntry,
@@ -121,6 +126,83 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
     initialData?.headerCostCenterId || ''
   );
   const [narration, setNarration] = useState(initialData?.narration || '');
+
+  // Dynamic Narration setup from Voucher Definition
+  const { vouchers } = useVouchers();
+  const [selectedNarrationId, setSelectedNarrationId] = useState<string>('');
+
+  const activeVoucherDef = useMemo(() => {
+    return (
+      vouchers.find((v) => v.name.toLowerCase() === selectedVoucherName.toLowerCase()) ||
+      vouchers.find((v) => v.shortName.toLowerCase() === selectedVoucherName.toLowerCase()) ||
+      vouchers.find((v) => {
+        if (activeType === 'Journal') return v.voucherType === 'Journal Voucher';
+        if (activeType === 'Payment') return v.voucherType === 'Payment Voucher';
+        if (activeType === 'Receive') return v.voucherType === 'Receive Voucher';
+        if (activeType === 'Contra') return v.voucherType === 'Contra Voucher';
+        return false;
+      })
+    );
+  }, [vouchers, selectedVoucherName, activeType]);
+
+  const availableNarrations = useMemo(() => {
+    if (!activeVoucherDef) return [];
+    if (activeVoucherDef.narrations && activeVoucherDef.narrations.length > 0) {
+      return activeVoucherDef.narrations;
+    }
+    if (activeVoucherDef.narrationTemplate) {
+      return [
+        {
+          id: `def-${activeVoucherDef.id}`,
+          title: 'Standard Default Narration',
+          template: activeVoucherDef.narrationTemplate,
+          isDefault: true,
+        },
+      ];
+    }
+    return [];
+  }, [activeVoucherDef]);
+
+  const applyNarrationTemplate = (templateText: string, optionTitle?: string) => {
+    const headerAcc = MOCK_COA_BANK_ACCOUNTS.find((b) => b.id === headerAccountId);
+    const totalAmt = lines.reduce((acc, l) => acc + (Number(l.debitBDT) || 0), 0);
+    const context = extractNarrationContext(
+      voucherDate,
+      lines as any,
+      headerAcc?.accountName,
+      totalAmt
+    );
+    const filled = interpolateNarration(templateText, context);
+    setNarration(filled);
+    if (optionTitle) {
+      toast.success(`Narration populated from "${optionTitle}"`);
+    }
+  };
+
+  const handleSelectNarration = (narrationId: string) => {
+    setSelectedNarrationId(narrationId);
+    if (!narrationId) return;
+    const chosen = availableNarrations.find((n) => n.id === narrationId);
+    if (chosen) {
+      applyNarrationTemplate(chosen.template, chosen.title);
+    }
+  };
+
+  // Prepopulate default narration when empty
+  useEffect(() => {
+    if (
+      !isEdit &&
+      !narration &&
+      activeVoucherDef?.autoNarrationEnabled !== false &&
+      availableNarrations.length > 0
+    ) {
+      const defaultOption = availableNarrations.find((n) => n.isDefault) || availableNarrations[0];
+      if (defaultOption) {
+        setSelectedNarrationId(defaultOption.id);
+        applyNarrationTemplate(defaultOption.template);
+      }
+    }
+  }, [activeVoucherDef?.id, isEdit]);
   const [lines, setLines] = useState<VoucherLine[]>(() => {
     if (initialData?.lines && initialData.lines.length > 0) {
       return initialData.lines;
@@ -1042,23 +1124,85 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({
 
         {/* Narration & Attachment Field */}
         <div className="p-5 sm:p-6 rounded-2xl border border-border/80 bg-card shadow-xs space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-foreground">
-                Voucher Narration / Remarks
+          <div className="space-y-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2.5">
+              <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <FileText className="size-4 text-primary" />
+                <span>Voucher Narration / Remarks</span>
               </label>
-              <span className="text-[11px] text-muted-foreground">
+
+              {/* Standard Narration Dropdown Selection */}
+              {availableNarrations.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-xl px-2.5 py-1">
+                    <Sparkles className="size-3.5 text-primary shrink-0" />
+                    <span className="text-[11px] font-bold text-primary whitespace-nowrap">
+                      Standard Narration:
+                    </span>
+                    <select
+                      value={selectedNarrationId}
+                      onChange={(e) => handleSelectNarration(e.target.value)}
+                      className="bg-transparent text-xs font-semibold text-foreground outline-none cursor-pointer max-w-[260px] truncate"
+                    >
+                      <option value="" className="bg-card text-foreground">
+                        -- Choose Narration ({availableNarrations.length} Options) --
+                      </option>
+                      {availableNarrations.map((n) => (
+                        <option
+                          key={n.id}
+                          value={n.id}
+                          className="bg-card text-foreground font-medium"
+                        >
+                          {n.title} {n.isDefault ? '★ (Default)' : ''}
+                        </option>
+                      ))}
+                    </select>
+
+                    {selectedNarrationId && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const chosen = availableNarrations.find((n) => n.id === selectedNarrationId);
+                          if (chosen) applyNarrationTemplate(chosen.template, chosen.title);
+                        }}
+                        className="p-1 rounded-md text-primary hover:bg-primary/20 transition cursor-pointer"
+                        title="Re-populate with updated ledger party and amounts"
+                      >
+                        <RefreshCw className="size-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <span className="text-[11px] text-muted-foreground ml-auto">
                 {narration.length}/500 chars
               </span>
             </div>
+
             <textarea
               rows={3}
               maxLength={500}
               value={narration}
               onChange={(e) => setNarration(e.target.value)}
               placeholder="Enter comprehensive narrative description for this financial transaction entry..."
-              className="w-full p-3 rounded-xl border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs resize-none"
+              className="w-full p-3 rounded-xl border border-border bg-background text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs resize-none leading-relaxed"
             />
+
+            {/* Quick helper tag preview when a template is active */}
+            {selectedNarrationId && (
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
+                <span>
+                  Template active:{' '}
+                  <strong className="text-foreground">
+                    {availableNarrations.find((n) => n.id === selectedNarrationId)?.title}
+                  </strong>
+                </span>
+                <span className="text-[10.5px] italic text-primary/80">
+                  Dynamic tokens auto-substituted • You can edit manually above
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Attachment Section directly inside card */}
