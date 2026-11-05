@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   FileText,
+  FileSpreadsheet,
   Download,
   Printer,
   BookmarkPlus,
@@ -18,6 +19,8 @@ import {
   ArrowLeftRight,
   Layers,
   CheckCircle2,
+  Filter,
+  X,
 } from 'lucide-react';
 import { AdvanceFilter } from '../../components/gl/AdvanceFilter';
 import { ColumnTogglePopover, ColumnItem } from '../../components/gl/ColumnTogglePopover';
@@ -50,15 +53,25 @@ export type GLGroupByField =
   | 'reference'
   | 'vehicle';
 
+export interface GLTreeDrillDownFilter {
+  type: 'head' | 'subLedger';
+  label: string;
+  accountsHead?: string;
+  childHeads?: string[];
+  subsidiary?: string;
+}
+
 export interface GLDetailsColumns {
   voucherNo: boolean;
   date: boolean;
-  particulars: boolean;
+  narration: boolean;
   accounts: boolean;
+  lineDescription: boolean;
   oppositeAccounts: boolean;
-  details: boolean;
+  source: boolean;
   status: boolean;
   subsidiary: boolean;
+  exchangeRate: boolean;
   employee: boolean;
   vehicles: boolean;
   reference: boolean;
@@ -72,12 +85,14 @@ export interface GLDetailsColumns {
 const DEFAULT_GL_DETAILS_COLUMNS: GLDetailsColumns = {
   voucherNo: true,
   date: true,
-  particulars: true,
+  narration: true,
   accounts: true,
+  lineDescription: true,
   oppositeAccounts: true,
-  details: true,
+  source: true,
   status: true,
   subsidiary: true,
+  exchangeRate: true,
   employee: true,
   vehicles: true,
   reference: true,
@@ -120,6 +135,23 @@ export const GeneralLedgerPage: React.FC = () => {
     'Current Liabilities': true,
     'Current Assets': true,
   });
+  const [treeDrillDownFilter, setTreeDrillDownFilter] = useState<GLTreeDrillDownFilter | null>(null);
+  const [isExportOpen, setIsExportOpen] = useState<boolean>(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setIsExportOpen(false);
+      }
+    };
+    if (isExportOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isExportOpen]);
 
   const handleSubLedgerCheckboxChange = (checked: boolean) => {
     setShowSubLedger(checked);
@@ -151,12 +183,14 @@ export const GeneralLedgerPage: React.FC = () => {
     () => [
       { key: 'voucherNo', label: 'Voucher No', visible: glColumns.voucherNo },
       { key: 'date', label: 'Date', visible: glColumns.date },
-      { key: 'particulars', label: 'Paticulars', visible: glColumns.particulars },
+      { key: 'narration', label: 'Narration', visible: glColumns.narration },
       { key: 'accounts', label: 'Accounts', visible: glColumns.accounts },
+      { key: 'lineDescription', label: 'Line Description', visible: glColumns.lineDescription },
       { key: 'oppositeAccounts', label: 'Opposite Accounts', visible: glColumns.oppositeAccounts },
-      { key: 'details', label: 'Details', visible: glColumns.details },
+      { key: 'source', label: 'Source', visible: glColumns.source },
       { key: 'status', label: 'Status', visible: glColumns.status },
       { key: 'subsidiary', label: 'Subsidiary', visible: glColumns.subsidiary },
+      { key: 'exchangeRate', label: 'Exchange Rate', visible: glColumns.exchangeRate },
       { key: 'employee', label: 'Employee', visible: glColumns.employee },
       { key: 'vehicles', label: 'Vehicles', visible: glColumns.vehicles },
       { key: 'reference', label: 'Reference', visible: glColumns.reference },
@@ -193,12 +227,14 @@ export const GeneralLedgerPage: React.FC = () => {
     return [
       glColumns.voucherNo,
       glColumns.date,
-      glColumns.particulars,
+      glColumns.narration,
       glColumns.accounts,
+      glColumns.lineDescription,
       glColumns.oppositeAccounts,
-      glColumns.details,
+      glColumns.source,
       glColumns.status,
       glColumns.subsidiary,
+      glColumns.exchangeRate,
       glColumns.employee,
       glColumns.vehicles,
       glColumns.reference,
@@ -218,15 +254,32 @@ export const GeneralLedgerPage: React.FC = () => {
     return getPredicate();
   }, [getPredicate, filterState]);
 
-  // Filter lines using advance filter predicate & status filter
+  // Filter lines using advance filter predicate, status filter & tree drill-down filter
   const filteredLines = useMemo(() => {
     return MOCK_GL_LINES.filter((line) => {
       if (statusFilter !== 'all' && (line.status || 'Approved') !== statusFilter) {
         return false;
       }
+      if (treeDrillDownFilter) {
+        if (treeDrillDownFilter.childHeads && treeDrillDownFilter.childHeads.length > 0) {
+          const matchHead =
+            line.accountsHead === treeDrillDownFilter.accountsHead ||
+            treeDrillDownFilter.childHeads.includes(line.accountsHead);
+          if (!matchHead) return false;
+        } else if (treeDrillDownFilter.accountsHead) {
+          if (line.accountsHead.toLowerCase() !== treeDrillDownFilter.accountsHead.toLowerCase()) {
+            return false;
+          }
+        }
+        if (treeDrillDownFilter.subsidiary && treeDrillDownFilter.subsidiary !== 'Consolidated') {
+          if (line.subsidiary.toLowerCase() !== treeDrillDownFilter.subsidiary.toLowerCase()) {
+            return false;
+          }
+        }
+      }
       return predicate(line);
     });
-  }, [predicate, statusFilter]);
+  }, [predicate, statusFilter, treeDrillDownFilter]);
 
   // Compute opening, debit, credit, closing balances
   const initialOpeningBalance = 50000; // As on 09/01/2026 opening balance
@@ -368,7 +421,21 @@ export const GeneralLedgerPage: React.FC = () => {
     }));
   };
 
-  const handleExport = (type: 'excel' | 'pdf') => {
+  const handleTreeDrillDown = (filter: GLTreeDrillDownFilter, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    setTreeDrillDownFilter(filter);
+    setViewMode('details');
+    toast.info(`Drilled down to GL Details: ${filter.label}`);
+  };
+
+  const handleExport = (type: 'xls' | 'csv' | 'pdf') => {
+    if (type === 'pdf') {
+      toast.info('Opening print dialog for PDF export...');
+      window.print();
+      return;
+    }
     toast.success(`Exporting General Ledger to ${type.toUpperCase()}...`);
   };
 
@@ -460,23 +527,56 @@ export const GeneralLedgerPage: React.FC = () => {
             <span className="hidden sm:inline">Save as Custom Report</span>
           </button>
 
-          {/* Export Dropdown / Buttons */}
-          <button
-            type="button"
-            onClick={() => handleExport('excel')}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50 transition-colors shadow-xs"
-          >
-            <Download className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Excel</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleExport('pdf')}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50 transition-colors shadow-xs"
-          >
-            <Printer className="w-3.5 h-3.5 text-slate-500" />
-            <span>Print</span>
-          </button>
+          {/* Export Dropdown (PDF, XLS, CSV) */}
+          <div className="relative inline-block text-left" ref={exportMenuRef}>
+            <button
+              type="button"
+              onClick={() => setIsExportOpen(!isExportOpen)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50 transition-colors shadow-xs cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Export</span>
+              <ChevronDown className="w-3 h-3 text-slate-400" />
+            </button>
+
+            {isExportOpen && (
+              <div className="absolute right-0 mt-1 w-44 rounded-xl border border-slate-200 bg-white shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportOpen(false);
+                    handleExport('pdf');
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 text-left cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5 text-rose-600" />
+                  <span>PDF (.pdf)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportOpen(false);
+                    handleExport('xls');
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 text-left cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Excel (.xls / .xlsx)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportOpen(false);
+                    handleExport('csv');
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 text-left cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5 text-blue-600" />
+                  <span>CSV (.csv)</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -500,13 +600,14 @@ export const GeneralLedgerPage: React.FC = () => {
 
           {/* Action Controls on Right */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            {(!showSubLedger ||
-              totalVisibleGlCols < 16 ||
+            {(treeDrillDownFilter !== null ||
+              !showSubLedger ||
+              totalVisibleGlCols < 18 ||
               totalVisibleTreeCols < 6 ||
               dateRangePreset !== 'this-month' ||
               currency !== 'BDT' ||
               valueShowIn !== 'actual' ||
-              groupBy !== 'none' ||
+              (viewMode !== 'tree' && groupBy !== 'none') ||
               statusFilter !== 'all' ||
               filterState.conditions.length > 0) && (
               <button
@@ -520,6 +621,7 @@ export const GeneralLedgerPage: React.FC = () => {
                   setValueShowIn('actual');
                   setGroupBy('none');
                   setStatusFilter('all');
+                  setTreeDrillDownFilter(null);
                   resetAdvanceFilter();
                 }}
                 title="Reset all filters to defaults"
@@ -631,31 +733,33 @@ export const GeneralLedgerPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 5. Group By */}
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                <Layers className="size-2.5 text-indigo-500" />
-                Group By
-              </label>
-              <div className="relative">
-                <select
-                  value={groupBy}
-                  onChange={(e) => setGroupBy(e.target.value as GLGroupByField)}
-                  className="w-full h-7.5 pl-2.5 pr-7 rounded-md border border-slate-200 bg-white text-[11px] font-medium text-slate-700 shadow-2xs hover:border-slate-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition cursor-pointer appearance-none"
-                >
-                  <option value="none">None (Chronological)</option>
-                  <option value="voucherNo">Voucher No</option>
-                  <option value="subsidiary">Subsidiary</option>
-                  <option value="accountsHead">Accounts Head</option>
-                  <option value="employee">Employee</option>
-                  <option value="reference">Reference Center</option>
-                  <option value="vehicle">Vehicle</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
-                  <ChevronDown className="size-3" />
+            {/* 5. Group By (Hidden in Tree View) */}
+            {viewMode !== 'tree' && (
+              <div className="flex flex-col gap-0.5">
+                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                  <Layers className="size-2.5 text-indigo-500" />
+                  Group By
+                </label>
+                <div className="relative">
+                  <select
+                    value={groupBy}
+                    onChange={(e) => setGroupBy(e.target.value as GLGroupByField)}
+                    className="w-full h-7.5 pl-2.5 pr-7 rounded-md border border-slate-200 bg-white text-[11px] font-medium text-slate-700 shadow-2xs hover:border-slate-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition cursor-pointer appearance-none"
+                  >
+                    <option value="none">None (Chronological)</option>
+                    <option value="voucherNo">Voucher No</option>
+                    <option value="subsidiary">Subsidiary</option>
+                    <option value="accountsHead">Accounts Head</option>
+                    <option value="employee">Employee</option>
+                    <option value="reference">Reference Center</option>
+                    <option value="vehicle">Vehicle</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                    <ChevronDown className="size-3" />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* 6. Columns Toggle */}
             <div className="flex flex-col gap-0.5">
@@ -706,6 +810,52 @@ export const GeneralLedgerPage: React.FC = () => {
 
       {/* ── DATA VIEW SECTION ── */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+        {/* Active Tree Drill-down Filter Banner */}
+        {treeDrillDownFilter && (
+          <div className="bg-indigo-50/80 border-b border-indigo-100 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center justify-center size-5 rounded-full bg-indigo-100 text-indigo-700">
+                <Filter className="w-3 h-3" />
+              </span>
+              <span className="text-slate-700 font-semibold text-[11px]">
+                Tree Drill-Down Filter:
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white border border-indigo-200 text-indigo-700 font-semibold shadow-2xs text-[11px]">
+                <span className="text-slate-400 font-medium">
+                  {treeDrillDownFilter.type === 'head' ? 'Account Head:' : 'Sub-Ledger:'}
+                </span>
+                <span>{treeDrillDownFilter.label}</span>
+              </span>
+              <span className="text-slate-500 text-[11px] font-medium">
+                ({filteredLines.length} {filteredLines.length === 1 ? 'transaction' : 'transactions'})
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {viewMode !== 'tree' && (
+                <button
+                  type="button"
+                  onClick={() => setViewMode('tree')}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-medium transition cursor-pointer shadow-2xs"
+                >
+                  <FolderTree className="w-3 h-3 text-slate-500" />
+                  <span>Back to Tree View</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setTreeDrillDownFilter(null);
+                  toast.success('Tree drill-down filter cleared');
+                }}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-medium transition cursor-pointer shadow-2xs"
+              >
+                <X className="w-3 h-3" />
+                <span>Clear Filter</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* VIEW 1: GL DETAILS VIEW */}
         {viewMode === 'details' && (
           <div className="overflow-x-auto">
@@ -714,12 +864,14 @@ export const GeneralLedgerPage: React.FC = () => {
                 <tr className="bg-slate-50 border-b border-slate-200 text-[11px] uppercase tracking-wider font-semibold text-slate-500 whitespace-nowrap">
                   {glColumns.voucherNo && <th className="py-2.5 px-3">Voucher No</th>}
                   {glColumns.date && <th className="py-2.5 px-3">Date</th>}
-                  {glColumns.particulars && <th className="py-2.5 px-3">Paticulars</th>}
+                  {glColumns.narration && <th className="py-2.5 px-3">Narration</th>}
                   {glColumns.accounts && <th className="py-2.5 px-3">Accounts</th>}
+                  {glColumns.lineDescription && <th className="py-2.5 px-3">Line Description</th>}
                   {glColumns.oppositeAccounts && <th className="py-2.5 px-3">Opposite Accounts</th>}
-                  {glColumns.details && <th className="py-2.5 px-3">Details</th>}
+                  {glColumns.source && <th className="py-2.5 px-3">Source</th>}
                   {glColumns.status && <th className="py-2.5 px-3">Status</th>}
                   {glColumns.subsidiary && <th className="py-2.5 px-3">Subsidiary</th>}
+                  {glColumns.exchangeRate && <th className="py-2.5 px-3 text-right">Exchange Rate</th>}
                   {glColumns.employee && <th className="py-2.5 px-3">Employee</th>}
                   {glColumns.vehicles && <th className="py-2.5 px-3">Vehicles</th>}
                   {glColumns.reference && <th className="py-2.5 px-3">Reference</th>}
@@ -743,12 +895,14 @@ export const GeneralLedgerPage: React.FC = () => {
                     </td>
                   )}
                   {glColumns.date && <td className="py-2.5 px-3 text-slate-400">—</td>}
-                  {glColumns.particulars && <td className="py-2.5 px-3 text-slate-400">—</td>}
+                  {glColumns.narration && <td className="py-2.5 px-3 text-slate-400">—</td>}
                   {glColumns.accounts && <td className="py-2.5 px-3 text-slate-400">—</td>}
+                  {glColumns.lineDescription && <td className="py-2.5 px-3 text-slate-400">—</td>}
                   {glColumns.oppositeAccounts && <td className="py-2.5 px-3 text-slate-400">—</td>}
-                  {glColumns.details && <td className="py-2.5 px-3 text-slate-400">—</td>}
+                  {glColumns.source && <td className="py-2.5 px-3 text-slate-400">—</td>}
                   {glColumns.status && <td className="py-2.5 px-3 text-slate-400">—</td>}
                   {glColumns.subsidiary && <td className="py-2.5 px-3 text-slate-400">—</td>}
+                  {glColumns.exchangeRate && <td className="py-2.5 px-3 text-slate-400 text-right">—</td>}
                   {glColumns.employee && <td className="py-2.5 px-3 text-slate-400">—</td>}
                   {glColumns.vehicles && <td className="py-2.5 px-3 text-slate-400">—</td>}
                   {glColumns.reference && <td className="py-2.5 px-3 text-slate-400">—</td>}
@@ -819,7 +973,7 @@ export const GeneralLedgerPage: React.FC = () => {
                         {glColumns.date && (
                           <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap">{row.date}</td>
                         )}
-                        {glColumns.particulars && (
+                        {glColumns.narration && (
                           <td className="py-2.5 px-3 text-slate-600 max-w-xs truncate" title={row.narration}>
                             {row.narration}
                           </td>
@@ -827,6 +981,14 @@ export const GeneralLedgerPage: React.FC = () => {
                         {glColumns.accounts && (
                           <td className="py-2.5 px-3 font-medium text-slate-800 whitespace-nowrap">
                             {row.accountsHead}
+                          </td>
+                        )}
+                        {glColumns.lineDescription && (
+                          <td
+                            className="py-2.5 px-3 text-slate-600 max-w-xs truncate"
+                            title={row.lineDescription || row.narration}
+                          >
+                            {row.lineDescription || row.narration || '—'}
                           </td>
                         )}
                         {glColumns.oppositeAccounts && (
@@ -837,7 +999,7 @@ export const GeneralLedgerPage: React.FC = () => {
                             </span>
                           </td>
                         )}
-                        {glColumns.details && (
+                        {glColumns.source && (
                           <td className="py-2.5 px-3 whitespace-nowrap">
                             <span
                               className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold ${
@@ -879,6 +1041,11 @@ export const GeneralLedgerPage: React.FC = () => {
                               <Building2 className="w-3 h-3 text-slate-400" />
                               {row.subsidiary}
                             </span>
+                          </td>
+                        )}
+                        {glColumns.exchangeRate && (
+                          <td className="py-2.5 px-3 text-right text-slate-600 tabular-nums whitespace-nowrap font-medium">
+                            {(row.exchangeRate ?? 1.0).toFixed(2)}
                           </td>
                         )}
                         {glColumns.employee && (
@@ -1068,12 +1235,34 @@ export const GeneralLedgerPage: React.FC = () => {
                       >
                         {treeColumns.accountsHead && (
                           <td className="py-2.5 px-3 flex items-center gap-1.5">
-                            {isExpanded ? (
-                              <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-                            ) : (
-                              <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-                            )}
-                            <span>{group.accountsHead}</span>
+                            <span
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleNode(group.accountsHead);
+                              }}
+                              className="p-0.5 rounded hover:bg-slate-200 text-slate-500 cursor-pointer inline-flex items-center"
+                            >
+                              {isExpanded ? (
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              ) : (
+                                <ChevronRight className="w-3.5 h-3.5" />
+                              )}
+                            </span>
+                            <span
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleTreeDrillDown({
+                                  type: 'head',
+                                  label: group.accountsHead,
+                                  accountsHead: group.accountsHead,
+                                  childHeads: group.children?.map((c) => c.accountsHead),
+                                });
+                              }}
+                              className="hover:text-indigo-600 hover:underline cursor-pointer inline-flex items-center gap-1.5"
+                              title="Click to view transactions in GL Details"
+                            >
+                              {group.accountsHead}
+                            </span>
                             <span className="text-[10px] text-slate-400 font-normal">
                               #{group.accountCode}
                             </span>
@@ -1081,7 +1270,26 @@ export const GeneralLedgerPage: React.FC = () => {
                         )}
                         {treeColumns.subsidiary && (
                           <td className="py-2.5 px-3 text-slate-500 font-normal">
-                            {group.subsidiary}
+                            {group.subsidiary && group.subsidiary !== 'Consolidated' ? (
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleTreeDrillDown({
+                                    type: 'subLedger',
+                                    label: `${group.accountsHead} - ${group.subsidiary}`,
+                                    accountsHead: group.accountsHead,
+                                    childHeads: group.children?.map((c) => c.accountsHead),
+                                    subsidiary: group.subsidiary,
+                                  });
+                                }}
+                                className="hover:text-indigo-600 hover:underline cursor-pointer"
+                                title="Click to view transactions in GL Details"
+                              >
+                                {group.subsidiary}
+                              </span>
+                            ) : (
+                              <span>{group.subsidiary}</span>
+                            )}
                           </td>
                         )}
                         {treeColumns.opening && (
@@ -1128,14 +1336,47 @@ export const GeneralLedgerPage: React.FC = () => {
                             {treeColumns.accountsHead && (
                               <td className="py-2 px-3 pl-8 text-slate-700 font-semibold flex items-center gap-2">
                                 <span className="w-2 h-px bg-slate-300" />
-                                {child.accountsHead}
+                                <span
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleTreeDrillDown({
+                                      type: 'head',
+                                      label: child.accountsHead,
+                                      accountsHead: child.accountsHead,
+                                    });
+                                  }}
+                                  className="hover:text-indigo-600 hover:underline cursor-pointer inline-flex items-center gap-1.5"
+                                  title="Click to view transactions in GL Details"
+                                >
+                                  {child.accountsHead}
+                                </span>
                                 <span className="text-[10px] text-slate-400 font-normal">
                                   #{child.accountCode}
                                 </span>
                               </td>
                             )}
                             {treeColumns.subsidiary && (
-                              <td className="py-2 px-3 text-slate-600">{child.subsidiary}</td>
+                              <td className="py-2 px-3 text-slate-600">
+                                {child.subsidiary ? (
+                                  <span
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleTreeDrillDown({
+                                        type: 'subLedger',
+                                        label: `${child.subsidiary} (${child.accountsHead})`,
+                                        accountsHead: child.accountsHead,
+                                        subsidiary: child.subsidiary,
+                                      });
+                                    }}
+                                    className="hover:text-indigo-600 hover:underline cursor-pointer"
+                                    title="Click to view transactions in GL Details"
+                                  >
+                                    {child.subsidiary}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-400">—</span>
+                                )}
+                              </td>
                             )}
                             {treeColumns.opening && (
                               <td
