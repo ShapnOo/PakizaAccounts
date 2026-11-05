@@ -277,6 +277,7 @@ const READY_ROUTE_PATTERNS = [
   '/financial-statement/income-statement',
   '/reports/financial-statement/income-statement',
   '/accounts-report/income-statement',
+  '/income-statement/customize',
   '/income-statement',
   '/reports/ledger/receipt-and-payments-statement',
   '/receipt-payment',
@@ -335,11 +336,15 @@ function isPathActive(itemTo: string | undefined, currentPath: string): boolean 
   ) {
     return true;
   }
-  if (
-    (itemTo === '/reports/financial-statement/income-statement' || itemTo === '/accounts-report/income-statement' || itemTo === '/income-statement') &&
-    (currentPath.includes('/income-statement'))
-  ) {
-    return true;
+  if (itemTo === '/accounts-report/income-statement') {
+    return currentPath === '/accounts-report/income-statement' || currentPath.startsWith('/income-statement/customize');
+  }
+  if (itemTo === '/reports/financial-statement/income-statement' || itemTo === '/income-statement') {
+    return (
+      currentPath === '/reports/financial-statement/income-statement' ||
+      currentPath === '/financial-statement/income-statement' ||
+      currentPath === '/income-statement'
+    );
   }
 
   return false;

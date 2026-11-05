@@ -1,14 +1,15 @@
 import React, { useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useIncomeStatementStore } from '../../stores/incomeStatementStore';
 import { TopControlBar } from '../../components/income-statement/TopControlBar';
 import { IncomeStatementTable } from '../../components/income-statement/IncomeStatementTable';
 import { TableSkeleton } from '../../components/income-statement/TableSkeleton';
 import { EmptyState } from '../../components/income-statement/EmptyState';
-import { TrendingUp, RefreshCw } from 'lucide-react';
+import { TrendingUp, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { ReportType, CompareMode } from '../../types/incomeStatement';
 
 export const IncomeStatementPage: React.FC = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const {
     rows,
@@ -67,6 +68,15 @@ export const IncomeStatementPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate(`/accounts-report/income-statement?type=${filters.reportType}`)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-semibold shadow-2xs hover:bg-indigo-100 transition-all cursor-pointer"
+            title="Customize rows and formulas"
+          >
+            <SlidersHorizontal className="size-3.5 text-indigo-600" />
+            <span>Customize Structure</span>
+          </button>
           <button
             type="button"
             onClick={() => load()}

@@ -45,6 +45,7 @@ import { FinancialPeriodSetupPage } from "./pages/financial-period/FinancialPeri
 import { GeneralLedgerPage } from "./pages/reports/GeneralLedgerPage";
 import { BalanceSheetPage } from "./pages/balance-sheet/Index";
 import { IncomeStatementPage } from "./pages/income-statement/Index";
+import { IncomeStatementCustomizePage } from "./pages/income-statement-customize/Index";
 import { ReceiptPaymentPage } from "./pages/receipt-payment/Index";
 import { RetainedEarningsPage } from "./pages/retained-earnings/Index";
 import { TrialBalancePage } from "./pages/trial-balance/Index";
@@ -390,8 +391,11 @@ export default function App() {
                   {/* Income Statement Report Routes */}
                   <Route path="/financial-statement/income-statement" element={<IncomeStatementPage />} />
                   <Route path="/reports/financial-statement/income-statement" element={<IncomeStatementPage />} />
-                  <Route path="/accounts-report/income-statement" element={<IncomeStatementPage />} />
                   <Route path="/income-statement" element={<Navigate to="/financial-statement/income-statement" replace />} />
+
+                  {/* Income Statement Customization Routes */}
+                  <Route path="/accounts-report/income-statement" element={<IncomeStatementCustomizePage />} />
+                  <Route path="/income-statement/customize" element={<IncomeStatementCustomizePage />} />
 
                   {/* Receipt and Payments Statement Routes */}
                   <Route path="/reports/ledger/receipt-and-payments-statement" element={<ReceiptPaymentPage />} />

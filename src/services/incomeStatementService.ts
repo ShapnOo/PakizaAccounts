@@ -12,6 +12,9 @@ import { MOCK_IS_FILTERS, MOCK_IS_DATA } from '../mock/incomeStatement';
 import { generateFiscalYears, generateSubPeriods } from '../lib/fiscalYearMath';
 import { computeRollups, formatValue } from '../lib/incomeStatementMath';
 import { delay } from '../lib/delay';
+import { getCustomizationState } from './isCustomizationService';
+import { buildDisplayLabel } from '../lib/isCustomizationMath';
+import type { ISCustomRow } from '../types/isCustomization';
 
 const LS_FILTERS = 'is:filters';
 
@@ -105,6 +108,97 @@ export function buildColumns(filters: ISFilterState): {
   return { columnGroups, dataColumns };
 }
 
+function getSeedValuesForCustomRow(
+  row: ISCustomRow,
+  rawData: Record<string, number[]>,
+  colCount: number
+): number[] {
+  const code = row.code;
+  const labelLower = (row.particulars || '').toLowerCase();
+
+  let seedVals: number[] | undefined;
+
+  if (code === '1' || labelLower.includes('sales revenue')) {
+    seedVals = rawData.salesRevenue;
+  } else if (code === '2' || labelLower.includes('service revenue')) {
+    seedVals = rawData.salesRevenue?.map((v) => Math.round(v * 0.15));
+  } else if (code === '3' || labelLower.includes('others operating income')) {
+    seedVals = rawData.salesRevenue?.map((v) => Math.round(v * 0.05));
+  } else if (code === '4' || labelLower.includes('cost of revenue') || labelLower.includes('cost of goods')) {
+    seedVals = rawData.costOfGoods;
+  } else if (code === '5' || labelLower.includes('depreciation direct')) {
+    seedVals = rawData.costOfGoods?.map((v) => Math.round(v * 0.08));
+  } else if (code === '6' || labelLower.includes('others direct expenses')) {
+    seedVals = rawData.costOfGoods?.map((v) => Math.round(v * 0.04));
+  } else if (code === '7' || labelLower.includes('exchange gain')) {
+    seedVals = rawData.exchangeGainLoss;
+  } else if (code === '8' || labelLower.includes('scraps')) {
+    seedVals = rawData.scrapsRevenue;
+  } else if (code === '9' || labelLower.includes('others non-operating')) {
+    seedVals = rawData.salesRevenue?.map((v) => Math.round(v * 0.03));
+  } else if (code === '10' || labelLower.includes('administrative')) {
+    seedVals = rawData.adminExpenses;
+  } else if (code === '11' || labelLower.includes('selling and distribution')) {
+    seedVals = rawData.sellingExpenses;
+  } else if (code === '12' || labelLower.includes('financial expenses')) {
+    seedVals = rawData.financialExpenses;
+  } else if (code === '13' || labelLower.includes('depreciation indirect')) {
+    seedVals = rawData.adminExpenses?.map((v) => Math.round(v * 0.12));
+  } else if (code === '14' || labelLower.includes('others indirect')) {
+    seedVals = rawData.adminExpenses?.map((v) => Math.round(v * 0.05));
+  } else if (code === '15' || labelLower.includes('income tax')) {
+    seedVals = rawData.incomeTax;
+  } else {
+    // Custom user-added line
+    const base = Math.max(15000, ((code.charCodeAt(0) || 50) * 1234) % 60000);
+    seedVals = Array.from({ length: colCount }, (_, i) => Math.round(base * Math.pow(0.98, i)));
+  }
+
+  const values: number[] = [];
+  const baseArr = seedVals ?? [50000];
+  for (let i = 0; i < colCount; i++) {
+    if (i < baseArr.length) {
+      values.push(baseArr[i]);
+    } else {
+      const last = baseArr[baseArr.length - 1] || 0;
+      values.push(Math.round(last * Math.pow(0.97, i - baseArr.length + 1)));
+    }
+  }
+
+  return values;
+}
+
+function evaluateFormula(
+  formula: string,
+  valuesByCode: Map<string, number[]>,
+  colCount: number
+): number[] | null {
+  const trimmed = formula.trim().replace(/\s+/g, '');
+  const tokens = trimmed.split(/([+\-])/).filter(Boolean);
+  const result = new Array(colCount).fill(0);
+
+  let currentOp = '+';
+  for (const token of tokens) {
+    if (token === '+' || token === '-') {
+      currentOp = token;
+    } else {
+      const operand = valuesByCode.get(token.toUpperCase());
+      if (!operand) {
+        return null;
+      }
+      for (let i = 0; i < colCount; i++) {
+        if (currentOp === '+') {
+          result[i] += operand[i];
+        } else {
+          result[i] -= operand[i];
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
 export async function getIncomeStatementData(filters: ISFilterState): Promise<{
   columnGroups: ISColumnGroup[];
   dataColumns: { key: string; label: string; subLabel?: string }[];
@@ -115,20 +209,95 @@ export async function getIncomeStatementData(filters: ISFilterState): Promise<{
   // 1. Build column structure
   const { columnGroups, dataColumns } = buildColumns(filters);
 
-  // 2. Select row definitions
-  const rowDefs =
-    filters.reportType === 'Comprehensive' ? COMPREHENSIVE_ROWS : SUMMARY_ROWS;
-
-  // 3. Select mock data slice
+  // 2. Select mock data slice
   const dataKey = `${filters.reportType}::${dataKeyFor(filters.compareTo)}`;
   const rawData = MOCK_IS_DATA[dataKey] ?? {};
 
-  // 4. Instantiate rows with values
+  // 3. Try to load customized structure from isCustomizationService
+  try {
+    const customState = await getCustomizationState();
+    const activeCustom =
+      filters.reportType === 'Comprehensive'
+        ? customState.comprehensive
+        : customState.summary;
+
+    if (activeCustom?.rows && activeCustom.rows.length > 0) {
+      const customRows = activeCustom.rows;
+      const valuesByCode = new Map<string, number[]>();
+
+      // A. Populate child rows
+      customRows.forEach((r) => {
+        if (r.kind !== 'parent') {
+          const vals = getSeedValuesForCustomRow(r, rawData, dataColumns.length);
+          valuesByCode.set(r.code.toUpperCase(), vals);
+        }
+      });
+
+      // B. Multi-pass parent formula evaluation
+      const parents = customRows.filter((r) => r.kind === 'parent');
+      for (let pass = 0; pass < 5; pass++) {
+        let progress = false;
+        for (const p of parents) {
+          if (valuesByCode.has(p.code.toUpperCase())) continue;
+
+          if (p.formula && p.formula.trim()) {
+            const res = evaluateFormula(p.formula, valuesByCode, dataColumns.length);
+            if (res) {
+              valuesByCode.set(p.code.toUpperCase(), res);
+              progress = true;
+            }
+          } else {
+            // Implicit formula: sum children
+            const children = customRows.filter((r) => r.parentCode === p.code);
+            if (children.length > 0) {
+              const sum = new Array(dataColumns.length).fill(0);
+              children.forEach((c) => {
+                const cVals = valuesByCode.get(c.code.toUpperCase());
+                if (cVals) {
+                  for (let i = 0; i < dataColumns.length; i++) sum[i] += cVals[i];
+                }
+              });
+              valuesByCode.set(p.code.toUpperCase(), sum);
+              progress = true;
+            }
+          }
+        }
+        if (!progress) break;
+      }
+
+      // C. Build final ISRows
+      const rows: ISRow[] = customRows.map((r) => {
+        const isParent = r.kind === 'parent';
+        const vals = valuesByCode.get(r.code.toUpperCase()) ?? new Array(dataColumns.length).fill(0);
+
+        return {
+          id: r.id,
+          key: r.code,
+          label: buildDisplayLabel(r),
+          level: isParent ? 0 : 1,
+          isSectionHeader: isParent,
+          isBold: isParent,
+          isFormula: Boolean(isParent && r.formula),
+          letterCode: isParent ? (r.code as any) : undefined,
+          values: vals,
+          formula: r.formula,
+        };
+      });
+
+      return { columnGroups, dataColumns, rows };
+    }
+  } catch (err) {
+    console.warn('Failed to load custom structure, using static fallback:', err);
+  }
+
+  // Fallback to static seed
+  const rowDefs =
+    filters.reportType === 'Comprehensive' ? COMPREHENSIVE_ROWS : SUMMARY_ROWS;
+
   const rows: ISRow[] = rowDefs.map((def) => {
     const seedVals = rawData[def.key] ?? [];
     const values: number[] = [];
 
-    // Ensure array length matches dataColumns.length
     for (let i = 0; i < dataColumns.length; i++) {
       if (i < seedVals.length) {
         values.push(seedVals[i]);
@@ -159,7 +328,6 @@ export async function getIncomeStatementData(filters: ISFilterState): Promise<{
     };
   });
 
-  // 5. Compute formula rollups
   computeRollups(rows, dataColumns.length);
 
   return { columnGroups, dataColumns, rows };

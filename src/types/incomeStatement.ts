@@ -50,7 +50,8 @@ export type ISRowKey =
   | 'netProfitAfterTax'
   // Summary only:
   | 'incomeHeader'
-  | 'expensesHeader';
+  | 'expensesHeader'
+  | (string & {});
 
 export type ISRow = {
   id: string;
@@ -60,7 +61,7 @@ export type ISRow = {
   isSectionHeader: boolean;
   isBold: boolean;
   isFormula: boolean;                // computed rollup row (Gross Profit, NPBT, NPAT)
-  letterCode?: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
+  letterCode?: string;
   values: number[];                  // one per data column
   formula?: string;                  // e.g. "A-B"
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface LetterCodeChipProps {
-  code: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
+  code: string;
   className?: string;
 }
 
