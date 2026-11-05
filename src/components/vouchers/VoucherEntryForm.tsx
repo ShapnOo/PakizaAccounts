@@ -369,12 +369,58 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({ type, onSave
       {/* ── Summary & Reconciliation Footer ── */}
       <VoucherFooterTotals voucherType={type} totals={totals} />
 
-      {/* ── Narration Textarea ── */}
-      <div className="bg-card border border-border/80 rounded-xl p-3.5 shadow-2xs space-y-1.5">
-        <label className="text-xs font-bold text-foreground/85 flex items-center gap-1.5">
-          <FileText className="size-3.5 text-muted-foreground" />
-          <span>Narration / Notes</span>
-        </label>
+      {/* ── Narration Textarea with Multiple Standard Templates Dropdown ── */}
+      <div className="bg-card border border-border/80 rounded-xl p-3.5 shadow-2xs space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <label className="text-xs font-bold text-foreground/85 flex items-center gap-1.5">
+            <FileText className="size-3.5 text-primary" />
+            <span>Narration / Notes</span>
+          </label>
+
+          {availableNarrations.length > 0 && (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-lg px-2.5 py-1">
+                <Sparkles className="size-3 text-primary shrink-0" />
+                <span className="text-[11px] font-bold text-primary whitespace-nowrap">
+                  Standard Narration:
+                </span>
+                <select
+                  value={selectedNarrationId}
+                  onChange={(e) => handleSelectNarration(e.target.value)}
+                  className="bg-transparent text-xs font-semibold text-foreground outline-none cursor-pointer max-w-[240px] truncate"
+                >
+                  <option value="" className="bg-card text-foreground">
+                    -- Choose Template ({availableNarrations.length} Options) --
+                  </option>
+                  {availableNarrations.map((n) => (
+                    <option
+                      key={n.id}
+                      value={n.id}
+                      className="bg-card text-foreground font-medium"
+                    >
+                      {n.title} {n.isDefault ? '★ (Default)' : ''}
+                    </option>
+                  ))}
+                </select>
+
+                {selectedNarrationId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const chosen = availableNarrations.find((n) => n.id === selectedNarrationId);
+                      if (chosen) applyNarrationTemplate(chosen.template, chosen.title);
+                    }}
+                    className="p-0.5 rounded text-primary hover:bg-primary/20 transition cursor-pointer"
+                    title="Refresh tokens with current line item data"
+                  >
+                    <RefreshCw className="size-3" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         <textarea
           rows={2}
           value={narration}
@@ -382,6 +428,20 @@ export const VoucherEntryForm: React.FC<VoucherEntryFormProps> = ({ type, onSave
           placeholder="Enter formal accounting narration or voucher notes here..."
           className="w-full p-2.5 rounded-lg bg-muted/15 border border-border/80 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary shadow-2xs resize-none"
         />
+
+        {selectedNarrationId && (
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
+            <span>
+              Active Template:{' '}
+              <strong className="text-foreground">
+                {availableNarrations.find((n) => n.id === selectedNarrationId)?.title}
+              </strong>
+            </span>
+            <span className="text-[10.5px] italic text-primary/80">
+              Auto-filled • Fully editable
+            </span>
+          </div>
+        )}
       </div>
 
       {/* ── Sticky Bottom Action Bar ── */}

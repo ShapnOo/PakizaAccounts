@@ -2,6 +2,8 @@ import { VoucherLine } from '../types/voucher';
 
 export interface NarrationContext {
   date?: string;
+  month?: string;
+  year?: string;
   partyName?: string;
   invoiceNo?: string;
   chequeNo?: string;
@@ -55,6 +57,8 @@ export const extractNarrationContext = (
 
   return {
     date: dateStr,
+    month: month || undefined,
+    year: year || undefined,
     partyName: partyName || undefined,
     invoiceNo: invoiceNo || undefined,
     chequeNo: chequeNo || undefined,
