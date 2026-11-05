@@ -1,6 +1,7 @@
 import React from 'react';
 import { ISRow, ValueShowIn } from '../../types/incomeStatement';
 import { ValueCell } from './ValueCell';
+import { formatPercentValue } from '../../lib/incomeStatementMath';
 
 interface LineItemRowProps {
   row: ISRow;
@@ -8,6 +9,7 @@ interface LineItemRowProps {
   showInPercent: boolean;
   valueShowIn: ValueShowIn;
   isPeriodMode: boolean;
+  revenueBases?: { colBases: number[]; totalBase: number };
 }
 
 export const LineItemRow: React.FC<LineItemRowProps> = ({
@@ -16,20 +18,28 @@ export const LineItemRow: React.FC<LineItemRowProps> = ({
   showInPercent,
   valueShowIn,
   isPeriodMode,
+  revenueBases,
 }) => {
   const totalVal = row.values.reduce((acc, curr) => acc + curr, 0);
 
   const totalCell = (
-    <td className="py-1 px-1 text-right bg-slate-50/80 border-r border-slate-200">
-      <ValueCell
-        value={totalVal}
-        currency={currency}
-        showInPercent={false}
-        baseForPercent={null}
-        valueShowIn={valueShowIn}
-        isTotal
-      />
-    </td>
+    <>
+      <td className="py-1 px-1 text-right bg-slate-50/80 border-r border-slate-200 font-sans">
+        <ValueCell
+          value={totalVal}
+          currency={currency}
+          showInPercent={false}
+          baseForPercent={null}
+          valueShowIn={valueShowIn}
+          isTotal
+        />
+      </td>
+      {showInPercent && (
+        <td className="py-1 px-2.5 text-right font-mono text-[11px] font-semibold text-indigo-900 bg-indigo-50/40 border-r border-slate-200 whitespace-nowrap">
+          {formatPercentValue(totalVal, revenueBases?.totalBase)}
+        </td>
+      )}
+    </>
   );
 
   return (
@@ -42,17 +52,24 @@ export const LineItemRow: React.FC<LineItemRowProps> = ({
       {/* If Period mode, Total is first */}
       {isPeriodMode && totalCell}
 
-      {/* Data Column Values */}
+      {/* Data Column Values: Always formatted Amount + optional companion % column */}
       {row.values.map((val, idx) => (
-        <td key={idx} className="py-1 px-1 text-right border-r border-slate-100 font-sans">
-          <ValueCell
-            value={val}
-            currency={currency}
-            showInPercent={showInPercent}
-            baseForPercent={totalVal}
-            valueShowIn={valueShowIn}
-          />
-        </td>
+        <React.Fragment key={idx}>
+          <td className="py-1 px-1 text-right border-r border-slate-100 font-sans">
+            <ValueCell
+              value={val}
+              currency={currency}
+              showInPercent={false}
+              baseForPercent={null}
+              valueShowIn={valueShowIn}
+            />
+          </td>
+          {showInPercent && (
+            <td className="py-1 px-2.5 text-right font-mono text-[11px] text-indigo-700 bg-indigo-50/20 border-r border-slate-200/70 whitespace-nowrap">
+              {formatPercentValue(val, revenueBases?.colBases[idx])}
+            </td>
+          )}
+        </React.Fragment>
       ))}
 
       {/* If Entity mode, Total is last */}
@@ -60,4 +77,3 @@ export const LineItemRow: React.FC<LineItemRowProps> = ({
     </tr>
   );
 };
-

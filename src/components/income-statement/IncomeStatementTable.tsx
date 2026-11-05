@@ -84,6 +84,29 @@ export const IncomeStatementTable: React.FC<IncomeStatementTableProps> = ({
     ? bottomLine.values.reduce((acc, curr) => acc + curr, 0)
     : 0;
 
+  // Find revenue base row (Row A / Operating Income / Sales Revenue) for vertical percentage analysis
+  const revenueRow = useMemo(() => {
+    return (
+      effectiveRows.find((r) => r.letterCode === 'A') ||
+      effectiveRows.find((r) => r.key === 'salesRevenue') ||
+      effectiveRows.find((r) => r.label.toLowerCase().includes('operating income')) ||
+      effectiveRows.find((r) => r.label.toLowerCase().includes('revenue')) ||
+      effectiveRows[0]
+    );
+  }, [effectiveRows]);
+
+  const revenueBases = useMemo(() => {
+    if (!revenueRow) {
+      return {
+        colBases: new Array(effectiveColumns.length).fill(1),
+        totalBase: 1,
+      };
+    }
+    const colBases = revenueRow.values.map((v) => (v === 0 ? 1 : Math.abs(v)));
+    const totalBase = revenueRow.values.reduce((acc, curr) => acc + curr, 0) || 1;
+    return { colBases, totalBase };
+  }, [revenueRow, effectiveColumns.length]);
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden flex flex-col font-sans relative z-10">
       {/* Table Subtitle Bar */}
@@ -118,6 +141,7 @@ export const IncomeStatementTable: React.FC<IncomeStatementTableProps> = ({
             columnGroups={columnGroups}
             dataColumns={effectiveColumns}
             fyExpanded={fyExpanded}
+            showInPercent={filters.showInPercent}
           />
 
           <tbody className="divide-y divide-slate-100">
@@ -129,6 +153,7 @@ export const IncomeStatementTable: React.FC<IncomeStatementTableProps> = ({
                     row={row}
                     colCount={effectiveColumns.length}
                     isPeriodMode={isPeriodMode}
+                    showInPercent={filters.showInPercent}
                   />
                 );
               }
@@ -142,6 +167,7 @@ export const IncomeStatementTable: React.FC<IncomeStatementTableProps> = ({
                     showInPercent={filters.showInPercent}
                     valueShowIn={filters.valueShowIn}
                     isPeriodMode={isPeriodMode}
+                    revenueBases={revenueBases}
                   />
                 );
               }
@@ -154,6 +180,7 @@ export const IncomeStatementTable: React.FC<IncomeStatementTableProps> = ({
                   showInPercent={filters.showInPercent}
                   valueShowIn={filters.valueShowIn}
                   isPeriodMode={isPeriodMode}
+                  revenueBases={revenueBases}
                 />
               );
             })}

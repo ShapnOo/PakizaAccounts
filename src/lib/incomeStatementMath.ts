@@ -90,6 +90,16 @@ export function computeRollups(rows: ISRow[], colCount: number): void {
 }
 
 /**
+ * Calculate formatted percentage string against revenue base (e.g. "40.00%")
+ */
+export function formatPercentValue(value: number, base: number | undefined | null): string {
+  if (value === 0) return '—';
+  if (!base || base === 0) return '0.00%';
+  const pct = (value / base) * 100;
+  return `${pct >= 0 ? '' : '-'}${Math.abs(pct).toFixed(2)}%`;
+}
+
+/**
  * Format a value per currency, showInPercent, and valueShowIn display modes.
  * Returns text with strict Inter font styling compatibility.
  */

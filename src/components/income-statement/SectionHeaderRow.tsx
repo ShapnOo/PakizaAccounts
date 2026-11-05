@@ -6,13 +6,28 @@ interface SectionHeaderRowProps {
   row: ISRow;
   colCount: number;
   isPeriodMode: boolean;
+  showInPercent?: boolean;
 }
 
 export const SectionHeaderRow: React.FC<SectionHeaderRowProps> = ({
   row,
   colCount,
   isPeriodMode,
+  showInPercent = false,
 }) => {
+  const totalCells = (
+    <>
+      <td className="py-2 px-3 text-right text-slate-300 font-sans text-xs border-r border-slate-200 select-none">
+        —
+      </td>
+      {showInPercent && (
+        <td className="py-2 px-2.5 text-right text-slate-300 font-sans text-xs border-r border-slate-200 select-none">
+          —
+        </td>
+      )}
+    </>
+  );
+
   return (
     <tr className="border-b border-slate-200 bg-slate-100/70 hover:bg-slate-100 transition-colors font-sans">
       {/* Particulars Cell: Sticky on the left */}
@@ -24,29 +39,24 @@ export const SectionHeaderRow: React.FC<SectionHeaderRowProps> = ({
       </td>
 
       {/* If Period mode, Total is first */}
-      {isPeriodMode && (
-        <td className="py-2 px-3 text-right text-slate-300 font-sans text-xs border-r border-slate-200 select-none">
-          —
-        </td>
-      )}
+      {isPeriodMode && totalCells}
 
       {/* Data columns */}
       {Array.from({ length: colCount }).map((_, idx) => (
-        <td
-          key={idx}
-          className="py-2 px-2 text-right text-slate-300 font-sans text-xs border-r border-slate-200 select-none"
-        >
-          —
-        </td>
+        <React.Fragment key={idx}>
+          <td className="py-2 px-2 text-right text-slate-300 font-sans text-xs border-r border-slate-200 select-none">
+            —
+          </td>
+          {showInPercent && (
+            <td className="py-2 px-2.5 text-right text-slate-300 font-sans text-xs border-r border-slate-200 select-none">
+              —
+            </td>
+          )}
+        </React.Fragment>
       ))}
 
       {/* If Entity mode, Total is last */}
-      {!isPeriodMode && (
-        <td className="py-2 px-3 text-right text-slate-300 font-sans text-xs border-l border-slate-200 select-none">
-          —
-        </td>
-      )}
+      {!isPeriodMode && totalCells}
     </tr>
   );
 };
-

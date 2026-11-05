@@ -429,15 +429,36 @@ export async function exportToPdf(
 
     const isPeriodMode = filters.compareTo === 'Previous Period';
 
+    const revenueRow =
+      rows.find((r) => r.letterCode === 'A') ||
+      rows.find((r) => r.key === 'salesRevenue') ||
+      rows[0];
+    const colBases = revenueRow ? revenueRow.values.map((v) => (v === 0 ? 1 : Math.abs(v))) : [];
+    const totalBase = revenueRow ? revenueRow.values.reduce((a, b) => a + b, 0) || 1 : 1;
+
     const headerColsHtml = dataColumns
       .map(
         (c) => `
         <th style="padding: 6px 8px; border-bottom: 2px solid #cbd5e1; text-align: right; font-size: 10px;">
           <div>${c.label}</div>
           ${c.subLabel ? `<div style="font-size: 8px; font-weight: normal; color: #64748b;">${c.subLabel}</div>` : ''}
-        </th>`
+        </th>
+        ${
+          filters.showInPercent
+            ? `<th style="padding: 6px 6px; border-bottom: 2px solid #cbd5e1; text-align: right; font-size: 10px; background-color: #f1f5f9; color: #4338ca;">%</th>`
+            : ''
+        }`
       )
       .join('');
+
+    const totalHeaderHtml = `
+      <th style="padding: 6px 8px; border-bottom: 2px solid #cbd5e1; text-align: right; font-size: 10px; background-color: #e2e8f0;">Total</th>
+      ${
+        filters.showInPercent
+          ? `<th style="padding: 6px 6px; border-bottom: 2px solid #cbd5e1; text-align: right; font-size: 10px; background-color: #e0e7ff; color: #3730a3;">%</th>`
+          : ''
+      }
+    `;
 
     const rowsHtml = rows
       .map((r, idx) => {
@@ -452,27 +473,46 @@ export async function exportToPdf(
         if (isHeader) bg = '#f1f5f9';
         if (isFormula) bg = '#eef2ff';
 
-        const totalCellHtml = `<td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; font-weight: bold; font-size: 10px;">${
-          isHeader
-            ? '—'
-            : formatValue(totalVal, filters.currency, filters.showInPercent, null, filters.valueShowIn).text
-        }</td>`;
+        const totalCellHtml = `
+          <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; font-weight: bold; font-size: 10px;">
+            ${isHeader ? '—' : formatValue(totalVal, filters.currency, false, null, filters.valueShowIn).text}
+          </td>
+          ${
+            filters.showInPercent
+              ? `<td style="padding: 6px 6px; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 9.5px; font-weight: bold; color: #3730a3; background-color: #f5f7ff;">
+                  ${isHeader ? '—' : totalVal === 0 ? '—' : `${((totalVal / totalBase) * 100).toFixed(2)}%`}
+                </td>`
+              : ''
+          }
+        `;
 
         const valuesHtml = r.values
-          .map((v) => {
+          .map((v, cIdx) => {
             if (isHeader) {
-              return `<td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 10px; color: #cbd5e1;">—</td>`;
+              return `
+                <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 10px; color: #cbd5e1;">—</td>
+                ${filters.showInPercent ? `<td style="padding: 6px 6px; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 9.5px; color: #cbd5e1;">—</td>` : ''}
+              `;
             }
             const fmt = formatValue(
               v,
               filters.currency,
-              filters.showInPercent,
-              totalVal,
+              false,
+              null,
               filters.valueShowIn
             );
-            return `<td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 10px; color: ${
-              fmt.isNegative ? '#e11d48' : '#0f172a'
-            };">${fmt.text}</td>`;
+            const cBase = colBases[cIdx] || 1;
+            const pctStr = v === 0 ? '—' : `${((v / cBase) * 100).toFixed(2)}%`;
+            return `
+              <td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 10px; color: ${
+                fmt.isNegative ? '#e11d48' : '#0f172a'
+              };">${fmt.text}</td>
+              ${
+                filters.showInPercent
+                  ? `<td style="padding: 6px 6px; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 9.5px; color: #4338ca; background-color: #fafbff;">${pctStr}</td>`
+                  : ''
+              }
+            `;
           })
           .join('');
 
@@ -521,9 +561,9 @@ export async function exportToPdf(
             <thead>
               <tr>
                 <th>Particulars</th>
-                ${isPeriodMode ? '<th style="text-align: right;">Total</th>' : ''}
+                ${isPeriodMode ? totalHeaderHtml : ''}
                 ${headerColsHtml}
-                ${!isPeriodMode ? '<th style="text-align: right;">Total</th>' : ''}
+                ${!isPeriodMode ? totalHeaderHtml : ''}
               </tr>
             </thead>
             <tbody>
