@@ -34,7 +34,7 @@ export const IncomeStatementPage: React.FC = () => {
     const compareParam = searchParams.get('compare') as CompareMode;
     if (
       compareParam &&
-      ['Previous Period', 'Company', 'Cost Center', 'Budget'].includes(compareParam)
+      ['Previous Period', 'Date Range', 'Company', 'Cost Center', 'Budget'].includes(compareParam)
     ) {
       setCompareTo(compareParam);
     }

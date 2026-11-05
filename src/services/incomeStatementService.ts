@@ -42,6 +42,8 @@ function dataKeyFor(mode: CompareMode): string {
   switch (mode) {
     case 'Previous Period':
       return 'periods';
+    case 'Date Range':
+      return 'periods';
     case 'Company':
       return 'companies';
     case 'Cost Center':
@@ -57,6 +59,31 @@ export function buildColumns(filters: ISFilterState): {
   columnGroups: ISColumnGroup[];
   dataColumns: { key: string; label: string; subLabel?: string }[];
 } {
+  if (filters.compareTo === 'Date Range') {
+    const count = Math.max(1, Math.min(filters.noOfDateRanges || 2, 5));
+    const fallbackRanges = [
+      '01/01/2026 - 31/01/2026',
+      '01/02/2026 - 28/02/2026',
+      '01/03/2026 - 31/03/2026',
+      '01/04/2026 - 30/04/2026',
+      '01/05/2026 - 31/05/2026',
+    ];
+
+    const dataCols = Array.from({ length: count }, (_, i) => {
+      const rangeText = filters.customDateRanges?.[i] || fallbackRanges[i];
+      return {
+        key: `range-${i + 1}`,
+        label: `Range ${i + 1}`,
+        subLabel: rangeText,
+      };
+    });
+
+    return {
+      columnGroups: [{ label: `Date Range Comparison (${count} Ranges)` }],
+      dataColumns: dataCols,
+    };
+  }
+
   if (filters.compareTo === 'Company') {
     const companies =
       filters.selectedCompanies && filters.selectedCompanies.length > 0

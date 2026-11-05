@@ -8,6 +8,7 @@ import { CompareToSelect } from './CompareToSelect';
 import { CurrencySelect } from './CurrencySelect';
 import { DateRangeSelect } from './DateRangeSelect';
 import { NoOfPeriodInput } from './NoOfPeriodInput';
+import { DateRangeComparisonControl } from './DateRangeComparisonControl';
 import { DisplayedBySelect } from './DisplayedBySelect';
 import { CompanyMultiSelect } from './CompanyMultiSelect';
 import { CostCenterMultiSelect } from './CostCenterMultiSelect';
@@ -30,6 +31,8 @@ export const TopControlBar: React.FC = () => {
     setCompareTo,
     setDateRange,
     setNoOfPeriod,
+    setNoOfDateRanges,
+    setCustomDateRange,
     setDisplayedBy,
     setShowInPercent,
     setValueShowIn,
@@ -144,6 +147,16 @@ export const TopControlBar: React.FC = () => {
                 Generates {filters.noOfPeriod} Fiscal Years × {filters.displayedBy === 'Year' ? 1 : filters.displayedBy === 'Month' ? 12 : 4} periods
               </div>
             </div>
+          )}
+
+          {filters.compareTo === 'Date Range' && (
+            <DateRangeComparisonControl
+              noOfDateRanges={filters.noOfDateRanges}
+              customDateRanges={filters.customDateRanges}
+              onNoOfDateRangesChange={setNoOfDateRanges}
+              onDateRangeChange={setCustomDateRange}
+              disabled={loading}
+            />
           )}
 
           {filters.compareTo === 'Company' && (

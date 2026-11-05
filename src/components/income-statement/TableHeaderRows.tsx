@@ -28,9 +28,14 @@ export const TableHeaderRows: React.FC<TableHeaderRowsProps> = ({
           {dataColumns.map((col) => (
             <th
               key={col.key}
-              className="py-2.5 px-3 text-right font-bold text-slate-800 min-w-[130px] whitespace-nowrap border-l border-slate-200 font-sans"
+              className="py-2.5 px-3 text-right font-bold text-slate-800 min-w-[140px] whitespace-nowrap border-l border-slate-200 font-sans"
             >
-              {col.label}
+              <div>{col.label}</div>
+              {col.subLabel && (
+                <div className="text-[10px] text-indigo-700 font-medium normal-case tracking-normal truncate max-w-[200px] ml-auto">
+                  {col.subLabel}
+                </div>
+              )}
             </th>
           ))}
 

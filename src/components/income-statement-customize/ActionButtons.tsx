@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Layers, CornerDownRight, List, BookOpen, Hash } from 'lucide-react';
+import { Plus, Layers, CornerDownRight, Hash } from 'lucide-react';
 
 interface ActionButtonsProps {
   rowCount: number;
@@ -7,8 +7,8 @@ interface ActionButtonsProps {
   childCount: number;
   onAddHead: () => void;
   onAddSubHead: () => void;
-  onOpenAddList: () => void;
-  onOpenManageMaster: () => void;
+  onOpenAddList?: () => void;
+  onOpenManageMaster?: () => void;
 }
 
 export const ActionButtons: React.FC<ActionButtonsProps> = ({
@@ -17,8 +17,6 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
   childCount,
   onAddHead,
   onAddSubHead,
-  onOpenAddList,
-  onOpenManageMaster,
 }) => {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -46,29 +44,6 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
           <Plus className="size-3.5 text-indigo-600" />
           <CornerDownRight className="size-3.5 text-slate-400" />
           <span>Add Sub Head</span>
-        </button>
-
-        {/* Add from Master List */}
-        <button
-          type="button"
-          onClick={onOpenAddList}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-indigo-600 text-[13px] font-medium shadow-2xs transition cursor-pointer"
-          title="Pick one or multiple lines from Master Accounts List"
-        >
-          <Plus className="size-3.5 text-indigo-600" />
-          <List className="size-3.5 text-slate-400" />
-          <span>Add from Master (List)</span>
-        </button>
-
-        {/* Manage Master List */}
-        <button
-          type="button"
-          onClick={onOpenManageMaster}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-indigo-600 text-[13px] font-medium shadow-2xs transition cursor-pointer"
-          title="Create new accounts and manage Master List items"
-        >
-          <BookOpen className="size-3.5 text-indigo-600" />
-          <span>Manage Master List</span>
         </button>
       </div>
 

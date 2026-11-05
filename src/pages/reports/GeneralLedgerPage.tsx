@@ -45,10 +45,10 @@ type ViewMode = 'tree' | 'details' | 'list' | 'kanban';
 export type GLStatusFilter = 'all' | 'Approved' | 'Pending' | 'Rejected';
 
 export type GLGroupByField =
-  | 'none'
-  | 'voucherNo'
-  | 'subsidiary'
   | 'accountsHead'
+  | 'none'
+  | 'subsidiary'
+  | 'voucherDate'
   | 'employee'
   | 'reference'
   | 'vehicle';
@@ -126,7 +126,7 @@ export const GeneralLedgerPage: React.FC = () => {
   const [dateRangePreset, setDateRangePreset] = useState<string>('this-month');
   const [currency, setCurrency] = useState<string>('BDT');
   const [valueShowIn, setValueShowIn] = useState<ValueShowInMode>('actual');
-  const [groupBy, setGroupBy] = useState<GLGroupByField>('none');
+  const [groupBy, setGroupBy] = useState<GLGroupByField>('accountsHead');
   const [statusFilter, setStatusFilter] = useState<GLStatusFilter>('all');
   const [showSubLedger, setShowSubLedger] = useState<boolean>(true);
   const [glColumns, setGlColumns] = useState<GLDetailsColumns>(DEFAULT_GL_DETAILS_COLUMNS);
@@ -339,8 +339,8 @@ export const GeneralLedgerPage: React.FC = () => {
     linesWithBalance.forEach((line) => {
       let key = '';
       switch (groupBy) {
-        case 'voucherNo':
-          key = line.voucherNo || 'No Voucher';
+        case 'voucherDate':
+          key = line.date ? `Date: ${line.date}` : 'No Date';
           break;
         case 'subsidiary':
           key = line.subsidiary || 'Undefined Subsidiary';
@@ -358,7 +358,7 @@ export const GeneralLedgerPage: React.FC = () => {
           key = line.vehicle || 'No Vehicle';
           break;
         default:
-          key = 'Other';
+          key = line.accountsHead || 'Other';
       }
 
       if (!map.has(key)) {
@@ -468,11 +468,10 @@ export const GeneralLedgerPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setViewMode('tree')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
-                viewMode === 'tree'
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${viewMode === 'tree'
                   ? 'bg-white text-indigo-700 font-semibold shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <FolderTree className="w-3.5 h-3.5" />
               <span>Tree View</span>
@@ -480,11 +479,10 @@ export const GeneralLedgerPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setViewMode('details')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
-                viewMode === 'details'
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${viewMode === 'details'
                   ? 'bg-white text-indigo-700 font-semibold shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <TableIcon className="w-3.5 h-3.5" />
               <span>GL Details</span>
@@ -492,11 +490,10 @@ export const GeneralLedgerPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setViewMode('list')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
-                viewMode === 'list'
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${viewMode === 'list'
                   ? 'bg-white text-indigo-700 font-semibold shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <ListFilter className="w-3.5 h-3.5" />
               <span>List</span>
@@ -504,11 +501,10 @@ export const GeneralLedgerPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setViewMode('kanban')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
-                viewMode === 'kanban'
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${viewMode === 'kanban'
                   ? 'bg-white text-indigo-700 font-semibold shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <Columns3 className="w-3.5 h-3.5" />
               <span>Kanban</span>
@@ -607,30 +603,30 @@ export const GeneralLedgerPage: React.FC = () => {
               dateRangePreset !== 'this-month' ||
               currency !== 'BDT' ||
               valueShowIn !== 'actual' ||
-              (viewMode !== 'tree' && groupBy !== 'none') ||
+              (viewMode !== 'tree' && groupBy !== 'accountsHead') ||
               statusFilter !== 'all' ||
               filterState.conditions.length > 0) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setShowSubLedger(true);
-                  setGlColumns(DEFAULT_GL_DETAILS_COLUMNS);
-                  setTreeColumns(DEFAULT_GL_TREE_COLUMNS);
-                  setDateRangePreset('this-month');
-                  setCurrency('BDT');
-                  setValueShowIn('actual');
-                  setGroupBy('none');
-                  setStatusFilter('all');
-                  setTreeDrillDownFilter(null);
-                  resetAdvanceFilter();
-                }}
-                title="Reset all filters to defaults"
-                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/70 border border-rose-200/60 text-[11px] font-medium transition-all cursor-pointer shadow-2xs whitespace-nowrap h-7"
-              >
-                <RefreshCw className="size-2.5 text-rose-500" />
-                <span>Reset Filters</span>
-              </button>
-            )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSubLedger(true);
+                    setGlColumns(DEFAULT_GL_DETAILS_COLUMNS);
+                    setTreeColumns(DEFAULT_GL_TREE_COLUMNS);
+                    setDateRangePreset('this-month');
+                    setCurrency('BDT');
+                    setValueShowIn('actual');
+                    setGroupBy('accountsHead');
+                    setStatusFilter('all');
+                    setTreeDrillDownFilter(null);
+                    resetAdvanceFilter();
+                  }}
+                  title="Reset all filters to defaults"
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/70 border border-rose-200/60 text-[11px] font-medium transition-all cursor-pointer shadow-2xs whitespace-nowrap h-7"
+                >
+                  <RefreshCw className="size-2.5 text-rose-500" />
+                  <span>Reset Filters</span>
+                </button>
+              )}
           </div>
         </div>
 
@@ -746,10 +742,10 @@ export const GeneralLedgerPage: React.FC = () => {
                     onChange={(e) => setGroupBy(e.target.value as GLGroupByField)}
                     className="w-full h-7.5 pl-2.5 pr-7 rounded-md border border-slate-200 bg-white text-[11px] font-medium text-slate-700 shadow-2xs hover:border-slate-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition cursor-pointer appearance-none"
                   >
-                    <option value="none">None (Chronological)</option>
-                    <option value="voucherNo">Voucher No</option>
-                    <option value="subsidiary">Subsidiary</option>
                     <option value="accountsHead">Accounts Head</option>
+                    <option value="none">None (Chronological)</option>
+                    <option value="subsidiary">Subsidiary</option>
+                    <option value="voucherDate">Voucher Date</option>
                     <option value="employee">Employee</option>
                     <option value="reference">Reference Center</option>
                     <option value="vehicle">Vehicle</option>
@@ -931,36 +927,36 @@ export const GeneralLedgerPage: React.FC = () => {
                   <React.Fragment key={group.groupKey}>
                     {groupBy !== 'none' && (
                       <tr className="bg-slate-100/90 border-t-2 border-b border-slate-200/90 font-semibold text-slate-800">
-                        <td colSpan={totalVisibleGlCols} className="py-2 px-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="inline-flex items-center justify-center size-5 rounded bg-indigo-100 text-indigo-700">
-                                <Layers className="w-3 h-3" />
-                              </span>
-                              <span className="font-bold text-slate-900 text-xs">
-                                {group.groupLabel}
-                              </span>
-                              <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-slate-200 text-slate-600 font-medium">
-                                {group.lines.length} {group.lines.length === 1 ? 'transaction' : 'transactions'}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-4 text-xs font-medium">
-                              <span className="text-slate-500">
-                                Total Dr:{' '}
-                                <span className="text-emerald-700 font-semibold tabular-nums">
-                                  {formatCurrencyAmount(group.subtotalDebit, currency, false, valueShowIn)}
-                                </span>
-                              </span>
-                              <span className="text-slate-500">
-                                Total Cr:{' '}
-                                <span className="text-amber-700 font-semibold tabular-nums">
-                                  {formatCurrencyAmount(group.subtotalCredit, currency, false, valueShowIn)}
-                                </span>
-                              </span>
-                            </div>
+                      <td colSpan={totalVisibleGlCols} className="py-2 px-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center justify-center size-5 rounded bg-indigo-100 text-indigo-700">
+                              <Layers className="w-3 h-3" />
+                            </span>
+                            <span className="font-bold text-slate-900 text-xs">
+                              {group.groupLabel}
+                            </span>
+                            <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-slate-200 text-slate-600 font-medium">
+                              {group.lines.length} {group.lines.length === 1 ? 'transaction' : 'transactions'}
+                            </span>
                           </div>
-                        </td>
-                      </tr>
+                          <div className="flex items-center gap-4 text-xs font-medium">
+                            <span className="text-slate-500">
+                              Total Dr:{' '}
+                              <span className="text-emerald-700 font-semibold tabular-nums">
+                                {formatCurrencyAmount(group.subtotalDebit, currency, false, valueShowIn)}
+                              </span>
+                            </span>
+                            <span className="text-slate-500">
+                              Total Cr:{' '}
+                              <span className="text-amber-700 font-semibold tabular-nums">
+                                {formatCurrencyAmount(group.subtotalCredit, currency, false, valueShowIn)}
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
                     )}
 
                     {group.lines.map((row) => (
@@ -1002,15 +998,14 @@ export const GeneralLedgerPage: React.FC = () => {
                         {glColumns.source && (
                           <td className="py-2.5 px-3 whitespace-nowrap">
                             <span
-                              className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                                row.voucherType === 'Payment'
+                              className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold ${row.voucherType === 'Payment'
                                   ? 'bg-rose-50 text-rose-700 border border-rose-200'
                                   : row.voucherType === 'Receive'
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                  : row.voucherType === 'Journal'
-                                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                                  : 'bg-amber-50 text-amber-700 border border-amber-200'
-                              }`}
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                    : row.voucherType === 'Journal'
+                                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                      : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                }`}
                             >
                               {row.voucherType}
                             </span>
@@ -1020,13 +1015,12 @@ export const GeneralLedgerPage: React.FC = () => {
                           <td className="py-2.5 px-3 whitespace-nowrap">
                             {row.status ? (
                               <span
-                                className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                                  row.status === 'Approved'
+                                className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${row.status === 'Approved'
                                     ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                     : row.status === 'Pending'
-                                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                    : 'bg-rose-50 text-rose-700 border border-rose-200'
-                                }`}
+                                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                                  }`}
                               >
                                 {row.status === 'Approved' ? 'Approve' : row.status === 'Rejected' ? 'Reject' : 'Pending'}
                               </span>
@@ -1107,6 +1101,7 @@ export const GeneralLedgerPage: React.FC = () => {
                       </tr>
                     ))}
 
+                    {/* Group Subtotal Row */}
                     {groupBy !== 'none' && (
                       <tr className="bg-indigo-50/20 font-semibold text-slate-700 border-b border-slate-200 text-xs">
                         <td
@@ -1522,13 +1517,12 @@ export const GeneralLedgerPage: React.FC = () => {
                       </span>
                       {line.status && (
                         <span
-                          className={`px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider ${
-                            line.status === 'Approved'
+                          className={`px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider ${line.status === 'Approved'
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : line.status === 'Pending'
-                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                              : 'bg-rose-50 text-rose-700 border border-rose-200'
-                          }`}
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                : 'bg-rose-50 text-rose-700 border border-rose-200'
+                            }`}
                         >
                           {line.status === 'Approved' ? 'Approve' : line.status === 'Rejected' ? 'Reject' : 'Pending'}
                         </span>

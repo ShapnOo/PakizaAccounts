@@ -227,8 +227,6 @@ export const IncomeStatementCustomizePage: React.FC = () => {
             childCount={childCount}
             onAddHead={() => handleAddHead()}
             onAddSubHead={() => handleAddSubHead()}
-            onOpenAddList={() => setIsAddListOpen(true)}
-            onOpenManageMaster={() => setIsManageMasterOpen(true)}
           />
 
           {/* Rows Table */}

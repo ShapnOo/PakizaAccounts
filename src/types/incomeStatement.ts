@@ -2,6 +2,7 @@ export type ReportType = 'Comprehensive' | 'Summary';
 
 export type CompareMode =
   | 'Previous Period'
+  | 'Date Range'
   | 'Company'
   | 'Cost Center'
   | 'Budget';
@@ -17,6 +18,8 @@ export type ISFilterState = {
   compareTo: CompareMode;
   dateRange: string;
   noOfPeriod: number;
+  noOfDateRanges: number;
+  customDateRanges: string[];
   displayedBy: DisplayedBy;
   showInPercent: boolean;
   valueShowIn: ValueShowIn;
@@ -70,6 +73,7 @@ export const REPORT_TYPES: ReportType[] = ['Comprehensive', 'Summary'];
 
 export const COMPARE_MODES: CompareMode[] = [
   'Previous Period',
+  'Date Range',
   'Company',
   'Cost Center',
   'Budget',

@@ -34,6 +34,8 @@ export interface ISStore {
   setCompareTo: (m: CompareMode) => void;
   setDateRange: (r: string) => void;
   setNoOfPeriod: (n: number) => void;
+  setNoOfDateRanges: (n: number) => void;
+  setCustomDateRange: (index: number, val: string) => void;
   setDisplayedBy: (d: DisplayedBy) => void;
   setShowInPercent: (b: boolean) => void;
   setValueShowIn: (v: ValueShowIn) => void;
@@ -77,6 +79,33 @@ export const useIncomeStatementStore = create<ISStore>()(
       setNoOfPeriod: (noOfPeriod) => {
         const clamped = Math.max(1, Math.min(noOfPeriod, 10));
         set((s) => ({ filters: { ...s.filters, noOfPeriod: clamped } }));
+        get().load();
+      },
+
+      setNoOfDateRanges: (noOfDateRanges) => {
+        const clamped = Math.max(1, Math.min(noOfDateRanges, 5));
+        set((s) => ({ filters: { ...s.filters, noOfDateRanges: clamped } }));
+        get().load();
+      },
+
+      setCustomDateRange: (index, val) => {
+        set((s) => {
+          const nextRanges = [...(s.filters.customDateRanges || [
+            '01/01/2026 - 31/01/2026',
+            '01/02/2026 - 28/02/2026',
+            '01/03/2026 - 31/03/2026',
+            '01/04/2026 - 30/04/2026',
+            '01/05/2026 - 31/05/2026',
+          ])];
+          nextRanges[index] = val;
+          return {
+            filters: {
+              ...s.filters,
+              customDateRanges: nextRanges,
+              ...(index === 0 ? { dateRange: val } : {}),
+            },
+          };
+        });
         get().load();
       },
 
@@ -228,6 +257,18 @@ export const useIncomeStatementStore = create<ISStore>()(
     }),
     {
       name: 'is:filter-state',
+      merge: (persistedState: any, currentState) => ({
+        ...currentState,
+        ...persistedState,
+        filters: {
+          ...MOCK_IS_FILTERS,
+          ...(persistedState?.filters || {}),
+          noOfDateRanges:
+            persistedState?.filters?.noOfDateRanges ?? MOCK_IS_FILTERS.noOfDateRanges,
+          customDateRanges:
+            persistedState?.filters?.customDateRanges ?? MOCK_IS_FILTERS.customDateRanges,
+        },
+      }),
       partialize: (state) => ({
         filters: state.filters,
       }),
