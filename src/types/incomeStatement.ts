@@ -17,6 +17,7 @@ export type ISFilterState = {
   reportType: ReportType;
   compareTo: CompareMode;
   dateRange: string;
+  customDateRange?: string;
   noOfPeriod: number;
   noOfDateRanges: number;
   customDateRanges: string[];

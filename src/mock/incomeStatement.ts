@@ -4,6 +4,7 @@ export const MOCK_IS_FILTERS: ISFilterState = {
   reportType: 'Comprehensive',
   compareTo: 'Previous Period',
   dateRange: 'This Period',
+  customDateRange: '01/01/2026 - 31/01/2026',
   noOfPeriod: 2,
   noOfDateRanges: 2,
   customDateRanges: [

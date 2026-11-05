@@ -33,6 +33,7 @@ export interface ISStore {
   setReportType: (t: ReportType) => void;
   setCompareTo: (m: CompareMode) => void;
   setDateRange: (r: string) => void;
+  setCustomDateRangeSingle: (range: string) => void;
   setNoOfPeriod: (n: number) => void;
   setNoOfDateRanges: (n: number) => void;
   setCustomDateRange: (index: number, val: string) => void;
@@ -73,6 +74,16 @@ export const useIncomeStatementStore = create<ISStore>()(
 
       setDateRange: (dateRange) => {
         set((s) => ({ filters: { ...s.filters, dateRange } }));
+        get().load();
+      },
+
+      setCustomDateRangeSingle: (customDateRange) => {
+        set((s) => ({
+          filters: {
+            ...s.filters,
+            customDateRange,
+          },
+        }));
         get().load();
       },
 
@@ -265,6 +276,8 @@ export const useIncomeStatementStore = create<ISStore>()(
           ...(persistedState?.filters || {}),
           noOfDateRanges:
             persistedState?.filters?.noOfDateRanges ?? MOCK_IS_FILTERS.noOfDateRanges,
+          customDateRange:
+            persistedState?.filters?.customDateRange ?? MOCK_IS_FILTERS.customDateRange,
           customDateRanges:
             persistedState?.filters?.customDateRanges ?? MOCK_IS_FILTERS.customDateRanges,
         },

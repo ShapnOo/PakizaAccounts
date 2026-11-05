@@ -33,6 +33,7 @@ export const TopControlBar: React.FC = () => {
     setNoOfPeriod,
     setNoOfDateRanges,
     setCustomDateRange,
+    setCustomDateRangeSingle,
     setDisplayedBy,
     setShowInPercent,
     setValueShowIn,
@@ -49,7 +50,7 @@ export const TopControlBar: React.FC = () => {
   const activeFilterCount = advanceFilterState.conditions.length;
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-xs mb-4 transition-all relative z-20 font-sans">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-xs mb-4 transition-all relative z-40 font-sans">
       {/* Top Header of Control Card */}
       <div className="px-4 py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/40 rounded-t-xl">
         <div className="flex items-center gap-2">
@@ -97,7 +98,7 @@ export const TopControlBar: React.FC = () => {
 
       {/* Primary Evenly Distributed Grid of Controls */}
       <div className="p-4 space-y-3.5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 items-start">
           <ReportTypeToggle
             value={filters.reportType}
             onChange={setReportType}
@@ -111,6 +112,9 @@ export const TopControlBar: React.FC = () => {
           <DateRangeSelect
             value={filters.dateRange}
             onChange={setDateRange}
+            customDateRange={filters.customDateRange || filters.customDateRanges?.[0] || '01/01/2026 - 31/01/2026'}
+            onCustomDateRangeChange={setCustomDateRangeSingle}
+            disabled={loading}
           />
 
           <CurrencySelect

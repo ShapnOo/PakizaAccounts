@@ -74,6 +74,7 @@ export const nav: NavItem[] = [
           { label: "Voucher Approval Setup", to: "/accounts-config/voucher-approval-setup" },
           { label: "Custom Field", to: "/accounts-config/custom-field" },
           { label: "Customer Master Setup", to: "/customers" },
+          { label: "Narration Setup", to: "/accounts-config/narration-setup" },
         ],
       },
       {
@@ -246,6 +247,8 @@ const READY_ROUTE_PATTERNS = [
   '/subledger',
   '/accounts-config/custom-field',
   '/custom-fields',
+  '/accounts-config/narration-setup',
+  '/narration-setup',
   '/accounts-report/journal',
   '/voucher-template',
   '/customers',
@@ -308,6 +311,7 @@ function isPathActive(itemTo: string | undefined, currentPath: string): boolean 
   if (itemTo === '/accounts-config/currency-setup' && currentPath.startsWith('/currency-setup')) return true;
   if (itemTo === '/accounts-config/subledger' && currentPath.startsWith('/subledger')) return true;
   if (itemTo === '/accounts-config/custom-field' && currentPath.startsWith('/custom-fields')) return true;
+  if (itemTo === '/accounts-config/narration-setup' && (currentPath === '/accounts-config/narration-setup' || currentPath.startsWith('/narration-setup'))) return true;
   if (itemTo === '/customers' && (currentPath.startsWith('/customers') || currentPath.startsWith('/accounts-receivable/customer-master'))) return true;
   if (itemTo === '/banks' && (currentPath.startsWith('/banks') || currentPath.startsWith('/branches') || currentPath.startsWith('/bank-management/bank-master-setup'))) return true;
   if (itemTo === '/cheque-setup' && currentPath.startsWith('/cheque-setup')) return true;

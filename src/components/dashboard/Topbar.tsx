@@ -90,6 +90,12 @@ const searchableMenus: SearchMenuLink[] = [
     to: "/accounts-config/custom-field",
     description: "User-defined attributes, project tags, and custom metadata",
   },
+  {
+    label: "Narration Setup",
+    parent: "Master Configuration & Setup (F&A)",
+    to: "/accounts-config/narration-setup",
+    description: "Standard voucher narrations, transaction description templates & dynamic tags",
+  },
 
   // Accounts Report Customization
   {

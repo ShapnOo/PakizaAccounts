@@ -49,6 +49,7 @@ import { IncomeStatementCustomizePage } from "./pages/income-statement-customize
 import { ReceiptPaymentPage } from "./pages/receipt-payment/Index";
 import { RetainedEarningsPage } from "./pages/retained-earnings/Index";
 import { TrialBalancePage } from "./pages/trial-balance/Index";
+import { NarrationSetupPage } from "./pages/narration-setup/Index";
 import { SlidersHorizontal, ArrowRight, Settings, FolderTree, Receipt, Scale, Coins, Layers, ListFilter, FileText, UserCheck, Landmark, BookOpen, Repeat, UploadCloud, RefreshCw, CalendarDays, Table2 } from "lucide-react";
 import { Toaster } from "sonner";
 
@@ -325,6 +326,10 @@ export default function App() {
                   <Route path="/accounts-config/custom-field" element={<Navigate to="/custom-fields" replace />} />
                   <Route path="/custom-fields/new" element={<CustomFieldFormPage />} />
                   <Route path="/custom-fields/:id/edit" element={<CustomFieldFormPage />} />
+
+                  {/* Narration Setup Routes */}
+                  <Route path="/accounts-config/narration-setup" element={<NarrationSetupPage />} />
+                  <Route path="/narration-setup" element={<Navigate to="/accounts-config/narration-setup" replace />} />
 
                   {/* Voucher Print Template Routes */}
                   <Route path="/accounts-report/journal" element={<VoucherSetupListPage />} />

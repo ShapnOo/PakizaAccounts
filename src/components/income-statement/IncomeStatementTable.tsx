@@ -85,7 +85,7 @@ export const IncomeStatementTable: React.FC<IncomeStatementTableProps> = ({
     : 0;
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden flex flex-col font-sans">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden flex flex-col font-sans relative z-10">
       {/* Table Subtitle Bar */}
       <div className="px-4 py-2.5 border-b border-slate-200/80 bg-slate-50/50 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
