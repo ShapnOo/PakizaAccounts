@@ -27,6 +27,7 @@ interface AccountTableProps {
   onToggleActive: (id: string) => void;
   onDelete: (id: string) => void;
   onOpenCreate?: (parentId?: string | null) => void;
+  onOpenQuickCreate?: (parent: Account | null, targetLevel: 3 | 4 | 5) => void;
   onOpenEdit?: (account: Account) => void;
 }
 
@@ -38,6 +39,7 @@ export const AccountTable: React.FC<AccountTableProps> = ({
   onToggleActive,
   onDelete,
   onOpenCreate,
+  onOpenQuickCreate,
   onOpenEdit,
 }) => {
   const navigate = useNavigate();
@@ -398,6 +400,7 @@ export const AccountTable: React.FC<AccountTableProps> = ({
                             onClose={() => setActiveMenuId(null)}
                             onOpenEdit={onOpenEdit}
                             onOpenCreate={onOpenCreate}
+                            onOpenQuickCreate={onOpenQuickCreate}
                             onToggleActive={onToggleActive}
                             onDelete={onDelete}
                           />
@@ -501,6 +504,7 @@ const AccountRowMenu: React.FC<{
   onClose: () => void;
   onOpenEdit?: (account: Account) => void;
   onOpenCreate?: (parentId?: string | null) => void;
+  onOpenQuickCreate?: (parent: Account | null, targetLevel: 3 | 4 | 5) => void;
   onToggleActive: (id: string) => void;
   onDelete: (id: string) => void;
 }> = ({
@@ -510,6 +514,7 @@ const AccountRowMenu: React.FC<{
   onClose,
   onOpenEdit,
   onOpenCreate,
+  onOpenQuickCreate,
   onToggleActive,
   onDelete,
 }) => {

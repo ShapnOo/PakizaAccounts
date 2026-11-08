@@ -25,6 +25,7 @@ interface AccountTreeProps {
   onToggleActive: (id: string) => void;
   onDelete: (id: string) => void;
   onOpenCreate?: (parentId?: string | null) => void;
+  onOpenQuickCreate?: (parent: Account | null, targetLevel: 3 | 4 | 5) => void;
   onOpenEdit?: (account: Account) => void;
 }
 
@@ -109,6 +110,7 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
   onToggleActive,
   onDelete,
   onOpenCreate,
+  onOpenQuickCreate,
   onOpenEdit,
 }) => {
   const navigate = useNavigate();
@@ -340,7 +342,7 @@ export const AccountTree: React.FC<AccountTreeProps> = ({
                       </div>
                     </div>
 
-                    {/* Right: Status Pill + Edit Button */}
+                    {/* Right: Actions + Status Pill + Edit Button */}
                     <div
                       className="flex items-center gap-2 shrink-0"
                       onClick={(e) => e.stopPropagation()}

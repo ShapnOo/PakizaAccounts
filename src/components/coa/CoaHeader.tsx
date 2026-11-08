@@ -12,6 +12,8 @@ import {
   FileSpreadsheet,
   FileText,
   ChevronDown,
+  Sparkles,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { COMPANY } from '../../constants/accountsTypeTree';
 import { Account } from '../../types/coa';
@@ -21,6 +23,7 @@ import { useDropdownPosition } from '../../hooks/useDropdownPosition';
 interface CoaHeaderProps {
   onOpenUpload: () => void;
   onOpenCreate?: () => void;
+  onOpenQuickCreate?: () => void;
   totalAccounts?: number;
   accounts?: Account[];
 }
@@ -28,6 +31,7 @@ interface CoaHeaderProps {
 export const CoaHeader: React.FC<CoaHeaderProps> = ({
   onOpenUpload,
   onOpenCreate,
+  onOpenQuickCreate,
   totalAccounts = 0,
   accounts = [],
 }) => {
@@ -165,6 +169,20 @@ export const CoaHeader: React.FC<CoaHeaderProps> = ({
             <Upload className="size-3.5 text-muted-foreground" />
             <span>Chart Upload</span>
           </button>
+
+          {/* Hidden for now - can be re-enabled:
+          {onOpenQuickCreate && (
+            <button
+              type="button"
+              onClick={onOpenQuickCreate}
+              className="inline-flex items-center gap-1.5 h-8.5 px-3.5 rounded-lg bg-[#1e88e5] hover:bg-[#1976d2] text-white text-xs font-bold shadow-sm shadow-blue-500/20 transition-all cursor-pointer whitespace-nowrap active:scale-95"
+              title="Quickly create a SubGroup, Control, or GL Account head"
+            >
+              <Sparkles className="size-3.5" />
+              <span>+ Quick Create</span>
+            </button>
+          )}
+          */}
 
           {onOpenCreate ? (
             <button

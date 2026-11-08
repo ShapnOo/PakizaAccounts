@@ -69,11 +69,11 @@ export const CoaProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const createAccount = (data: AccountFormData): Account => {
-    // Determine nature
-    const taxonomyNode = ACCOUNTS_TYPE_TREE.find((n) => n.type === data.accountsType);
-    const nature: Nature = taxonomyNode ? taxonomyNode.nature : 'Assets';
-
     const parent = data.parentId ? accounts.find((a) => a.id === data.parentId) : null;
+    const taxonomyNode = data.accountsType ? ACCOUNTS_TYPE_TREE.find((n) => n.type === data.accountsType) : null;
+    const nature: Nature = taxonomyNode ? taxonomyNode.nature : (parent ? parent.nature : 'Assets');
+    const accountsType = data.accountsType || (parent ? parent.accountsType : 'Cash & Cash Equivalent');
+
     const { code, level } = generateNextAccountCode(nature, parent, accounts);
 
     // Compute path
@@ -84,7 +84,7 @@ export const CoaProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       name: data.name,
       code,
       manualCode: data.manualCode,
-      accountsType: data.accountsType,
+      accountsType,
       nature,
       parentId: data.parentId || null,
       level,
